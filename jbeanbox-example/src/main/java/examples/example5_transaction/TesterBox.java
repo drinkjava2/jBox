@@ -12,14 +12,15 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 public class TesterBox extends BeanBox {
 	static {
-		BeanBox.defaultContext.setAOPAround("examples.example5_transaction.Test\\w*", "insert\\w*", new TxInterceptorBox(), "invoke");
+		BeanBox.defaultBeanBoxContext.setAOPAround("examples.example5_transaction.Test\\w*", "insert\\w*",
+				new TxInterceptorBox(), "invoke");
 	}
 
 	static class DSPoolBeanBox extends BeanBox {
 		{
 			setClassOrValue(ComboPooledDataSource.class);
-			setProperty("jdbcUrl", "jdbc:mysql://127.0.0.1:3306/test?user=root&password=root888");
-			setProperty("driverClass", "com.mysql.jdbc.Driver");// your jdbc driver name
+			setProperty("jdbcUrl", "jdbc:mysql://127.0.0.1:3306/test?user=root&password=root888");// change to your pwd
+			setProperty("driverClass", "com.mysql.jdbc.Driver");// change to your jdbc driver name
 			setProperty("maxPoolSize", 10);
 			setProperty("CheckoutTimeout", 2000);
 		}

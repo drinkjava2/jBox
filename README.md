@@ -13,19 +13,18 @@ Advantage of jBeanBox:
 
 Key Feature of jBeanBox:  
 * Use Java Configurations (called "BeanBox") to replace XML , configurations can be created/modified at runtime.
-* Bean defination is type safe, support class name refactoring (Similar like Guice)
-* Propertiy injection may not be type safe //to improve at feature version
 * Bean instance lazy initialization (Similar like Guice)
 * SingleTon/Prototype support, SingleTon Cache (Similar like Spring)
-* Simplified AOP & AspectJ support
+* AOP & AspectJ support
 * Multiple injection mechanisms (Similar like Spring)  
    Push type(No need source): Value injection, Bean injection, Constructor injection, Static factory injection, Bean factory injection  
    Pull type(Need source code): @InjectBox Annotation  
 * multiple contexts support (Similar like create multiple "ApplicationContexts" in Spring)  
 * Bean life cycle support(postConstruction & preDestory)   
+* init method allow create instance manually to achieve Java type safe(like Spring's Java configuration), and can mixed with normal injection. 
  
 How to use jBeanBox?  
-Download jbeanbox-core-x.x.jar or jbeanbox-core-x.x-sources.jar (or simply put BeanBox.java source file in src folder) and below 4 jars put them in your project lib folder:  
+Download jbeanbox-core-x.x.jar or jbeanbox-core-x.x-sources.jar and below 4 jars put them in your project lib folder:  
 http://central.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0.jar  
 http://central.maven.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar  
 http://central.maven.org/maven2/org/aspectj/aspectjrt/1.8.9/aspectjrt-1.8.9.jar  
@@ -33,7 +32,7 @@ http://central.maven.org/maven2/cglib/cglib/2.2.2/cglib-2.2.2.jar
 You can use Maven to download these jars by run "mvn -f pom.xml dependency:copy-dependencies".
 
 How to import jBeanBox project into Eclipse?  
-1)install JDK6+, Git bash, Maven, assume you are in windows, on command mode, run:  
+1)install JDK6+, Git bash, Maven, on command mode, run:  
 2)git clone https://github.com/drinkjava2/jBeanBox  
 3)cd jBeanBox  
 4)mvn eclipse:eclipse  
@@ -237,12 +236,52 @@ public class Tester {
 }
 ```
 
-To run example5, below extra jars are needed, detail see "pom.xml" in jbeanbox-example project.  
-c3p0-0.9.1.2.jar  
-commons-logging-api-1.0.4.jar  
-mysql-connector-java-5.1.5.jar  
-spring-aop-3.2.16.RELEASE.jar  
-spring-beans-3.2.16.RELEASE.jar  
-spring-core-3.2.16.RELEASE.jar  
-spring-jdbc-3.2.16.RELEASE.jar  
-spring-tx-3.2.16.RELEASE.jar  
+Example 6 - use init method to create bean instance to achieve Java type safe, it supports method name refactor in IDE,  
+below configuration do the same thing like example5 but use init method instead:
+```
+public class TesterBox extends BeanBox {
+	static {
+		BeanBox.defaultBeanBoxContext.setAOPAround("examples.example6_type_safe.Test\\w*", "insert\\w*",
+				new TxInterceptorBox(), "invoke");
+	}
+
+	static class DSPoolBeanBox extends BeanBox {// Type-unsafe and type-safe configurations can mixed use.
+		{
+			setProperty("driverClass", "com.mysql.jdbc.Driver");
+			setProperty("jdbcUrl", "jdbc:mysql://127.0.0.1:3306/test?user=root&password=root888");
+		}
+
+		public DataSource init() {
+			ComboPooledDataSource ds = new ComboPooledDataSource();
+			ds.setMaxPoolSize(10);
+			ds.setCheckoutTimeout(2000);
+			return ds;
+		}
+	}
+
+	static class TxManagerBox extends BeanBox {
+		public DataSourceTransactionManager init() {
+			DataSourceTransactionManager dm = new DataSourceTransactionManager();
+			dm.setDataSource((DataSource) new DSPoolBeanBox().getBean());
+			return dm;
+		}
+	}
+
+	static class TxInterceptorBox extends BeanBox {// Advice
+		public TransactionInterceptor init() {
+			Properties props = new Properties();
+			props.put("insert*", "PROPAGATION_REQUIRED");
+			return new TransactionInterceptor((DataSourceTransactionManager) new TxManagerBox().getBean(), props);
+		}
+	}
+
+	public static class JdbcTemplateBox extends BeanBox {
+		public JdbcTemplate init() {
+			return new JdbcTemplate((DataSource) new DSPoolBeanBox().getBean());
+		}
+	}
+
+}
+
+```
+

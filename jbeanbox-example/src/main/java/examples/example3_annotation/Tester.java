@@ -1,8 +1,8 @@
 package examples.example3_annotation;
 
 import net.sf.jbeanbox.BeanBox;
-import net.sf.jbeanbox.BeanBox.BeanBoxContext;
-import net.sf.jbeanbox.BeanBox.InjectBox;
+import net.sf.jbeanbox.BeanBoxContext;
+import net.sf.jbeanbox.InjectBox;
 
 /**
  * 
@@ -13,7 +13,7 @@ import net.sf.jbeanbox.BeanBox.InjectBox;
  */
 public class Tester {
 	@InjectBox(A.StrBox.class)
-	String s1;// Use StrBox.class
+	String s1;// Use StrBox.class, recommend
 
 	@InjectBox(A.class)
 	String s2;// Use A.StringBox.class (or A.StringBox2.class, 2 to 8 depends context setting)
@@ -22,7 +22,7 @@ public class Tester {
 	String s3;// Use B$S3Box.class
 
 	@InjectBox
-	C c4;// Use CBox.class
+	C c4;// Use CBox.class, recommend
 
 	@InjectBox
 	String s5;// Use TesterBox$StringBox.class
@@ -35,7 +35,7 @@ public class Tester {
 
 	private String s8; // injected by field, not suitable for Proxy bean
 
-	private String s9; // injected by setter method
+	private String s9; // injected by setter method, recommend
 
 	public void setS9(String s9) {
 		this.s9 = s9;
@@ -57,13 +57,13 @@ public class Tester {
 	public static void main(String[] args) {
 		Tester t = BeanBox.getBean(Tester.class);
 		t.print();
-		BeanBox.defaultContext.close();
+		BeanBox.defaultBeanBoxContext.close();
 		System.out.println();
 
-		BeanBox.defaultContext.addConfig(Config.class);
+		BeanBox.defaultBeanBoxContext.addConfig(Config.class);
 		Tester t2 = new TesterBox().getBean();
 		t2.print();
-		BeanBox.defaultContext.close();
+		BeanBox.defaultBeanBoxContext.close();
 		System.out.println();
 
 		BeanBoxContext ctx = new BeanBoxContext(Config2.class).setBoxIdentity("Box2");

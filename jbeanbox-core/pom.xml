@@ -4,7 +4,7 @@
   <groupId>net.sf.jbeanbox</groupId>
   <artifactId>jbeanbox-core</artifactId>
   <packaging>jar</packaging>
-  <version>2.3</version>
+  <version>2.4</version>
   <name>jbeanbox-core</name>
   <url>http://maven.apache.org</url>
 
@@ -17,7 +17,7 @@
      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>3.8.1</version>
+        <version>4.11</version>
         <scope>test</scope>
       </dependency>
       <dependency>

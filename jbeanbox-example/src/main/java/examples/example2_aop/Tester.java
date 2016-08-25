@@ -21,16 +21,16 @@ public class Tester {
 
 	public static void main(String[] args) {
 		BeanBox advice = new BeanBox(AOPLogAdvice.class).setProperty("name", "AOP Logger");
-		BeanBox.defaultContext.setAOPAround("examples.example2_aop.\\w*", "doPrint\\w*", advice, "doAround");
-		BeanBox.defaultContext.setAOPBefore("examples.example2_aop.\\w*", "doPrint\\w*", advice, "doBefore");
-		BeanBox.defaultContext.setAOPAfterReturning("examples.example2_aop.\\w*", "doPrint\\w*", advice, "doAfterReturning");
-		BeanBox.defaultContext.setAOPAfterThrowing("examples.example2_aop.\\w*", "doPrint\\w*", advice, "doAfterThrowing");
+		BeanBox.defaultBeanBoxContext.setAOPAround("examples.example2_aop.\\w*", "doPrint\\w*", advice, "doAround");
+		BeanBox.defaultBeanBoxContext.setAOPBefore("examples.example2_aop.\\w*", "doPrint\\w*", advice, "doBefore");
+		BeanBox.defaultBeanBoxContext.setAOPAfterReturning("examples.example2_aop.\\w*", "doPrint\\w*", advice, "doAfterReturning");
+		BeanBox.defaultBeanBoxContext.setAOPAfterThrowing("examples.example2_aop.\\w*", "doPrint\\w*", advice, "doAfterThrowing");
 
 		BeanBox advice2 = new BeanBox(AspectjLogAdvice.class).setProperty("name", "AspectJ Logger");
-		BeanBox.defaultContext.setAspectjAround("examples.example2_aop.\\w*", "doPrint\\w*", advice2, "doAround");
-		BeanBox.defaultContext.setAspectjBefore("examples.example2_aop.\\w*", "doPrint\\w*", advice2, "doBefore");
-		BeanBox.defaultContext.setAspectjAfterReturning("examples.example2_aop.\\w*", "doPrint\\w*", advice2, "doAfterReturning");
-		BeanBox.defaultContext.setAspectjAfterThrowing("examples.example2_aop.\\w*", "doPrint\\w*", advice2, "doAfterThrowing");
+		BeanBox.defaultBeanBoxContext.setAspectjAround("examples.example2_aop.\\w*", "doPrint\\w*", advice2, "doAround");
+		BeanBox.defaultBeanBoxContext.setAspectjBefore("examples.example2_aop.\\w*", "doPrint\\w*", advice2, "doBefore");
+		BeanBox.defaultBeanBoxContext.setAspectjAfterReturning("examples.example2_aop.\\w*", "doPrint\\w*", advice2, "doAfterReturning");
+		BeanBox.defaultBeanBoxContext.setAspectjAfterThrowing("examples.example2_aop.\\w*", "doPrint\\w*", advice2, "doAfterThrowing");
 
 		Tester t = new BeanBox(Tester.class) {
 			{

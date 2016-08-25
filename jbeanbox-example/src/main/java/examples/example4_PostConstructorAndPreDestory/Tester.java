@@ -25,6 +25,6 @@ public class Tester {
 
 	public static void main(String[] args) {
 		BeanBox.getBean(Tester.class);
-		BeanBox.defaultContext.close();// print Bye Sam
+		BeanBox.defaultBeanBoxContext.close();// print Bye Sam
 	}
 }
