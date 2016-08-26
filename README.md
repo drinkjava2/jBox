@@ -237,8 +237,7 @@ public class Tester {
 }
 ```
 
-Example 6 - use init method to create bean instance to achieve Java type safe, it supports method name refactor in IDE,  
-below configuration do the same thing like example5 but use init method instead:
+Example 6 - Use create method to create bean instance manually and use config method to set values, this way can achieve Java type safe, it supports method name refactor in IDE, below configuration do the same thing like example5 but use init java type safe method instead:
 ```
 public class TesterBox extends BeanBox {
 	static {
@@ -285,4 +284,3 @@ public class TesterBox extends BeanBox {
 }
 
 ```
-
