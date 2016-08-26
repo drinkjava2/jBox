@@ -21,7 +21,8 @@ Key Feature of jBeanBox:
    Pull type(Need source code): @InjectBox Annotation  
 * multiple contexts support (Similar like create multiple "ApplicationContexts" in Spring)  
 * Bean life cycle support(postConstruction & preDestory)   
-* init method allow create instance manually to achieve Java type safe(like Spring's Java configuration), and can mixed with normal injection. 
+* create and config method call back allow create instance manually to get Java type safe(like Spring's Java configuration), and can mixed use with traditional injections. 
+ 
  
 How to use jBeanBox?  
 Download jbeanbox-core-x.x.jar or jbeanbox-core-x.x-sources.jar and below 4 jars put them in your project lib folder:  
