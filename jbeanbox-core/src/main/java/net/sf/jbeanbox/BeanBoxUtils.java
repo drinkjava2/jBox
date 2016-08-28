@@ -19,6 +19,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import net.sf.cglib.proxy.Enhancer;
@@ -32,6 +33,8 @@ import net.sf.cglib.proxy.Enhancer;
  *
  */
 public class BeanBoxUtils {
+	private static ConcurrentHashMap<String, Integer> classExistCache = new ConcurrentHashMap<String, Integer>();
+
 	/**
 	 * Return true if empty or null
 	 */
@@ -42,46 +45,28 @@ public class BeanBoxUtils {
 	/**
 	 * Search class by name
 	 */
-	public static Class<?> ifExistBeanBoxClass(String className) {
-		Class<?> newClass = null;
-		try {
-			newClass = Class.forName(className);
-			if (BeanBox.class.isAssignableFrom((Class<?>) newClass))
-				return newClass;
-		} catch (Throwable e) {
-		}
-		return null;
-	}
-
-	/**
-	 * Create BeanBox instance for clazz and inject context to it
-	 */
-	public static BeanBox getBoxInstance(Class<?> clazz, BeanBoxContext context) {
-		if (BeanBox.class.isAssignableFrom(clazz))
-			return createBeanOrBoxInstance(clazz, context);
-		else {
-			String className = clazz.getName() + context.boxIdentity;
-			Class<?> newClass = null;
+	public static Class<?> checkIfExist(String className) {
+		Integer i = classExistCache.get(className);
+		if (i == null)
 			try {
-				newClass = Class.forName(className);
-			} catch (Throwable e) {
-				className = clazz.getName() + "$" + clazz.getSimpleName() + context.boxIdentity;
-				try {
-					newClass = Class.forName(className);
-				} catch (Throwable ee) {
-					return new BeanBox(clazz, context);
+				Class<?> clazz = Class.forName(className);
+				if (BeanBox.class.isAssignableFrom((Class<?>) clazz)) {
+					classExistCache.put(className, 1);
+					return clazz;
 				}
+				classExistCache.put(className, 0);
+				return null;
+			} catch (Throwable e) {
+				classExistCache.put(className, 0);
+				return null;
 			}
-			if (BeanBox.class.isAssignableFrom(newClass)) {
-				BeanBox box = createBeanOrBoxInstance(newClass, context);
-				if (box.getClassOrValue() == null)
-					box.setClassOrValue(clazz);
-				return box;
-			} else
-				printAndThrow(null, "BeanBox getBox error! class named with identity \"" + context.boxIdentity
-						+ "\" but is not a BeanBox class, class=" + className);
+		if (1 == i) {
+			try {
+				return Class.forName(className);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
-		printAndThrow(null, "BeanBox getBox error! clazz=" + clazz);
 		return null;
 	}
 
@@ -102,10 +87,10 @@ public class BeanBoxUtils {
 					return (T) o;
 				}
 			}
-			printAndThrow(null,
+			throwError(null,
 					"BeanBox createBeanOrBoxInstance error: no 0 parameter constructor found! boxClass=" + clazz);
 		} catch (Exception e) {
-			printAndThrow(e, "BeanBox createBeanOrBoxInstance error! boxClass=" + clazz);
+			throwError(e, "BeanBox createBeanOrBoxInstance error! boxClass=" + clazz);
 		}
 		return null;
 	}
@@ -123,7 +108,7 @@ public class BeanBoxUtils {
 	/**
 	 * Transfer all Exceptions to AssertionError. The only place throw Exception/Error in this project
 	 */
-	public static void printAndThrow(Exception e, String errorMsg) throws AssertionError {
+	public static void throwError(Exception e, String errorMsg) throws AssertionError {
 		if (e != null)
 			e.printStackTrace();
 		throw new AssertionError(errorMsg);
@@ -178,5 +163,4 @@ public class BeanBoxUtils {
 					return true;
 		return false;
 	}
-
 }

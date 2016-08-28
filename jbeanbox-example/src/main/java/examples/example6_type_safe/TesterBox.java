@@ -13,7 +13,8 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 /**
- * This is similar like example5, but use Java type safe configurations to create bean instance and inject values. <br/>
+ * This configuration do same thing like example5, but use Java type safe configurations to create bean instance and
+ * inject values. <br/>
  * 
  * @author Yong Zhu
  * @since 2016-8-23

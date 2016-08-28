@@ -63,7 +63,11 @@ public class BeanBoxContext {
 	}
 
 	public <T> T getBean(Class<?> clazz) {
-		return BeanBoxUtils.getBoxInstance(clazz, this).getBean();
+		return getBeanBox(null, clazz, null, null, this, false).getBean();
+	}
+
+	public <T> T getBean(Class<?> clazz, Class<?> configClass) {
+		return getBeanBox(null, clazz, configClass, null, this, false).getBean();
 	}
 
 	public BeanBoxContext addConfig(Class<?> configClass) {
@@ -161,5 +165,65 @@ public class BeanBoxContext {
 			String adviceAroundMethodName) {
 		advisorList.add(new Advisor(classNameReg, methodNameReg, adviceBeanBox, adviceAroundMethodName, "AFTERTHROWING",
 				false));
+	}
+
+	/**
+	 * Create BeanBox instance for clazz and inject context to it, configClazz is given first find BeanBox in it
+	 */
+	public static BeanBox getBeanBox(Class<?> ownerClass, Class<?> clazz, Class<?> annotationClass, String fieldName,
+			BeanBoxContext context, boolean isMustFind) {
+		if (Object.class.equals(annotationClass))
+			annotationClass = null;
+		Class<?> box = null;
+		if (annotationClass != null) { // getBeanBox(A.class, AnnoConfig.class)
+			if (BeanBox.class.isAssignableFrom(annotationClass))
+				box = annotationClass;// #1 AnnoBox
+			if (box == null && clazz != null)
+				box = BeanBoxUtils
+						.checkIfExist(annotationClass.getName() + "$" + clazz.getSimpleName() + context.boxIdentity);// #2
+			// Anno$ABox
+			if (box == null)
+				box = BeanBoxUtils.checkIfExist(annotationClass.getName() + "$"
+						+ fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1) + context.boxIdentity);// #3
+			// Anno$FieldBox
+		} else {// getBeanBox(A.class)
+			if (clazz == null)
+				BeanBoxUtils.throwError(null, "BeanBox getBeanBox error! target class not set");
+			if (BeanBox.class.isAssignableFrom(clazz))
+				box = clazz;// #3.5 A.class is BeanBox
+			if (box == null)
+				box = BeanBoxUtils.checkIfExist(clazz.getName() + context.boxIdentity);// #4 ABox
+			if (box == null)
+				box = BeanBoxUtils.checkIfExist(clazz.getName() + "$" + clazz.getSimpleName() + context.boxIdentity);// #4.5
+			if (box == null && ownerClass != null)
+				box = BeanBoxUtils.checkIfExist(
+						ownerClass.getName() + context.boxIdentity + "$" + clazz.getSimpleName() + context.boxIdentity);// #5
+			if (box == null && ownerClass != null && !BeanBoxUtils.isEmptyStr(fieldName))
+				box = BeanBoxUtils.checkIfExist(
+						ownerClass.getName() + context.boxIdentity + "$" + fieldName + context.boxIdentity);// #5.5
+			// OwerBox$FieldBox
+			if (box == null) {
+				for (Class<?> configs : context.configClassList) {
+					box = BeanBoxUtils
+							.checkIfExist(configs.getName() + "$" + clazz.getSimpleName() + context.boxIdentity);// #6
+																													// Config$ABox
+					if (box != null)
+						break;
+					box = BeanBoxUtils.checkIfExist(configs.getName() + "$" + fieldName.substring(0, 1).toUpperCase()
+							+ fieldName.substring(1) + context.boxIdentity);// #7
+																			// Config$FieldBox
+					if (box != null)
+						break;
+				}
+			}
+		}
+		if (isMustFind && box == null)
+			BeanBoxUtils.throwError(null, "BeanBox getBeanBox error! Required BeanBox not found, class=" + clazz);
+		if (box == null)
+			return new BeanBox(clazz); // wrap it to a BeanBox, class should have a 0 parameter constructor
+		BeanBox beanbox = BeanBoxUtils.createBeanOrBoxInstance(box, context);
+		if (beanbox.getClassOrValue() == null)
+			beanbox.setClassOrValue(clazz);
+		return beanbox;
 	}
 }

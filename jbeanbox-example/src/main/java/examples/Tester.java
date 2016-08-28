@@ -15,5 +15,4 @@ public class Tester {
 		System.out.println("\r\n==============TEST EXAMPLE6===================");
 		examples.example6_type_safe.Tester.main(null);
 	}
-
 }
