@@ -17,8 +17,9 @@
 /**
  * For developers: this project is set to each line 120 characters.  
  * 
- * Compare to last version 2.3.0, this version 2.3.1 did not do any function changes, only split 
- * the single BeanBox.java file into separated java classes to make it easy to read.  
+ * Compare to last version 2.3, this version 2.4 fixed some bugs and put some new functions like Java 
+ * configuration and allow use @injectBox annotation on constructor to allow build an object tree with out
+ * use configuration class  
  */
 
 package net.sf.jbeanbox;
@@ -70,21 +71,6 @@ public class BeanBox {
 	}
 
 	/**
-	 * Create a BeanBox and set context
-	 */
-	public BeanBox(BeanBoxContext context) {
-		this.context = context;
-	}
-
-	/**
-	 * Create a BeanBox and set classOrValue and context
-	 */
-	public BeanBox(Object classOrValue, BeanBoxContext context) {
-		this.classOrValue = classOrValue;
-		this.context = context;
-	}
-
-	/**
 	 * Create a BeanBox and set constructorClass and constructorParameters
 	 */
 	public BeanBox(Class<?> constructorClass, Object... constructorParameters) {
@@ -97,7 +83,7 @@ public class BeanBox {
 	 */
 	public BeanBox setConstructor(Class<?> constructorClass, Object... constructorParameters) {
 		classOrValue = constructorClass;
-		//Object[] o=constructorParameters;
+		// Object[] o=constructorParameters;
 		constructorArgs = constructorParameters;
 		return this;
 	}
@@ -188,7 +174,7 @@ public class BeanBox {
 				&& BeanBox.class.isAssignableFrom((Class<?>) beanBoxInstanceOrValue))
 			try {
 				properties.put(property, new Object[] { PropertyType.BEAN,
-						BeanBoxUtils.createBeanOrBoxInstance((Class<?>) beanBoxInstanceOrValue, context) });
+						BeanBoxUtils.createBeanOrBoxWithConstructor0((Class<?>) beanBoxInstanceOrValue, context) });
 			} catch (Exception e) {
 				BeanBoxUtils.throwError(e, "BeanBox setProperty error! property=" + property
 						+ " beanBoxInstanceOrValue=" + beanBoxInstanceOrValue);
@@ -440,17 +426,7 @@ public class BeanBox {
 					instance = BeanBoxUtils.getProxyBean((Class<?>) classOrValue, context.advisorList);
 				else if (constructorArgs != null)
 					try {
-						Class<?>[] argsTypes = getObjectClassType(constructorArgs);
-						outer: for (Constructor<?> c : ((Class<?>) classOrValue).getConstructors()) {
-							Class<?>[] cType = c.getParameterTypes();
-							if (cType.length != argsTypes.length)
-								continue outer;
-							for (int i = 0; i < cType.length; i++)
-								if (!cType[i].isAssignableFrom(argsTypes[i]))
-									continue outer;
-							instance = c.newInstance(getObjectRealValue(constructorArgs));
-							break;
-						}
+						instance = createBeanByGivenConstructor();
 						if (instance == null)
 							BeanBoxUtils.throwError(null,
 									"BeanBox call constructor error! not found match constructor for " + classOrValue);
@@ -459,7 +435,7 @@ public class BeanBox {
 					}
 				else if (classOrValue instanceof Class) {
 					try {
-						instance = BeanBoxUtils.createBeanOrBoxInstance((Class<?>) classOrValue, context);
+						instance = BeanBoxUtils.createBeanOrBoxWithConstructor0((Class<?>) classOrValue, context);
 					} catch (Exception e) {
 						BeanBoxUtils.throwError(e, "BeanBox create bean error! class=" + classOrValue);
 					}
@@ -482,8 +458,9 @@ public class BeanBox {
 		}
 		if (instance == null)
 			return null;
-		// if (createBeanMethod == null)
-		injectAnnotationFields((Class<?>) classOrValue, instance);
+		if (!context.ignoreAnnotation()) {
+			injectAnnotationFields((Class<?>) classOrValue, instance);
+		}
 
 		callConfigBeanMethod(instance);// as title
 		injectInstancePropertyValues(instance);
@@ -492,9 +469,27 @@ public class BeanBox {
 				Method postConstructor = instance.getClass().getDeclaredMethod(getPostConstructor(), new Class[] {});
 				postConstructor.invoke(instance, new Object[] {});
 			} catch (Exception e) {
-				BeanBoxUtils.throwError(e, "BeanBox  create bean error!  postConstructor=" + getPostConstructor());
+				BeanBoxUtils.throwError(e, "BeanBox create bean error! postConstructor=" + getPostConstructor());
 			}
 		return (T) instance;
+	}
+
+	/**
+	 * Create Bean instance by given constructor
+	 */
+	public Object createBeanByGivenConstructor() throws Exception {
+		Class<?>[] argsTypes = getObjectClassType(constructorArgs);
+		outer: for (Constructor<?> c : ((Class<?>) classOrValue).getConstructors()) {
+			Class<?>[] cType = c.getParameterTypes();
+			if (cType.length != argsTypes.length)
+				continue outer;
+			for (int i = 0; i < cType.length; i++)
+				if (!cType[i].isAssignableFrom(argsTypes[i]))
+					continue outer;
+			Object instance = c.newInstance(getObjectRealValue(constructorArgs));
+			return instance;
+		}
+		return null;
 	}
 
 	/**

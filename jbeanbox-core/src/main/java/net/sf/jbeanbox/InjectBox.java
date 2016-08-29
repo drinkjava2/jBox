@@ -21,20 +21,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Inject BeanBox to a field with @Inject annotation <br/>
- * 
- * 
- * For a field with @Inject annotation, find BeanBox class and inject Bean Instance to it, finding is follow below
- * order: <br/>
- * Format: A.class{ @Inject(B.class) C field; ...} <br/>
- * 1) If B.class is BeanBox class, create bean instance and inject to field <br/>
- * 2) Find static class "B.CBox.class" in B.class <br/>
- * 3) Find static class "B.$FieldBox.class" in B.class <br/>
- * Format: A.class{ @Inject C field; ...} <br/>
- * 4)Find CBox.class in same package of C <br/>
- * 5)Find "ABox.CBox.class" in ABox.class <br/>
- * 6) find ConfigClass$CBox.class in globalConfig classes <br/>
- * 7) find ConfigClass$FieldBox.class in globalConfig classes <br/>
+ * Inject BeanBox to a field or constructor with @Inject annotation <br/>
+ * use arg1, arg2... to inject singleTon Bean constructor parameters<br/>
+ * use p1, p2... to inject prototype Bean constructor parameters<br/>
  * 
  * @author Yong Zhu
  * @since 2016-2-13
@@ -42,11 +31,60 @@ import java.lang.annotation.Target;
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ ElementType.FIELD, ElementType.CONSTRUCTOR })
 public @interface InjectBox {
-	// value can be ignore
 	public Class<?> value() default Object.class;
 
-	// if required set to false and no BeanBox found, do nothing. Otherwise throw a Error
+	// Default if no BeanBox can be created, will throw an error, set to false to disable
 	public boolean required() default true;
+
+	// Below are for constructor parameters, if more than 3 parameters, better to use BeanBox configuration
+	public Class<?> class1() default Object.class;// for signleTon bean
+
+	public Class<?> class2() default Object.class;
+
+	public Class<?> class3() default Object.class;
+
+	public Class<?> proto1() default Object.class;// for prototype bean
+
+	public Class<?> proto2() default Object.class;
+
+	public Class<?> proto3() default Object.class;
+
+	public String s1() default ""; // String
+
+	public String s2() default "";
+
+	public String s3() default "";
+
+	public int i1() default 0; // String
+
+	public int i2() default 0;
+
+	public int i3() default 0;
+
+	public boolean b1() default false;
+
+	public boolean b2() default false;
+
+	public boolean b3() default false;
+
+	public byte bt1() default 0;
+
+	public byte bt2() default 0;
+
+	public byte bt3() default 0;
+
+	public double d1() default 0;
+
+	public double d2() default 0;
+
+	public double d3() default 0;
+
+	public float f1() default 0;
+
+	public float f2() default 0;
+
+	public float f3() default 0;
+
 }

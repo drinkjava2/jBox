@@ -71,26 +71,20 @@ public class BeanBoxUtils {
 	}
 
 	/**
-	 * Create an instance by a class
+	 * Create an instance by a class use 0 parameter constructor
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> T createBeanOrBoxInstance(Class<?> clazz, BeanBoxContext context) {
+	public static <T> T createBeanOrBoxWithConstructor0(Class<?> clazz, BeanBoxContext context) {
 		try {
-			Constructor<?> ctor[] = clazz.getDeclaredConstructors();
-			for (Constructor<?> con : ctor) {
-				Class<?> cx[] = con.getParameterTypes();
-				if (cx.length == 0) {
-					makeAccessible(con);
-					Object o = con.newInstance();
-					if (o instanceof BeanBox)
-						((BeanBox) o).setContext(context);
-					return (T) o;
-				}
-			}
-			throwError(null,
-					"BeanBox createBeanOrBoxInstance error: no 0 parameter constructor found! boxClass=" + clazz);
+			Constructor<?> c0 = clazz.getDeclaredConstructor();
+			c0.setAccessible(true);
+			Object o = c0.newInstance();
+			if (o instanceof BeanBox)
+				((BeanBox) o).setContext(context);
+			return (T) o;
 		} catch (Exception e) {
-			throwError(e, "BeanBox createBeanOrBoxInstance error! boxClass=" + clazz);
+			throwError(null,
+					"BeanBox createBeanOrBoxInstance error: no 0 parameter constructor found! clazz=" + clazz);
 		}
 		return null;
 	}
