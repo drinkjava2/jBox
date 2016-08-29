@@ -1,14 +1,16 @@
 package examples.example7_annotation_only;
 
 /**
- * This example show how to only use annotation to do the configuration. <br/>
+ * This example show how to only use annotation to replace field and constructor configuration. <br/>
  * 
  * @author Yong Zhu
- * @since 2016-8-28 
+ * @since 2016-8-28
  */
 
 public class Tester {
-	public static void main(String[] args) {
 
+	// TODO
+	public static void main(String[] args) {
+		System.out.println("in develop");
 	}
 }
