@@ -4,6 +4,10 @@ import java.util.Objects;
 
 public class E {
 
+	public String getname() {
+		return this.getClass().getName();
+	}
+
 	@Override
 	public int hashCode() {
 		return Objects.hashCode("e");

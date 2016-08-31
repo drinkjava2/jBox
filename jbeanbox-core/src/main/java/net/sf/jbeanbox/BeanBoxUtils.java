@@ -71,20 +71,155 @@ public class BeanBoxUtils {
 	}
 
 	/**
-	 * Create an instance by a class use 0 parameter constructor
+	 * Create an instance by its 0 parameter constructor
 	 */
-	@SuppressWarnings("unchecked")
-	public static <T> T createBeanOrBoxWithConstructor0(Class<?> clazz, BeanBoxContext context) {
+	public static Object createInstanceWithCtr0(Class<?> clazz) {
 		try {
 			Constructor<?> c0 = clazz.getDeclaredConstructor();
 			c0.setAccessible(true);
 			Object o = c0.newInstance();
 			if (o instanceof BeanBox)
-				((BeanBox) o).setContext(context);
-			return (T) o;
+				throwEX(null, "BeanBox createInstanceWithCtr0 error:  clazz=" + clazz + " should not be a BeanBox");
+			return o;
 		} catch (Exception e) {
-			throwError(null,
-					"BeanBox createBeanOrBoxInstance error: no 0 parameter constructor found! clazz=" + clazz);
+			throwEX(null, "BeanBox createInstanceWithCtr0 error: no 0 parameter constructor found! clazz=" + clazz);
+		}
+		return null;
+	}
+
+	/**
+	 * Create a BeanBox instance by its 0 parameter constructor
+	 */
+	public static BeanBox createBeanBoxWithCtr0(Class<BeanBox> clazz, BeanBoxContext context) {
+		try {
+			Constructor<?> c0 = clazz.getDeclaredConstructor();
+			c0.setAccessible(true);
+			BeanBox box = (BeanBox) c0.newInstance();
+			box.setContext(context);
+			return box;
+		} catch (Exception e) {
+			throwEX(null, "BeanBox createBeanBoxWithCtr0 error:  clazz=" + clazz);
+		}
+		return null;
+	}
+
+	public static BeanBox buildBeanBoxWithAnotatedCtr(Class<?> clazz, BeanBoxContext context) {
+		Constructor<?>[] cons = clazz.getDeclaredConstructors();
+		for (Constructor<?> c : cons) {
+			if (c.isAnnotationPresent(InjectBox.class)) {
+				InjectBox a = c.getDeclaredAnnotation(InjectBox.class);
+				if ((c.getParameterCount() == 0) || (c.getParameterCount() > 6))
+					BeanBoxUtils.throwEX(null,
+							"BeanBox buildBeanBoxWithAnotatedCtr error, only support 1~6 constructor parameters,class="
+									+ clazz);
+				Object[] args = new Object[c.getParameterCount()];
+				for (int i = 0; i < c.getParameterCount(); i++) {
+					if (i == 0) {
+						if (!Object.class.equals(a.box0()))
+							args[i] = new BeanBox(a.box0());
+						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s0()))
+							args[i] = a.s0();
+						else if (InjectBox.IMPOSSIBLE_INT != a.i0())
+							args[i] = a.i0();
+						else if (InjectBox.IMPOSSIBLE_STRING != a.b0())
+							if ("true".equals(a.b0()))
+								args[i] = true;
+							else
+								args[i] = false;
+						else
+							BeanBoxUtils.throwEX(null,
+									"BeanBox buildBeanBoxWithAnotatedCtr error, constructor parameter " + i
+											+ " not found, class=" + clazz);
+					}
+					if (i == 1) {
+						if (!Object.class.equals(a.box1()))
+							args[i] = new BeanBox(a.box1());
+						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s1()))
+							args[i] = a.s1();
+						else if (InjectBox.IMPOSSIBLE_INT != a.i1())
+							args[i] = a.i1();
+						else if (InjectBox.IMPOSSIBLE_STRING != a.b1())
+							if ("true".equals(a.b1()))
+								args[i] = true;
+							else
+								args[i] = false;
+						else
+							BeanBoxUtils.throwEX(null,
+									"BeanBox buildBeanBoxWithAnotatedCtr error, constructor parameter " + i
+											+ " not found, class=" + clazz);
+					}
+					if (i == 2) {
+						if (!Object.class.equals(a.box2()))
+							args[i] = new BeanBox(a.box2());
+						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s2()))
+							args[i] = a.s2();
+						else if (InjectBox.IMPOSSIBLE_INT != a.i2())
+							args[i] = a.i2();
+						else if (InjectBox.IMPOSSIBLE_STRING != a.b2())
+							if ("true".equals(a.b2()))
+								args[i] = true;
+							else
+								args[i] = false;
+						else
+							BeanBoxUtils.throwEX(null,
+									"BeanBox buildBeanBoxWithAnotatedCtr error, constructor parameter " + i
+											+ " not found, class=" + clazz);
+					}
+					if (i == 3) {
+						if (!Object.class.equals(a.box3()))
+							args[i] = new BeanBox(a.box3());
+						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s3()))
+							args[i] = a.s3();
+						else if (InjectBox.IMPOSSIBLE_INT != a.i3())
+							args[i] = a.i3();
+						else if (InjectBox.IMPOSSIBLE_STRING != a.b3())
+							if ("true".equals(a.b3()))
+								args[i] = true;
+							else
+								args[i] = false;
+						else
+							BeanBoxUtils.throwEX(null,
+									"BeanBox buildBeanBoxWithAnotatedCtr error, constructor parameter " + i
+											+ " not found, class=" + clazz);
+					}
+					if (i == 4) {
+						if (!Object.class.equals(a.box4()))
+							args[i] = new BeanBox(a.box4());
+						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s4()))
+							args[i] = a.s4();
+						else if (InjectBox.IMPOSSIBLE_INT != a.i4())
+							args[i] = a.i4();
+						else if (InjectBox.IMPOSSIBLE_STRING != a.b4())
+							if ("true".equals(a.b4()))
+								args[i] = true;
+							else
+								args[i] = false;
+						else
+							BeanBoxUtils.throwEX(null,
+									"BeanBox buildBeanBoxWithAnotatedCtr error, constructor parameter " + i
+											+ " not found, class=" + clazz);
+					}
+					if (i == 5) {
+						if (!Object.class.equals(a.box5()))
+							args[i] = new BeanBox(a.box5());
+						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s5()))
+							args[i] = a.s5();
+						else if (InjectBox.IMPOSSIBLE_INT != a.i5())
+							args[i] = a.i5();
+						else if (InjectBox.IMPOSSIBLE_STRING != a.b5())
+							if ("true".equals(a.b5()))
+								args[i] = true;
+							else
+								args[i] = false;
+						else
+							BeanBoxUtils.throwEX(null,
+									"BeanBox buildBeanBoxWithAnotatedCtr error, constructor parameter " + i
+											+ " not found, class=" + clazz);
+					}
+				}
+				BeanBox box = new BeanBox().setContext(context).setConstructor(clazz, args);
+				return box;
+			}
 		}
 		return null;
 	}
@@ -100,12 +235,12 @@ public class BeanBoxUtils {
 	}
 
 	/**
-	 * Transfer all Exceptions to AssertionError. The only place throw Exception/Error in this project
+	 * Transfer all Exceptions to RuntimeException. The only place throw Exception in this project
 	 */
-	public static void throwError(Exception e, String errorMsg) throws AssertionError {
-		if (e != null)
+	public static void throwEX(Exception e, String errorMsg) throws AssertionError {
+		if (e != null)// can log exception here, but I don't want import Log4j in this small tool
 			e.printStackTrace();
-		throw new AssertionError(errorMsg);
+		throw new RuntimeException(errorMsg);
 	}
 
 	/**

@@ -2,6 +2,7 @@ package examples.example8_benchmark;
 
 import examples.example8_benchmark.objects.A;
 import examples.example8_benchmark.objects.B;
+import net.sf.jbeanbox.BeanBox;
 import net.sf.jbeanbox.BeanBoxContext;
 
 /**
@@ -26,21 +27,43 @@ public class Tester {
 	public static void main(String[] args) {
 		long repeattimes = 50000;
 		System.out.printf("BenchMark Test, build Object tree %s times\r\n", repeattimes);
+		String result1 = null, result2 = null, result3 = null;
 
-		BeanBoxContext ctx1 = new BeanBoxContext().addConfig(BeanBoxConfig.class);
+		// use config1, normal configuration
+		BeanBoxContext ctx1 = new BeanBoxContext(BeanBoxConfig.class).setIgnoreAnnotation(true);
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < repeattimes; i++) {
-			ctx1.getBean(A.class);
+			A a = ctx1.getBean(A.class);
+			result1 = a.b.c.d1.e.getname();
 		}
 		long end = System.currentTimeMillis();
-		System.out.println(String.format("%8s|%6sms", "Config1", end - start));
+		System.out.println(String.format("%35s|%6sms", "BeanBox Normal Configuration", end - start));
 
-		BeanBoxContext ctx2 = new BeanBoxContext().addConfig(BeanBoxConfig2.class);
+		// use config2, java type safe configuration
+		BeanBoxContext ctx2 = new BeanBoxContext(BeanBoxConfig2.class).setIgnoreAnnotation(true);
 		start = System.currentTimeMillis();
 		for (int i = 0; i < repeattimes; i++) {
-			ctx2.getBean(A.class);
+			A a = ctx2.getBean(A.class);
+			result2 = a.b.c.d1.e.getname();
 		}
 		end = System.currentTimeMillis();
-		System.out.println(String.format("%8s|%6sms", "Config2", end - start));
+		System.out.println(String.format("%35s|%6sms", "BeanBox Type Safe Configuration", end - start));
+
+		// use config3, only annotations
+		start = System.currentTimeMillis();
+		for (int i = 0; i < repeattimes; i++) {
+			A a = BeanBox.defaultBeanBoxContext.getBean(A.class);
+			result3 = a.b.c.d1.e.getname();
+		}
+		end = System.currentTimeMillis();
+		System.out.println(String.format("%35s|%6sms", "BeanBox Annotation Only", end - start));
+
+		System.out.println("result1=" + result1);
+		System.out.println("result2=" + result2);
+		System.out.println("result3=" + result3);
+		System.out.println("jBeanBox is ~20 times quicker than Spring, 2 to 3 times slower than Guice.");
+
+		// TODO field injection benchmark test
+
 	}
 }

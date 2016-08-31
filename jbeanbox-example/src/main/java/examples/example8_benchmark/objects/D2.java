@@ -2,9 +2,12 @@ package examples.example8_benchmark.objects;
 
 import java.util.Objects;
 
+import net.sf.jbeanbox.InjectBox;
+
 public class D2 {
 	private final E e;
 
+	@InjectBox(box0 = E.class)
 	public D2(E e) {
 		this.e = e;
 	}

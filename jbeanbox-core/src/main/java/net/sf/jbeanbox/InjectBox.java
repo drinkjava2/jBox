@@ -21,70 +21,74 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Inject BeanBox to a field or constructor with @Inject annotation <br/>
- * use arg1, arg2... to inject singleTon Bean constructor parameters<br/>
- * use p1, p2... to inject prototype Bean constructor parameters<br/>
+ * Inject BeanBox to a field or constructor with @Inject annotation, use box0, box1... to inject singleTon Bean
+ * constructor parameters, use s0,s1,s2... to inject string parameters, use i0, i1, i2.. inject int, use b0, b1, b2..
+ * inject boolean and only allowed "true" or "false"
  * 
  * @author Yong Zhu
  * @since 2016-2-13
- * @update 2016-08-21
+ * @update 2016-08-31
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.CONSTRUCTOR })
 public @interface InjectBox {
+	public static String IMPOSSIBLE_STRING = "StuPid AnNotatioN";
+	public static int IMPOSSIBLE_INT = -99819981;
+
 	public Class<?> value() default Object.class;
 
-	// Default if no BeanBox can be created, will throw an error, set to false to disable
+	// Default if no BeanBox can be created, will throw an exception, set to false to disable
 	public boolean required() default true;
 
-	// Below are for constructor parameters, if more than 3 parameters, better to use BeanBox configuration
-	public Class<?> class1() default Object.class;// for signleTon bean
+	// Below are for constructor parameters, more than 6 parameters better use other configuration
+	public Class<?> box0() default Object.class;// inject BeanBox
 
-	public Class<?> class2() default Object.class;
+	public Class<?> box1() default Object.class;
 
-	public Class<?> class3() default Object.class;
+	public Class<?> box2() default Object.class;
 
-	public Class<?> proto1() default Object.class;// for prototype bean
+	public Class<?> box3() default Object.class;
 
-	public Class<?> proto2() default Object.class;
+	public Class<?> box4() default Object.class;
 
-	public Class<?> proto3() default Object.class;
+	public Class<?> box5() default Object.class;
 
-	public String s1() default ""; // String
+	public String s0() default "-99819981"; // inject String, defalut is an impossible value
 
-	public String s2() default "";
+	public String s1() default "-99819981";
 
-	public String s3() default "";
+	public String s2() default "-99819981";
 
-	public int i1() default 0; // String
+	public String s3() default "-99819981";
 
-	public int i2() default 0;
+	public String s4() default "-99819981";
 
-	public int i3() default 0;
+	public String s5() default "-99819981";
 
-	public boolean b1() default false;
+	public int i0() default -99819981; // inject int
 
-	public boolean b2() default false;
+	public int i1() default -99819981;
 
-	public boolean b3() default false;
+	public int i2() default -99819981;
 
-	public byte bt1() default 0;
+	public int i3() default -99819981;
 
-	public byte bt2() default 0;
+	public int i4() default -99819981;
 
-	public byte bt3() default 0;
+	public int i5() default -99819981;
 
-	public double d1() default 0;
+	public String b0() default "-99819981";// inject boolean
 
-	public double d2() default 0;
+	public String b1() default "-99819981";
 
-	public double d3() default 0;
+	public String b2() default "-99819981";
 
-	public float f1() default 0;
+	public String b3() default "-99819981";
 
-	public float f2() default 0;
+	public String b4() default "-99819981";
 
-	public float f3() default 0;
+	public String b5() default "-99819981";
 
+	// TODO add byte, long, double, ...
 }

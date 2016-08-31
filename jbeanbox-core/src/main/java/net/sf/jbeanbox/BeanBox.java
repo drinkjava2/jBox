@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Yong Zhu (Yong9981@gmail.com)
  * @since 2016-2-13
  * @version 2.4
- * @update 2016-08-27
+ * @update 2016-08-31
  */
 @SuppressWarnings("unchecked")
 public class BeanBox {
@@ -174,10 +174,10 @@ public class BeanBox {
 				&& BeanBox.class.isAssignableFrom((Class<?>) beanBoxInstanceOrValue))
 			try {
 				properties.put(property, new Object[] { PropertyType.BEAN,
-						BeanBoxUtils.createBeanOrBoxWithConstructor0((Class<?>) beanBoxInstanceOrValue, context) });
+						BeanBoxUtils.createBeanBoxWithCtr0((Class<BeanBox>) beanBoxInstanceOrValue, context) });
 			} catch (Exception e) {
-				BeanBoxUtils.throwError(e, "BeanBox setProperty error! property=" + property
-						+ " beanBoxInstanceOrValue=" + beanBoxInstanceOrValue);
+				BeanBoxUtils.throwEX(e, "BeanBox setProperty error! property=" + property + " beanBoxInstanceOrValue="
+						+ beanBoxInstanceOrValue);
 			}
 		else if (beanBoxInstanceOrValue instanceof Class)
 			properties.put(property, new Object[] { PropertyType.BEAN, new BeanBox(beanBoxInstanceOrValue) });
@@ -227,7 +227,7 @@ public class BeanBox {
 				method.invoke(bean, new Object[] { beaninstance });
 			}
 		} catch (Exception e) {
-			BeanBoxUtils.throwError(e,
+			BeanBoxUtils.throwEX(e,
 					"BeanBox invokeMethodToSetValue error! bean=" + bean + " method=" + method + " args=" + args);
 		}
 	}
@@ -256,7 +256,7 @@ public class BeanBox {
 				field.set(bean, beaninstance);
 			}
 		} catch (Exception e) {
-			BeanBoxUtils.throwError(e,
+			BeanBoxUtils.throwEX(e,
 					"BeanBox invokeMethodToSetValue error! bean=" + bean + " field=" + field + " args=" + args);
 		}
 	}
@@ -281,8 +281,8 @@ public class BeanBox {
 					Field field = instance.getClass().getDeclaredField(property);
 					forceInjectFieldValue(instance, field, properties.get(property));
 				} catch (Exception e) {
-					BeanBoxUtils.throwError(e, "BeanBox setInstancePropertyValues error! class="
-							+ this.getClassOrValue() + ", property ='" + property
+					BeanBoxUtils.throwEX(e, "BeanBox setInstancePropertyValues error! class=" + this.getClassOrValue()
+							+ ", property ='" + property
 							+ "', this may caused by inject value into Proxy bean, it's not supported by CGLib");
 				}
 			}
@@ -290,17 +290,7 @@ public class BeanBox {
 	}
 
 	/**
-	 * For a field with @Inject annotation, find BeanBox class and inject Bean Instance to it, finding is following
-	 * below order: <br/>
-	 * Format: A.class{ @Inject(B.class) C field; ...} <br/>
-	 * 1) If B.class is BeanBox class, create bean instance and inject to field <br/>
-	 * 2) Find static class "B.CBox.class" in B.class <br/>
-	 * 3) Find static class "B.$FieldBox.class" in B.class <br/>
-	 * Format: A.class{ @Inject C field; ...} <br/>
-	 * 4)Find CBox.class in same package of C <br/>
-	 * 5)Find "ABox.CBox.class" in ABox.class <br/>
-	 * 6) find ConfigClass$CBox.class in globalConfig classes <br/>
-	 * 7) find ConfigClass$FieldBox.class in globalConfig classes <br/>
+	 * For a field with @Inject annotation, find BeanBox class and inject Bean Instance to it
 	 */
 	private void injectAnnotationFields(Class<?> beanClass, Object beanInstance) {
 		Field[] fields = beanClass.getDeclaredFields();
@@ -318,7 +308,7 @@ public class BeanBox {
 					field.set(beanInstance, box.getBean());
 				}
 			} catch (Exception e) {
-				BeanBoxUtils.throwError(e,
+				BeanBoxUtils.throwEX(e,
 						"BeanBox injectAnnotationFields error! beanClass=" + beanClass + " field=" + field.getName());
 			}
 		}
@@ -379,33 +369,31 @@ public class BeanBox {
 			try {
 				setPropertiesMethod.invoke(this, new Object[] { instance });
 			} catch (Exception e) {
-				BeanBoxUtils.throwError(e, "BeanBox  create bean error!  setPropertiesMethod=" + setPropertiesMethod);
+				BeanBoxUtils.throwEX(e, "BeanBox  create bean error!  setPropertiesMethod=" + setPropertiesMethod);
 			}
 		}
 	}
 
 	/**
-	 * Create new bean instance or get singleTon bean instance in cache (if been cached)
+	 * Create new bean instance or get singleTon bean instance in cache (if cached)
 	 */
 	public <T> T getBean() {
 		if (isValueType)
 			return (T) classOrValue;
-
 		Object instance = null;
 		Method createBeanMethod = null;
-		try {
+		try {// Check if has create method in BeanBox
 			createBeanMethod = getClass().getDeclaredMethod(CREATE_BEAN);
 			this.setClassOrValue(createBeanMethod.getReturnType());
 		} catch (Exception e) {
 		}
-
 		String beanID = getClass().getName();// use beanBox class name as ID
 		if (BeanBox.class.getName().equals(beanID)) {
 			if (this.getClassOrValue() instanceof Class)// use real bean class name & args as beanID
 				beanID = ((Class<?>) this.getClassOrValue()).getName()
 						+ (constructorArgs == null ? "" : constructorArgs);
 			else
-				BeanBoxUtils.throwError(null, "BeanBox createOrGetFromCache error! BeanBox ID can not be determined!");
+				BeanBoxUtils.throwEX(null, "BeanBox createOrGetFromCache error! BeanBox ID can not be determined!");
 		}
 		synchronized (context.signletonCache) {
 			if (isSingleTon) {
@@ -419,57 +407,63 @@ public class BeanBox {
 					BeanBoxUtils.makeAccessible(createBeanMethod);
 					instance = createBeanMethod.invoke(this, new Object[] {});
 				} catch (Exception e) {
-					BeanBoxUtils.throwError(e, "BeanBox getBean error! init method invoke error, class=" + this);
+					BeanBoxUtils.throwEX(e, "BeanBox getBean error! init method invoke error, class=" + this);
 				}
 			} else {
 				if (BeanBoxUtils.ifHaveAdvice(context.advisorList, classOrValue))
 					instance = BeanBoxUtils.getProxyBean((Class<?>) classOrValue, context.advisorList);
-				else if (constructorArgs != null)
+				else if (constructorArgs != null) // first use given constructor to create instance
 					try {
 						instance = createBeanByGivenConstructor();
 						if (instance == null)
-							BeanBoxUtils.throwError(null,
-									"BeanBox call constructor error! not found match constructor for " + classOrValue);
+							BeanBoxUtils.throwEX(null,
+									"BeanBox call constructor error! not found given constructor for " + classOrValue);
 					} catch (Exception e) {
-						BeanBoxUtils.throwError(e, "BeanBox create constructor error! constructor=" + classOrValue);
+						BeanBoxUtils.throwEX(e, "BeanBox create constructor error! constructor=" + classOrValue);
 					}
 				else if (classOrValue instanceof Class) {
-					try {
-						instance = BeanBoxUtils.createBeanOrBoxWithConstructor0((Class<?>) classOrValue, context);
+					try {// 2nd use 0 parameter constructor
+						instance = BeanBoxUtils.createInstanceWithCtr0((Class<?>) classOrValue);
 					} catch (Exception e) {
-						BeanBoxUtils.throwError(e, "BeanBox create bean error! class=" + classOrValue);
+						if (!context.getIgnoreAnnotation()) {// 3rd find annotated constructor
+							BeanBox box = BeanBoxUtils.buildBeanBoxWithAnotatedCtr((Class<?>) classOrValue, context);
+							if (box != null)
+								instance = box.getBean();
+						}
+						if (instance == null)
+							BeanBoxUtils.throwEX(null, "BeanBox create bean error! class=" + classOrValue
+									+ " no available constructor found.");
 					}
 				} else
-					BeanBoxUtils.throwError(null, "BeanBox create bean undefined! classOrValue=" + classOrValue);
+					BeanBoxUtils.throwEX(null, "BeanBox create bean undefined! classOrValue=" + classOrValue);
 			}
 
 			if (isSingleTon) {
-				context.signletonCache.put(beanID, instance);// save in cache
-				if (!BeanBoxUtils.isEmptyStr(this.getPreDestory())) {
+				context.signletonCache.put(beanID, instance);// save SingleTon in cache
+				if (!BeanBoxUtils.isEmptyStr(this.getPreDestory())) {// save PreDestory methods in cache
 					try {
 						Method predestoryMethod = instance.getClass().getDeclaredMethod(getPreDestory(),
 								new Class[] {});
 						this.context.preDestoryMethodCache.put(beanID, predestoryMethod);
 					} catch (Exception e) {
-						BeanBoxUtils.throwError(e, "BeanBox  create bean error!  PreDestory=" + getPreDestory());
+						BeanBoxUtils.throwEX(e, "BeanBox  create bean error!  PreDestory=" + getPreDestory());
 					}
 				}
 			}
 		}
 		if (instance == null)
 			return null;
-		if (!context.ignoreAnnotation()) {
+		if (!context.getIgnoreAnnotation())
 			injectAnnotationFields((Class<?>) classOrValue, instance);
-		}
 
-		callConfigBeanMethod(instance);// as title
+		callConfigBeanMethod(instance);// Check if have config method in BeanBox class
 		injectInstancePropertyValues(instance);
 		if (!BeanBoxUtils.isEmptyStr(getPostConstructor()))
 			try {
 				Method postConstructor = instance.getClass().getDeclaredMethod(getPostConstructor(), new Class[] {});
 				postConstructor.invoke(instance, new Object[] {});
 			} catch (Exception e) {
-				BeanBoxUtils.throwError(e, "BeanBox create bean error! postConstructor=" + getPostConstructor());
+				BeanBoxUtils.throwEX(e, "BeanBox create bean error! postConstructor=" + getPostConstructor());
 			}
 		return (T) instance;
 	}

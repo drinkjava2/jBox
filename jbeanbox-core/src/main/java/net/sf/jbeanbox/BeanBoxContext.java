@@ -32,7 +32,7 @@ public class BeanBoxContext {
 	// The default BoxIdentity is "Box", BoxIdentity will be use for looking for BeanBox class
 	String boxIdentity = "Box";
 
-	Boolean ignoreAnnotation = false; // if set true, will ignore Annotations in class
+	Boolean ignoreAnnotation = false; // if set true, will ignore @injectBox annotation
 
 	// Advisors cache
 	protected CopyOnWriteArrayList<Advisor> advisorList = new CopyOnWriteArrayList<Advisor>();
@@ -77,12 +77,13 @@ public class BeanBoxContext {
 		return this;
 	}
 
-	public Boolean ignoreAnnotation() {
+	public Boolean getIgnoreAnnotation() {
 		return ignoreAnnotation;
 	}
 
-	public void setIgnoreAnnotation(Boolean ignoreAnnotation) {
+	public BeanBoxContext setIgnoreAnnotation(Boolean ignoreAnnotation) {
 		this.ignoreAnnotation = ignoreAnnotation;
+		return this;
 	}
 
 	/**
@@ -203,6 +204,7 @@ public class BeanBoxContext {
 	 * If no BeanBox class found, if A.class has 0 parameter constructor or annotated constructor, wrap to BeanBox.<br/>
 	 * if no BeanBox created at final, throw a error unless "required=false" set in @injectBox annotation
 	 */
+	@SuppressWarnings("unchecked")
 	public static BeanBox getBeanBox(Class<?> ownerClass, Class<?> clazz, Class<?> annotationClass, String fieldName,
 			BeanBoxContext context, boolean required) {
 		if (Object.class.equals(annotationClass))
@@ -219,7 +221,7 @@ public class BeanBoxContext {
 						+ fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1) + context.boxIdentity);// #3
 		} else {// getBeanBox(A.class)
 			if (clazz == null)
-				BeanBoxUtils.throwError(null, "BeanBox getBeanBox error! target class not set");
+				BeanBoxUtils.throwEX(null, "BeanBox getBeanBox error! target class not set");
 			if (BeanBox.class.isAssignableFrom(clazz))
 				box = clazz;// #4
 			if (box == null)
@@ -249,9 +251,9 @@ public class BeanBoxContext {
 		if (box == null)
 			beanbox = wrapClassToBeanBox(clazz, context); // try wrap it to a BeanBox
 		else
-			beanbox = BeanBoxUtils.createBeanOrBoxWithConstructor0(box, context);
+			beanbox = BeanBoxUtils.createBeanBoxWithCtr0((Class<BeanBox>) box, context);
 		if (required && beanbox == null)
-			BeanBoxUtils.throwError(null, "BeanBox getBeanBox error! class can not be created, class=" + clazz);
+			BeanBoxUtils.throwEX(null, "BeanBox getBeanBox error! class can not be created, class=" + clazz);
 		if (beanbox.getClassOrValue() == null)
 			beanbox.setClassOrValue(clazz);
 		return beanbox;
