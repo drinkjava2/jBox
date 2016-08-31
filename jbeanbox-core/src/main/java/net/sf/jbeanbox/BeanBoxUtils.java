@@ -30,7 +30,7 @@ import net.sf.cglib.proxy.Enhancer;
  * @author Yong Zhu
  * @since 2016-2-13
  * @update 2016-08-21
- *
+ * 
  */
 public class BeanBoxUtils {
 	private static ConcurrentHashMap<String, Integer> classExistCache = new ConcurrentHashMap<String, Integer>();
@@ -107,13 +107,17 @@ public class BeanBoxUtils {
 		Constructor<?>[] cons = clazz.getDeclaredConstructors();
 		for (Constructor<?> c : cons) {
 			if (c.isAnnotationPresent(InjectBox.class)) {
-				InjectBox a = c.getDeclaredAnnotation(InjectBox.class);
-				if ((c.getParameterCount() == 0) || (c.getParameterCount() > 6))
+				InjectBox a = c.getAnnotation(InjectBox.class);
+				Class<?>[] parameterTypes = c.getParameterTypes();
+				if (parameterTypes == null)
+					return null;
+				int parameterCount = parameterTypes.length;
+				if (parameterCount == 0 || parameterCount > 6)
 					BeanBoxUtils.throwEX(null,
 							"BeanBox buildBeanBoxWithAnotatedCtr error, only support 1~6 constructor parameters,class="
 									+ clazz);
-				Object[] args = new Object[c.getParameterCount()];
-				for (int i = 0; i < c.getParameterCount(); i++) {
+				Object[] args = new Object[parameterCount];
+				for (int i = 0; i < parameterCount; i++) {
 					if (i == 0) {
 						if (!Object.class.equals(a.box0()))
 							args[i] = new BeanBox(a.box0());
@@ -127,9 +131,7 @@ public class BeanBoxUtils {
 							else
 								args[i] = false;
 						else
-							BeanBoxUtils.throwEX(null,
-									"BeanBox buildBeanBoxWithAnotatedCtr error, constructor parameter " + i
-											+ " not found, class=" + clazz);
+							args[i] = parameterTypes[i];
 					}
 					if (i == 1) {
 						if (!Object.class.equals(a.box1()))
@@ -144,9 +146,7 @@ public class BeanBoxUtils {
 							else
 								args[i] = false;
 						else
-							BeanBoxUtils.throwEX(null,
-									"BeanBox buildBeanBoxWithAnotatedCtr error, constructor parameter " + i
-											+ " not found, class=" + clazz);
+							args[i] = parameterTypes[i];
 					}
 					if (i == 2) {
 						if (!Object.class.equals(a.box2()))
@@ -161,9 +161,7 @@ public class BeanBoxUtils {
 							else
 								args[i] = false;
 						else
-							BeanBoxUtils.throwEX(null,
-									"BeanBox buildBeanBoxWithAnotatedCtr error, constructor parameter " + i
-											+ " not found, class=" + clazz);
+							args[i] = parameterTypes[i];
 					}
 					if (i == 3) {
 						if (!Object.class.equals(a.box3()))
@@ -178,9 +176,7 @@ public class BeanBoxUtils {
 							else
 								args[i] = false;
 						else
-							BeanBoxUtils.throwEX(null,
-									"BeanBox buildBeanBoxWithAnotatedCtr error, constructor parameter " + i
-											+ " not found, class=" + clazz);
+							args[i] = parameterTypes[i];
 					}
 					if (i == 4) {
 						if (!Object.class.equals(a.box4()))
@@ -195,9 +191,7 @@ public class BeanBoxUtils {
 							else
 								args[i] = false;
 						else
-							BeanBoxUtils.throwEX(null,
-									"BeanBox buildBeanBoxWithAnotatedCtr error, constructor parameter " + i
-											+ " not found, class=" + clazz);
+							args[i] = parameterTypes[i];
 					}
 					if (i == 5) {
 						if (!Object.class.equals(a.box5()))
@@ -212,9 +206,7 @@ public class BeanBoxUtils {
 							else
 								args[i] = false;
 						else
-							BeanBoxUtils.throwEX(null,
-									"BeanBox buildBeanBoxWithAnotatedCtr error, constructor parameter " + i
-											+ " not found, class=" + clazz);
+							args[i] = parameterTypes[i];
 					}
 				}
 				BeanBox box = new BeanBox().setContext(context).setConstructor(clazz, args);
@@ -249,8 +241,9 @@ public class BeanBoxUtils {
 	 * active).
 	 */
 	public static void makeAccessible(Field field) {
-		if ((!Modifier.isPublic(field.getModifiers()) || !Modifier.isPublic(field.getDeclaringClass().getModifiers())
-				|| Modifier.isFinal(field.getModifiers())) && !field.isAccessible()) {
+		if ((!Modifier.isPublic(field.getModifiers()) || !Modifier.isPublic(field.getDeclaringClass().getModifiers()) || Modifier
+				.isFinal(field.getModifiers()))
+				&& !field.isAccessible()) {
 			field.setAccessible(true);
 		}
 	}
@@ -268,8 +261,8 @@ public class BeanBoxUtils {
 	}
 
 	/**
-	 * Make the given constructor accessible, explicitly setting it accessible if necessary. The
-	 * {@code setAccessible(true)} method is only called when actually necessary, to avoid unnecessary
+	 * Make the given constructor accessible, explicitly setting it accessible if necessary. The {@code
+	 * setAccessible(true)} method is only called when actually necessary, to avoid unnecessary
 	 */
 	public static void makeAccessible(Constructor<?> ctor) {
 		if ((!Modifier.isPublic(ctor.getModifiers()) || !Modifier.isPublic(ctor.getDeclaringClass().getModifiers()))

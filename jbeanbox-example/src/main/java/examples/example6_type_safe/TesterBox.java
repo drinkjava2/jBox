@@ -36,7 +36,7 @@ public class TesterBox extends BeanBox {
 
 		public void config(ComboPooledDataSource ds) {
 			ds.setJdbcUrl("jdbc:mysql://127.0.0.1:3306/test");
-			ds.setPassword("root888");
+			ds.setPassword("root888");// change to your PWD
 			ds.setCheckoutTimeout(2000);
 		}
 

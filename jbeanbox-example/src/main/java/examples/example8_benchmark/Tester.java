@@ -26,7 +26,7 @@ public class Tester {
 
 	public static void main(String[] args) {
 		long repeattimes = 50000;
-		System.out.printf("BenchMark Test, build Object tree %s times\r\n", repeattimes);
+		System.out.printf("BenchMark Test, build Object tree %s times\r\n\r\n", repeattimes);
 		String result1 = null, result2 = null, result3 = null;
 
 		// use config1, normal configuration
@@ -58,10 +58,10 @@ public class Tester {
 		end = System.currentTimeMillis();
 		System.out.println(String.format("%35s|%6sms", "BeanBox Annotation Only", end - start));
 
-		System.out.println("result1=" + result1);
+		System.out.println("\r\nresult1=" + result1);
 		System.out.println("result2=" + result2);
 		System.out.println("result3=" + result3);
-		System.out.println("jBeanBox is ~20 times quicker than Spring, 2 to 3 times slower than Guice.");
+		System.out.println("jBeanBox is ~20 times quicker than Spring, 1 to 3 times slower than Guice.");
 
 		// TODO field injection benchmark test
 

@@ -83,7 +83,6 @@ public class BeanBox {
 	 */
 	public BeanBox setConstructor(Class<?> constructorClass, Object... constructorParameters) {
 		classOrValue = constructorClass;
-		// Object[] o=constructorParameters;
 		constructorArgs = constructorParameters;
 		return this;
 	}
@@ -227,8 +226,8 @@ public class BeanBox {
 				method.invoke(bean, new Object[] { beaninstance });
 			}
 		} catch (Exception e) {
-			BeanBoxUtils.throwEX(e,
-					"BeanBox invokeMethodToSetValue error! bean=" + bean + " method=" + method + " args=" + args);
+			BeanBoxUtils.throwEX(e, "BeanBox invokeMethodToSetValue error! bean=" + bean + " method=" + method
+					+ " args=" + args);
 		}
 	}
 
@@ -256,8 +255,8 @@ public class BeanBox {
 				field.set(bean, beaninstance);
 			}
 		} catch (Exception e) {
-			BeanBoxUtils.throwEX(e,
-					"BeanBox invokeMethodToSetValue error! bean=" + bean + " field=" + field + " args=" + args);
+			BeanBoxUtils.throwEX(e, "BeanBox invokeMethodToSetValue error! bean=" + bean + " field=" + field + " args="
+					+ args);
 		}
 	}
 
@@ -298,8 +297,8 @@ public class BeanBox {
 			InjectBox injectAnnotation = field.getAnnotation(InjectBox.class);
 			try {
 				if (injectAnnotation != null) {
-					BeanBox box = BeanBoxContext.getBeanBox(beanClass, field.getType(), injectAnnotation.value(),
-							field.getName(), context, injectAnnotation.required());
+					BeanBox box = BeanBoxContext.getBeanBox(beanClass, field.getType(), injectAnnotation.value(), field
+							.getName(), context, injectAnnotation.required());
 					if (box == null)
 						return;
 					if (box.getClassOrValue() == null)
@@ -308,8 +307,8 @@ public class BeanBox {
 					field.set(beanInstance, box.getBean());
 				}
 			} catch (Exception e) {
-				BeanBoxUtils.throwEX(e,
-						"BeanBox injectAnnotationFields error! beanClass=" + beanClass + " field=" + field.getName());
+				BeanBoxUtils.throwEX(e, "BeanBox injectAnnotationFields error! beanClass=" + beanClass + " field="
+						+ field.getName());
 			}
 		}
 	}
@@ -442,8 +441,8 @@ public class BeanBox {
 				context.signletonCache.put(beanID, instance);// save SingleTon in cache
 				if (!BeanBoxUtils.isEmptyStr(this.getPreDestory())) {// save PreDestory methods in cache
 					try {
-						Method predestoryMethod = instance.getClass().getDeclaredMethod(getPreDestory(),
-								new Class[] {});
+						Method predestoryMethod = instance.getClass()
+								.getDeclaredMethod(getPreDestory(), new Class[] {});
 						this.context.preDestoryMethodCache.put(beanID, predestoryMethod);
 					} catch (Exception e) {
 						BeanBoxUtils.throwEX(e, "BeanBox  create bean error!  PreDestory=" + getPreDestory());
