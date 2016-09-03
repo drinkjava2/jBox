@@ -186,22 +186,24 @@ This example integrated "C3P0" + "JDBCTemplate" + "Spring Declarative Transactio
 ```
 public class TesterBox extends BeanBox {
 	static {
-		BeanBox.defaultContext.setAOPAround("examples.example5_transaction.Test\\w*", "insert\\w*", new TxInterceptorBox(), "invoke");
+		BeanBox.defaultBeanBoxContext.setAOPAround("examples.example5_transaction.Test\\w*", "insert\\w*",
+				new TxInterceptorBox(), "invoke");
 	}
 
 	static class DSPoolBeanBox extends BeanBox {
 		{
 			setClassOrValue(ComboPooledDataSource.class);
-			setProperty("jdbcUrl", "jdbc:mysql://127.0.0.1:3306/test?user=root&password=yourPWD&useUnicode=true&characterEncoding=UTF-8");
-			setProperty("driverClass", "com.mysql.jdbc.Driver");//DB driver
+			setProperty("jdbcUrl", "jdbc:mysql://127.0.0.1:3306/test?user=root&password=root888");
+			setProperty("driverClass", "com.mysql.jdbc.Driver");// change to your jdbc driver name
 			setProperty("maxPoolSize", 10);
+			setProperty("CheckoutTimeout", 2000);
 		}
 	}
 
 	static class TxManagerBox extends BeanBox {
 		{
 			setClassOrValue(DataSourceTransactionManager.class);
-			setProperty("dataSource", new DSPoolBeanBox());
+			setProperty("dataSource", DSPoolBeanBox.class);
 		}
 	}
 
@@ -209,24 +211,26 @@ public class TesterBox extends BeanBox {
 		{
 			Properties props = new Properties();
 			props.put("insert*", "PROPAGATION_REQUIRED");
-			setConstructor(TransactionInterceptor.class, new TxManagerBox(), props);
+			setConstructor(TransactionInterceptor.class, TxManagerBox.class, props);
 		}
 	}
 
 	public static class JdbcTemplateBox extends BeanBox {
 		{
-			setConstructor(JdbcTemplate.class, new DSPoolBeanBox());
+			setConstructor(JdbcTemplate.class, DSPoolBeanBox.class);
 		}
 	}
 }
 
+
 public class Tester {
+
 	@InjectBox
 	private JdbcTemplate dao;
 
 	public void insertUser() {
 		dao.execute("insert into users values ('User1')");
-		int i = 1 / 0; //Throw a runtime Exception to roll back transaction
+		// int i = 1 / 0; // Throw a runtime Exception to roll back transaction
 		dao.execute("insert into users values ('User2')");
 	}
 
@@ -234,33 +238,40 @@ public class Tester {
 		Tester tester = BeanBox.getBean(Tester.class);
 		tester.insertUser();
 	}
+
 }
 ```
 
-Example 6 - Use create method to create bean instance manually and use config method to set values, this way can achieve Java type safe, it supports method name refactor in IDE, below configuration do the same thing like example5 but use init java type safe method instead:
+Example 6 - Use create method to create bean instance manually and use config method to set values, it's Java type safe, supports method name IDE refactor, below configuration do the same thing like example5 but use init java type safe methods instead:
 ```
 public class TesterBox extends BeanBox {
 	static {
+		BeanBox.defaultBeanBoxContext.close();// clean up
 		BeanBox.defaultBeanBoxContext.setAOPAround("examples.example6_type_safe.Test\\w*", "insert\\w*",
 				new TxInterceptorBox(), "invoke");
 	}
 
 	static class DSPoolBeanBox extends BeanBox {// Type-unsafe and type-safe configurations can mixed use.
-		{
-			setProperty("driverClass", "com.mysql.jdbc.Driver");
-			setProperty("jdbcUrl", "jdbc:mysql://127.0.0.1:3306/test?user=root&password=root888");
-		}
-
-		public DataSource init() {
+		public DataSource create() {
 			ComboPooledDataSource ds = new ComboPooledDataSource();
-			ds.setMaxPoolSize(10);
-			ds.setCheckoutTimeout(2000);
+			ds.setUser("root");
 			return ds;
 		}
+
+		public void config(ComboPooledDataSource ds) {
+			ds.setJdbcUrl("jdbc:mysql://127.0.0.1:3306/test");
+			ds.setPassword("root888");// change to your PWD
+			ds.setCheckoutTimeout(2000);
+		}
+
+		{
+			setProperty("driverClass", "com.mysql.jdbc.Driver");
+		}
+
 	}
 
 	static class TxManagerBox extends BeanBox {
-		public DataSourceTransactionManager init() {
+		public DataSourceTransactionManager create() {
 			DataSourceTransactionManager dm = new DataSourceTransactionManager();
 			dm.setDataSource((DataSource) new DSPoolBeanBox().getBean());
 			return dm;
@@ -268,7 +279,7 @@ public class TesterBox extends BeanBox {
 	}
 
 	static class TxInterceptorBox extends BeanBox {// Advice
-		public TransactionInterceptor init() {
+		public TransactionInterceptor create() {
 			Properties props = new Properties();
 			props.put("insert*", "PROPAGATION_REQUIRED");
 			return new TransactionInterceptor((DataSourceTransactionManager) new TxManagerBox().getBean(), props);
@@ -276,11 +287,72 @@ public class TesterBox extends BeanBox {
 	}
 
 	public static class JdbcTemplateBox extends BeanBox {
-		public JdbcTemplate init() {
+		public JdbcTemplate create() {
 			return new JdbcTemplate((DataSource) new DSPoolBeanBox().getBean());
 		}
 	}
 
 }
 
+```
+
+Example 7 - Only Use annotation do all the injection to replace configurations, similar like Spring or Guice's Annotation, but much simpler.
+```
+public class AA {
+	BB bb;
+	String s;
+	BB bb2;
+	Integer i;
+	boolean bl;
+
+	@InjectBox(s1 = "Hello", i3 = 12345, b4 = "false")
+	public AA(BB bb, String s, BB bb2, Integer i, Boolean bl) {
+		this.bb = bb;
+		this.s = s;
+		this.bb2 = bb2;
+		this.i = i;
+		this.bl = bl;
+	}
+
+	void print() {
+		System.out.println("s=" + s);
+		System.out.println("i=" + i);
+		System.out.println("bl=" + bl);
+		System.out.println(bb.cc.d1.aa.bb.cc.d1.aa.bb.cc.d1.name);
+		System.out.println(bb.cc.d2.name);
+	}
+}
+```
+Example 8 - A simple BenchMark test, it shows jBeanBox is ~20 times quicker than Spring, 1~3 times slower than Guice, detail test please see new project "https://github.com/drinkjava2/di-benchmark"  
+```
+Split Starting up DI containers & instantiating a dependency graph 4999 times:
+---------------------------------------------------------------------------------------
+Spring scan: disabled
+             Vanilla| start:     3ms   fetch:    15ms
+               Guice| start:  1776ms   fetch:  3558ms
+             Feather| start:    19ms   fetch:   251ms
+              Dagger| start:   202ms   fetch:   377ms
+                Pico| start:   710ms   fetch:   727ms
+               Genie| start:  1675ms   fetch:   726ms
+      jBeanBoxNormal| start:    15ms   fetch:  1523ms
+    jBeanBoxTypeSafe| start:     8ms   fetch:   184ms
+  jBeanBoxAnnotation| start:     7ms   fetch:    85ms
+              Spring| start:110703ms   fetch:  9282ms 
+```
+
+### Runtime benchmark
+
+```
+Runtime benchmark, fetch bean for 499999 times: 
+--------------------------------------------------
+             Vanilla|    71ms
+               Guice|  2708ms
+             Feather|  1727ms
+              Dagger|   834ms
+               Genie|  1587ms
+                Pico| 11479ms
+      jBeanBoxNormal| 14788ms
+    jBeanBoxTypeSafe| 10031ms
+  jBeanBoxAnnotation|  7441ms
+              Spring|219018ms
 ```

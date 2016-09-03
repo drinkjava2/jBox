@@ -90,7 +90,7 @@ public class BeanBoxUtils {
 	/**
 	 * Create a BeanBox instance by its 0 parameter constructor
 	 */
-	public static BeanBox createBeanBoxWithCtr0(Class<BeanBox> clazz, BeanBoxContext context) {
+	public static BeanBox createBeanBoxInstance(Class<BeanBox> clazz, BeanBoxContext context) {
 		try {
 			Constructor<?> c0 = clazz.getDeclaredConstructor();
 			c0.setAccessible(true);
@@ -103,6 +103,24 @@ public class BeanBoxUtils {
 		return null;
 	}
 
+	static enum ObjectType {
+		BeanBoxClass, BeanBoxInstance, Clazz, Instance
+	}
+
+	/**
+	 * Judge unknow Object type
+	 */
+	public static ObjectType judgeType(Object unknowObject) {
+		if (unknowObject instanceof BeanBox)
+			return ObjectType.BeanBoxInstance;
+		else if (unknowObject instanceof Class && BeanBox.class.isAssignableFrom((Class<?>) unknowObject))
+			return ObjectType.BeanBoxClass;
+		else if (unknowObject instanceof Class)
+			return ObjectType.Clazz;
+		return ObjectType.Instance;
+	}
+
+	@SuppressWarnings("unchecked")
 	public static BeanBox buildBeanBoxWithAnotatedCtr(Class<?> clazz, BeanBoxContext context) {
 		Constructor<?>[] cons = clazz.getDeclaredConstructors();
 		for (Constructor<?> c : cons) {
@@ -114,18 +132,21 @@ public class BeanBoxUtils {
 				int parameterCount = parameterTypes.length;
 				if (parameterCount == 0 || parameterCount > 6)
 					BeanBoxUtils.throwEX(null,
-							"BeanBox buildBeanBoxWithAnotatedCtr error, only support 1~6 constructor parameters,class="
+							"BeanBox buildBeanBoxWithAnotatedCtr error, only support at most 6 constructor parameters,class="
 									+ clazz);
 				Object[] args = new Object[parameterCount];
 				for (int i = 0; i < parameterCount; i++) {
 					if (i == 0) {
-						if (!Object.class.equals(a.box0()))
-							args[i] = new BeanBox(a.box0());
-						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s0()))
+						if (!Object.class.equals(a.box0())) {
+							if (BeanBox.class.isAssignableFrom(a.box0()))
+								args[i] = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box0(), context);
+							else
+								args[i] = new BeanBox(a.box0());
+						} else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s0()))
 							args[i] = a.s0();
-						else if (InjectBox.IMPOSSIBLE_INT != a.i0())
+						else if (!new Integer(InjectBox.IMPOSSIBLE_INT).equals(a.i0()))
 							args[i] = a.i0();
-						else if (InjectBox.IMPOSSIBLE_STRING != a.b0())
+						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.b0()))
 							if ("true".equals(a.b0()))
 								args[i] = true;
 							else
@@ -134,13 +155,16 @@ public class BeanBoxUtils {
 							args[i] = parameterTypes[i];
 					}
 					if (i == 1) {
-						if (!Object.class.equals(a.box1()))
-							args[i] = new BeanBox(a.box1());
-						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s1()))
+						if (!Object.class.equals(a.box1())) {
+							if (BeanBox.class.isAssignableFrom(a.box1()))
+								args[i] = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box1(), context);
+							else
+								args[i] = new BeanBox(a.box1());
+						} else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s1()))
 							args[i] = a.s1();
-						else if (InjectBox.IMPOSSIBLE_INT != a.i1())
+						else if (!new Integer(InjectBox.IMPOSSIBLE_INT).equals(a.i1()))
 							args[i] = a.i1();
-						else if (InjectBox.IMPOSSIBLE_STRING != a.b1())
+						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.b1()))
 							if ("true".equals(a.b1()))
 								args[i] = true;
 							else
@@ -149,13 +173,16 @@ public class BeanBoxUtils {
 							args[i] = parameterTypes[i];
 					}
 					if (i == 2) {
-						if (!Object.class.equals(a.box2()))
-							args[i] = new BeanBox(a.box2());
-						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s2()))
+						if (!Object.class.equals(a.box2())) {
+							if (BeanBox.class.isAssignableFrom(a.box2()))
+								args[i] = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box2(), context);
+							else
+								args[i] = new BeanBox(a.box2());
+						} else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s2()))
 							args[i] = a.s2();
-						else if (InjectBox.IMPOSSIBLE_INT != a.i2())
+						else if (!new Integer(InjectBox.IMPOSSIBLE_INT).equals(a.i2()))
 							args[i] = a.i2();
-						else if (InjectBox.IMPOSSIBLE_STRING != a.b2())
+						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.b2()))
 							if ("true".equals(a.b2()))
 								args[i] = true;
 							else
@@ -164,13 +191,16 @@ public class BeanBoxUtils {
 							args[i] = parameterTypes[i];
 					}
 					if (i == 3) {
-						if (!Object.class.equals(a.box3()))
-							args[i] = new BeanBox(a.box3());
-						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s3()))
+						if (!Object.class.equals(a.box3())) {
+							if (BeanBox.class.isAssignableFrom(a.box3()))
+								args[i] = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box3(), context);
+							else
+								args[i] = new BeanBox(a.box3());
+						} else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s3()))
 							args[i] = a.s3();
-						else if (InjectBox.IMPOSSIBLE_INT != a.i3())
+						else if (!new Integer(InjectBox.IMPOSSIBLE_INT).equals(a.i3()))
 							args[i] = a.i3();
-						else if (InjectBox.IMPOSSIBLE_STRING != a.b3())
+						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.b3()))
 							if ("true".equals(a.b3()))
 								args[i] = true;
 							else
@@ -179,13 +209,16 @@ public class BeanBoxUtils {
 							args[i] = parameterTypes[i];
 					}
 					if (i == 4) {
-						if (!Object.class.equals(a.box4()))
-							args[i] = new BeanBox(a.box4());
-						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s4()))
+						if (!Object.class.equals(a.box4())) {
+							if (BeanBox.class.isAssignableFrom(a.box4()))
+								args[i] = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box4(), context);
+							else
+								args[i] = new BeanBox(a.box4());
+						} else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s4()))
 							args[i] = a.s4();
-						else if (InjectBox.IMPOSSIBLE_INT != a.i4())
+						else if (!new Integer(InjectBox.IMPOSSIBLE_INT).equals(a.i4()))
 							args[i] = a.i4();
-						else if (InjectBox.IMPOSSIBLE_STRING != a.b4())
+						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.b4()))
 							if ("true".equals(a.b4()))
 								args[i] = true;
 							else
@@ -194,13 +227,16 @@ public class BeanBoxUtils {
 							args[i] = parameterTypes[i];
 					}
 					if (i == 5) {
-						if (!Object.class.equals(a.box5()))
-							args[i] = new BeanBox(a.box5());
-						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s5()))
+						if (!Object.class.equals(a.box5())) {
+							if (BeanBox.class.isAssignableFrom(a.box5()))
+								args[i] = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box5(), context);
+							else
+								args[i] = new BeanBox(a.box5());
+						} else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s5()))
 							args[i] = a.s5();
-						else if (InjectBox.IMPOSSIBLE_INT != a.i5())
+						else if (!new Integer(InjectBox.IMPOSSIBLE_INT).equals(a.i5()))
 							args[i] = a.i5();
-						else if (InjectBox.IMPOSSIBLE_STRING != a.b5())
+						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.b5()))
 							if ("true".equals(a.b5()))
 								args[i] = true;
 							else
@@ -208,6 +244,8 @@ public class BeanBoxUtils {
 						else
 							args[i] = parameterTypes[i];
 					}
+					if (args[i] instanceof Class && !BeanBox.class.isAssignableFrom((Class<?>) args[i]))
+						args[i] = new BeanBox().setClassOrValue(args[i]);
 				}
 				BeanBox box = new BeanBox().setContext(context).setConstructor(clazz, args);
 				return box;
@@ -241,9 +279,8 @@ public class BeanBoxUtils {
 	 * active).
 	 */
 	public static void makeAccessible(Field field) {
-		if ((!Modifier.isPublic(field.getModifiers()) || !Modifier.isPublic(field.getDeclaringClass().getModifiers()) || Modifier
-				.isFinal(field.getModifiers()))
-				&& !field.isAccessible()) {
+		if ((!Modifier.isPublic(field.getModifiers()) || !Modifier.isPublic(field.getDeclaringClass().getModifiers())
+				|| Modifier.isFinal(field.getModifiers())) && !field.isAccessible()) {
 			field.setAccessible(true);
 		}
 	}
@@ -284,5 +321,15 @@ public class BeanBoxUtils {
 				if (adv.match(((Class<?>) classOrValue).getName(), method.getName()))
 					return true;
 		return false;
+	}
+
+	/**
+	 * Only used for debug
+	 */
+	public static String debugInfo(Object[] args) {
+		String s = "\r\n";
+		for (int i = 0; i < args.length; i++)
+			s += args[i] + "\r\n";
+		return s;
 	}
 }

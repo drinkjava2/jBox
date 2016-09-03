@@ -30,13 +30,15 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import net.sf.jbeanbox.BeanBoxUtils.ObjectType;
+
 /**
  * jBeanBox is a macro scale IOC & AOP framework for Java 6 and above.
  * 
  * @author Yong Zhu (Yong9981@gmail.com)
  * @since 2016-2-13
- * @version 2.4
- * @update 2016-08-31
+ * @version 2.4-SNAPSHOT
+ * @update 2016-09-03
  */
 @SuppressWarnings("unchecked")
 public class BeanBox {
@@ -166,22 +168,28 @@ public class BeanBox {
 	/**
 	 * Set property, can be BeanBox class or normal class or value, for normal class will be wrapped as a BeanBox
 	 */
-	public BeanBox setProperty(String property, Object beanBoxInstanceOrValue) {
-		if (beanBoxInstanceOrValue instanceof BeanBox)
-			properties.put(property, new Object[] { PropertyType.BEAN, beanBoxInstanceOrValue });
-		else if (beanBoxInstanceOrValue instanceof Class
-				&& BeanBox.class.isAssignableFrom((Class<?>) beanBoxInstanceOrValue))
+	public BeanBox setProperty(String property, Object classOrValue) {
+		ObjectType type = BeanBoxUtils.judgeType(classOrValue);
+		switch (type) {
+		case BeanBoxInstance:
+			properties.put(property, new Object[] { PropertyType.BEAN, classOrValue });
+			break;
+		case BeanBoxClass:
 			try {
 				properties.put(property, new Object[] { PropertyType.BEAN,
-						BeanBoxUtils.createBeanBoxWithCtr0((Class<BeanBox>) beanBoxInstanceOrValue, context) });
+						BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) classOrValue, context) });
 			} catch (Exception e) {
-				BeanBoxUtils.throwEX(e, "BeanBox setProperty error! property=" + property + " beanBoxInstanceOrValue="
-						+ beanBoxInstanceOrValue);
+				BeanBoxUtils.throwEX(e,
+						"BeanBox setProperty error! property=" + property + " classOrValue=" + classOrValue);
 			}
-		else if (beanBoxInstanceOrValue instanceof Class)
-			properties.put(property, new Object[] { PropertyType.BEAN, new BeanBox(beanBoxInstanceOrValue) });
-		else
-			properties.put(property, new Object[] { PropertyType.VALUE, beanBoxInstanceOrValue });
+			break;
+		case Clazz:
+			properties.put(property, new Object[] { PropertyType.BEAN, new BeanBox(classOrValue) });
+			break;
+		case Instance:
+			properties.put(property, new Object[] { PropertyType.VALUE, classOrValue });
+			break;
+		}
 		return this;
 	}
 
@@ -226,8 +234,8 @@ public class BeanBox {
 				method.invoke(bean, new Object[] { beaninstance });
 			}
 		} catch (Exception e) {
-			BeanBoxUtils.throwEX(e, "BeanBox invokeMethodToSetValue error! bean=" + bean + " method=" + method
-					+ " args=" + args);
+			BeanBoxUtils.throwEX(e,
+					"BeanBox invokeMethodToSetValue error! bean=" + bean + " method=" + method + " args=" + args);
 		}
 	}
 
@@ -255,8 +263,8 @@ public class BeanBox {
 				field.set(bean, beaninstance);
 			}
 		} catch (Exception e) {
-			BeanBoxUtils.throwEX(e, "BeanBox invokeMethodToSetValue error! bean=" + bean + " field=" + field + " args="
-					+ args);
+			BeanBoxUtils.throwEX(e,
+					"BeanBox invokeMethodToSetValue error! bean=" + bean + " field=" + field + " args=" + args);
 		}
 	}
 
@@ -297,8 +305,8 @@ public class BeanBox {
 			InjectBox injectAnnotation = field.getAnnotation(InjectBox.class);
 			try {
 				if (injectAnnotation != null) {
-					BeanBox box = BeanBoxContext.getBeanBox(beanClass, field.getType(), injectAnnotation.value(), field
-							.getName(), context, injectAnnotation.required());
+					BeanBox box = BeanBoxContext.getBeanBox(beanClass, field.getType(), injectAnnotation.value(),
+							field.getName(), context, injectAnnotation.required());
 					if (box == null)
 						return;
 					if (box.getClassOrValue() == null)
@@ -307,8 +315,8 @@ public class BeanBox {
 					field.set(beanInstance, box.getBean());
 				}
 			} catch (Exception e) {
-				BeanBoxUtils.throwEX(e, "BeanBox injectAnnotationFields error! beanClass=" + beanClass + " field="
-						+ field.getName());
+				BeanBoxUtils.throwEX(e,
+						"BeanBox injectAnnotationFields error! beanClass=" + beanClass + " field=" + field.getName());
 			}
 		}
 	}
@@ -319,16 +327,29 @@ public class BeanBox {
 	private Class<?>[] getObjectClassType(Object... beanArgs) {// Translate object[] to Class[], for invoke use
 		Class<?>[] classes = new Class[beanArgs.length];
 		for (int i = 0; i < classes.length; i++) {
-			classes[i] = beanArgs[i].getClass();
-			if (BeanBox.class.isAssignableFrom(classes[i])) {
+			ObjectType type = BeanBoxUtils.judgeType(beanArgs[i]);
+			switch (type) {
+			case BeanBoxInstance: {
 				BeanBox b = (BeanBox) beanArgs[i];
 				try {
 					Method method = b.getClass().getDeclaredMethod(CREATE_BEAN);
 					if (method != null)
 						classes[i] = method.getReturnType();
 				} catch (Exception e) {
-					classes[i] = (Class<? extends Object>) (b.getClassOrValue());
+					classes[i] = (Class<?>) (b.getClassOrValue());
 				}
+			}
+				break;
+			case BeanBoxClass:
+				classes[i] = (Class<?>) BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) beanArgs[i], context)
+						.getClassOrValue();
+				break;
+			case Clazz:
+				classes[i] = (Class<?>) beanArgs[i];
+				break;
+			case Instance:
+				classes[i] = beanArgs[i].getClass();
+				break;
 			}
 		}
 		return classes;
@@ -340,11 +361,23 @@ public class BeanBox {
 	private Object[] getObjectRealValue(Object... beanArgs) {
 		Object[] objects = new Object[beanArgs.length];
 		for (int i = 0; i < objects.length; i++) {
-			if (beanArgs[i] instanceof BeanBox) {
+			ObjectType type = BeanBoxUtils.judgeType(beanArgs[i]);
+			switch (type) {
+			case BeanBoxInstance: {
 				((BeanBox) beanArgs[i]).setContext(context);
 				objects[i] = ((BeanBox) beanArgs[i]).getBean();
-			} else
+			}
+				break;
+			case BeanBoxClass:
+				objects[i] = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) beanArgs[i], context).getBean();
+				break;
+			case Clazz:
+				objects[i] = context.getBean((Class<?>) beanArgs[i]);
+				break;
+			case Instance:
 				objects[i] = beanArgs[i];
+				break;
+			}
 		}
 		return objects;
 	}
@@ -416,7 +449,9 @@ public class BeanBox {
 						instance = createBeanByGivenConstructor();
 						if (instance == null)
 							BeanBoxUtils.throwEX(null,
-									"BeanBox call constructor error! not found given constructor for " + classOrValue);
+									"BeanBox getBean error! not found given public constructor for class "
+											+ classOrValue + " constructorArgs="
+											+ BeanBoxUtils.debugInfo(constructorArgs));
 					} catch (Exception e) {
 						BeanBoxUtils.throwEX(e, "BeanBox create constructor error! constructor=" + classOrValue);
 					}
@@ -426,6 +461,7 @@ public class BeanBox {
 					} catch (Exception e) {
 						if (!context.getIgnoreAnnotation()) {// 3rd find annotated constructor
 							BeanBox box = BeanBoxUtils.buildBeanBoxWithAnotatedCtr((Class<?>) classOrValue, context);
+
 							if (box != null)
 								instance = box.getBean();
 						}
@@ -441,8 +477,8 @@ public class BeanBox {
 				context.signletonCache.put(beanID, instance);// save SingleTon in cache
 				if (!BeanBoxUtils.isEmptyStr(this.getPreDestory())) {// save PreDestory methods in cache
 					try {
-						Method predestoryMethod = instance.getClass()
-								.getDeclaredMethod(getPreDestory(), new Class[] {});
+						Method predestoryMethod = instance.getClass().getDeclaredMethod(getPreDestory(),
+								new Class[] {});
 						this.context.preDestoryMethodCache.put(beanID, predestoryMethod);
 					} catch (Exception e) {
 						BeanBoxUtils.throwEX(e, "BeanBox  create bean error!  PreDestory=" + getPreDestory());

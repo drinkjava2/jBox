@@ -7,6 +7,7 @@ import examples.example8_benchmark.objects.D1;
 import examples.example8_benchmark.objects.D2;
 import examples.example8_benchmark.objects.E;
 import net.sf.jbeanbox.BeanBox;
+import net.sf.jbeanbox.BeanBoxContext;
 
 public class BeanBoxConfig2 {
 	public static class ABox extends BeanBox {
@@ -43,6 +44,12 @@ public class BeanBoxConfig2 {
 		public E create() {
 			return new E();
 		}
+	}
+
+	public static void main(String[] args) {
+		BeanBoxContext ctx2 = new BeanBoxContext(BeanBoxConfig2.class).setIgnoreAnnotation(true);
+		A a = ctx2.getBean(A.class);
+		System.out.println(a.b.c.d1.e.getname());
 	}
 
 }

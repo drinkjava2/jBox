@@ -240,8 +240,10 @@ public class BeanBoxContext {
 							.checkIfExist(configs.getName() + "$" + clazz.getSimpleName() + context.boxIdentity);// #9
 					if (box != null)
 						break;
-					box = BeanBoxUtils.checkIfExist(configs.getName() + "$" + fieldName.substring(0, 1).toUpperCase()
-							+ fieldName.substring(1) + context.boxIdentity);// #10
+					if (!BeanBoxUtils.isEmptyStr(fieldName))
+						box = BeanBoxUtils
+								.checkIfExist(configs.getName() + "$" + fieldName.substring(0, 1).toUpperCase()
+										+ fieldName.substring(1) + context.boxIdentity);// #10
 					if (box != null)
 						break;
 				}
@@ -251,7 +253,7 @@ public class BeanBoxContext {
 		if (box == null)
 			beanbox = wrapClassToBeanBox(clazz, context); // try wrap it to a BeanBox
 		else
-			beanbox = BeanBoxUtils.createBeanBoxWithCtr0((Class<BeanBox>) box, context);
+			beanbox = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) box, context);
 		if (required && beanbox == null)
 			BeanBoxUtils.throwEX(null, "BeanBox getBeanBox error! class can not be created, class=" + clazz);
 		if (beanbox.getClassOrValue() == null)

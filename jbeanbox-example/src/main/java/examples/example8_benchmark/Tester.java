@@ -30,7 +30,7 @@ public class Tester {
 		String result1 = null, result2 = null, result3 = null;
 
 		// use config1, normal configuration
-		BeanBoxContext ctx1 = new BeanBoxContext(BeanBoxConfig.class).setIgnoreAnnotation(true);
+		BeanBoxContext ctx1 = new BeanBoxContext(BeanBoxConfig1.class).setIgnoreAnnotation(true);
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < repeattimes; i++) {
 			A a = ctx1.getBean(A.class);
@@ -61,7 +61,8 @@ public class Tester {
 		System.out.println("\r\nresult1=" + result1);
 		System.out.println("result2=" + result2);
 		System.out.println("result3=" + result3);
-		System.out.println("jBeanBox is ~20 times quicker than Spring, 1 to 3 times slower than Guice.");
+		System.out.println(
+				"\r\njBeanBox is ~20 times quicker than Spring, 1 to 3 times slower than Guice, detail see project: https://github.com/drinkjava2/di-benchmark");
 
 		// TODO field injection benchmark test
 
