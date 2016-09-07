@@ -24,8 +24,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * BeanBoxContext acts the same role like ApplicationContext in Spring
  * 
  * @author Yong Zhu
- * @since 2016-2-13
- * @update 2016-08-21
+ * @version 2.4.1
+ * @since 2.4
+ * @update 2016-09-06
  *
  */
 public class BeanBoxContext {
@@ -41,7 +42,7 @@ public class BeanBoxContext {
 	protected HashMap<String, Object> signletonCache = new HashMap<String, Object>();
 
 	// Configuration class cache
-	protected CopyOnWriteArrayList<Class<?>> configClassList = new CopyOnWriteArrayList<Class<?>>();
+	public CopyOnWriteArrayList<Class<?>> configClassList = new CopyOnWriteArrayList<Class<?>>();
 
 	// preDestory method cache
 	protected ConcurrentHashMap<String, Method> preDestoryMethodCache = new ConcurrentHashMap<String, Method>();
@@ -60,18 +61,23 @@ public class BeanBoxContext {
 		return this;
 	}
 
+	/**
+	 * Set a Box identity used to find configuration, default is "Box"
+	 */
 	public String getBoxIdentity() {
 		return boxIdentity;
 	}
 
+	/**
+	 * Build a bean instance, usually no need call this method
+	 */
 	public <T> T getBean(Class<?> clazz) {
 		return getBeanBox(null, clazz, null, null, this, true).getBean();
 	}
 
-	public <T> T getBean(Class<?> clazz, Class<?> configClass) {
-		return getBeanBox(null, clazz, configClass, null, this, true).getBean();
-	}
-
+	/**
+	 * Register configuration classes
+	 */
 	public BeanBoxContext addConfig(Class<?> configClass) {
 		configClassList.add(configClass);
 		return this;
@@ -81,13 +87,16 @@ public class BeanBoxContext {
 		return ignoreAnnotation;
 	}
 
+	/**
+	 * If set true, will ignore all annotations
+	 */
 	public BeanBoxContext setIgnoreAnnotation(Boolean ignoreAnnotation) {
 		this.ignoreAnnotation = ignoreAnnotation;
 		return this;
 	}
 
 	/**
-	 * When close() method be called, call all preDestory() method for all singleTon Bean instances.
+	 * When close() method be called, call preDestory() methods for all cached singleTon Beans.
 	 */
 	public void close() {
 		for (String beanID : preDestoryMethodCache.keySet()) {
@@ -178,12 +187,15 @@ public class BeanBoxContext {
 				false));
 	}
 
+	/**
+	 * Wrap a class to a BeanBox, usually no need call this method
+	 */
 	private static BeanBox wrapClassToBeanBox(Class<?> clazz, BeanBoxContext context) {
 		return new BeanBox(clazz);
 	}
 
 	/**
-	 * Find BeanBox class and create instance, for field with @InjectBox annotation, follow below order: <br/>
+	 * Find BeanBox class and create BeanBox instance, for field with @InjectBox annotation, follow below order: <br/>
 	 * Format: A.class{ @Inject(B.class) C fieldname;} <br/>
 	 * 1) B.class (if is BeanBox)<br/>
 	 * 2) B$CBox.class in B.class <br/>
@@ -199,7 +211,6 @@ public class BeanBoxContext {
 	 * 10) ConfigClass$FieldnameBox.class in globalConfig classes <br/>
 	 * 
 	 * for a context.getBean(C.class) call, follow above #4, #5, #6, #9 order <br/>
-	 * for a context.getBean(C.class, B.class) call, follow above #1, #2, #4, #5, #6, #9 order <br/>
 	 * 
 	 * If no BeanBox class found, if A.class has 0 parameter constructor or annotated constructor, wrap to BeanBox.<br/>
 	 * if no BeanBox created at final, throw a error unless "required=false" set in @injectBox annotation
@@ -256,7 +267,7 @@ public class BeanBoxContext {
 			beanbox = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) box, context);
 		if (required && beanbox == null)
 			BeanBoxUtils.throwEX(null, "BeanBox getBeanBox error! class can not be created, class=" + clazz);
-		if (beanbox.getClassOrValue() == null)
+		if (beanbox != null && beanbox.getClassOrValue() == null)
 			beanbox.setClassOrValue(clazz);
 		return beanbox;
 	}

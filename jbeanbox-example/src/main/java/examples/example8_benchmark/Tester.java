@@ -61,10 +61,6 @@ public class Tester {
 		System.out.println("\r\nresult1=" + result1);
 		System.out.println("result2=" + result2);
 		System.out.println("result3=" + result3);
-		System.out.println(
-				"\r\njBeanBox is ~20 times quicker than Spring, 1 to 3 times slower than Guice, detail see project: https://github.com/drinkjava2/di-benchmark");
-
-		// TODO field injection benchmark test
 
 	}
 }

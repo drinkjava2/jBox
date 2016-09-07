@@ -28,8 +28,9 @@ import net.sf.cglib.proxy.Enhancer;
  * Lots public static methods be moved into this BeanBoxUtils class
  * 
  * @author Yong Zhu
- * @since 2016-2-13
- * @update 2016-08-21
+ * @version 2.4.1
+ * @since 2.4
+ * @update 2016-09-06
  * 
  */
 public class BeanBoxUtils {
@@ -120,8 +121,11 @@ public class BeanBoxUtils {
 		return ObjectType.Instance;
 	}
 
+	/**
+	 * build BeanBox With Annotated Constructor
+	 */
 	@SuppressWarnings("unchecked")
-	public static BeanBox buildBeanBoxWithAnotatedCtr(Class<?> clazz, BeanBoxContext context) {
+	public static BeanBox buildBeanBoxWithAnnotatedCtr(Class<?> clazz, BeanBoxContext context) {
 		Constructor<?>[] cons = clazz.getDeclaredConstructors();
 		for (Constructor<?> c : cons) {
 			if (c.isAnnotationPresent(InjectBox.class)) {
@@ -244,8 +248,6 @@ public class BeanBoxUtils {
 						else
 							args[i] = parameterTypes[i];
 					}
-					if (args[i] instanceof Class && !BeanBox.class.isAssignableFrom((Class<?>) args[i]))
-						args[i] = new BeanBox().setClassOrValue(args[i]);
 				}
 				BeanBox box = new BeanBox().setContext(context).setConstructor(clazz, args);
 				return box;

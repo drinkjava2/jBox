@@ -1,4 +1,3 @@
-
 /**
  * Copyright (C) 2016 Yong Zhu.
  *
@@ -28,7 +27,8 @@ import org.aspectj.lang.reflect.SourceLocation;
  * JoinPoint interface detail see AspectJ doc, here is a brief implementation
  * 
  * @author Yong Zhu
- * @since 2016-2-13
+ * @version 2.4.1
+ * @since 2.4
  * @update 2016-08-23
  */
 class AspectjJoinPoint implements JoinPoint {

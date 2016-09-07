@@ -29,6 +29,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import net.sf.jbeanbox.BeanBoxUtils.ObjectType;
 
@@ -36,9 +37,9 @@ import net.sf.jbeanbox.BeanBoxUtils.ObjectType;
  * jBeanBox is a macro scale IOC & AOP framework for Java 6 and above.
  * 
  * @author Yong Zhu (Yong9981@gmail.com)
- * @since 2016-2-13
- * @version 2.4-SNAPSHOT
- * @update 2016-09-03
+ * @version 2.4.1
+ * @since 1.0
+ * @update 2016-09-06
  */
 @SuppressWarnings("unchecked")
 public class BeanBox {
@@ -407,6 +408,20 @@ public class BeanBox {
 	}
 
 	/**
+	 * Use a thread local AtomicInteger to check circular dependency
+	 */
+	private static final ThreadLocal<AtomicInteger> circularCKThreadLocal = new ThreadLocal<AtomicInteger>();
+
+	public static AtomicInteger getCircularCheck() {
+		AtomicInteger atm = circularCKThreadLocal.get();
+		if (atm == null) {
+			atm = new AtomicInteger(0);
+			circularCKThreadLocal.set(atm);
+		}
+		return atm;
+	}
+
+	/**
 	 * Create new bean instance or get singleTon bean instance in cache (if cached)
 	 */
 	public <T> T getBean() {
@@ -414,6 +429,10 @@ public class BeanBox {
 			return (T) classOrValue;
 		Object instance = null;
 		Method createBeanMethod = null;
+		if (getCircularCheck().incrementAndGet() > 100) {// throw exception before out of stack memory
+			getCircularCheck().set(0);
+			BeanBoxUtils.throwEX(null, "BeanBox getBean circular Dependency error found! classOrValue=" + classOrValue);
+		}
 		try {// Check if has create method in BeanBox
 			createBeanMethod = getClass().getDeclaredMethod(CREATE_BEAN);
 			this.setClassOrValue(createBeanMethod.getReturnType());
@@ -424,21 +443,25 @@ public class BeanBox {
 			if (this.getClassOrValue() instanceof Class)// use real bean class name & args as beanID
 				beanID = ((Class<?>) this.getClassOrValue()).getName()
 						+ (constructorArgs == null ? "" : constructorArgs);
-			else
+			else {
+				getCircularCheck().decrementAndGet();
 				BeanBoxUtils.throwEX(null, "BeanBox createOrGetFromCache error! BeanBox ID can not be determined!");
+			}
 		}
 		synchronized (context.signletonCache) {
 			if (isSingleTon) {
 				instance = context.signletonCache.get(beanID);
-				if (instance != null)
+				if (instance != null) {
+					getCircularCheck().decrementAndGet();
 					return (T) instance;// found singleTon bean in cache, good luck
+				}
 			}
-
 			if (createBeanMethod != null) {
 				try {
 					BeanBoxUtils.makeAccessible(createBeanMethod);
 					instance = createBeanMethod.invoke(this, new Object[] {});
 				} catch (Exception e) {
+					getCircularCheck().decrementAndGet();
 					BeanBoxUtils.throwEX(e, "BeanBox getBean error! init method invoke error, class=" + this);
 				}
 			} else {
@@ -453,6 +476,7 @@ public class BeanBox {
 											+ classOrValue + " constructorArgs="
 											+ BeanBoxUtils.debugInfo(constructorArgs));
 					} catch (Exception e) {
+						getCircularCheck().decrementAndGet();
 						BeanBoxUtils.throwEX(e, "BeanBox create constructor error! constructor=" + classOrValue);
 					}
 				else if (classOrValue instanceof Class) {
@@ -460,17 +484,25 @@ public class BeanBox {
 						instance = BeanBoxUtils.createInstanceWithCtr0((Class<?>) classOrValue);
 					} catch (Exception e) {
 						if (!context.getIgnoreAnnotation()) {// 3rd find annotated constructor
-							BeanBox box = BeanBoxUtils.buildBeanBoxWithAnotatedCtr((Class<?>) classOrValue, context);
-
+							BeanBox box = BeanBoxUtils.buildBeanBoxWithAnnotatedCtr((Class<?>) classOrValue, context);
 							if (box != null)
 								instance = box.getBean();
+						} else {
+							BeanBox bx = BeanBoxContext.getBeanBox(null, (Class<?>) classOrValue, null, null, context,
+									false);
+							if (bx != null)
+								instance = bx.getBean();
 						}
-						if (instance == null)
+						if (instance == null) {
+							getCircularCheck().decrementAndGet();
 							BeanBoxUtils.throwEX(null, "BeanBox create bean error! class=" + classOrValue
 									+ " no available constructor found.");
+						}
 					}
-				} else
+				} else {
+					getCircularCheck().decrementAndGet();
 					BeanBoxUtils.throwEX(null, "BeanBox create bean undefined! classOrValue=" + classOrValue);
+				}
 			}
 
 			if (isSingleTon) {
@@ -481,13 +513,16 @@ public class BeanBox {
 								new Class[] {});
 						this.context.preDestoryMethodCache.put(beanID, predestoryMethod);
 					} catch (Exception e) {
+						getCircularCheck().decrementAndGet();
 						BeanBoxUtils.throwEX(e, "BeanBox  create bean error!  PreDestory=" + getPreDestory());
 					}
 				}
 			}
 		}
-		if (instance == null)
+		if (instance == null) {
+			getCircularCheck().decrementAndGet();
 			return null;
+		}
 		if (!context.getIgnoreAnnotation())
 			injectAnnotationFields((Class<?>) classOrValue, instance);
 
@@ -498,8 +533,10 @@ public class BeanBox {
 				Method postConstructor = instance.getClass().getDeclaredMethod(getPostConstructor(), new Class[] {});
 				postConstructor.invoke(instance, new Object[] {});
 			} catch (Exception e) {
+				getCircularCheck().decrementAndGet();
 				BeanBoxUtils.throwEX(e, "BeanBox create bean error! postConstructor=" + getPostConstructor());
 			}
+		getCircularCheck().decrementAndGet();
 		return (T) instance;
 	}
 
@@ -526,10 +563,6 @@ public class BeanBox {
 	 */
 	public static <T> T getBean(Class<?> clazz) {
 		return defaultBeanBoxContext.getBean(clazz);
-	}
-
-	public static <T> T getBean(Class<?> clazz, Class<?> configClass) {
-		return defaultBeanBoxContext.getBean(clazz, configClass);
 	}
 
 }

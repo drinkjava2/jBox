@@ -49,7 +49,7 @@ public class TesterBox extends BeanBox {
 	static class TxManagerBox extends BeanBox {
 		public DataSourceTransactionManager create() {
 			DataSourceTransactionManager dm = new DataSourceTransactionManager();
-			dm.setDataSource((DataSource) new DSPoolBeanBox().getBean());
+			dm.setDataSource((DataSource) BeanBox.getBean(DSPoolBeanBox.class));
 			return dm;
 		}
 	}
@@ -58,13 +58,14 @@ public class TesterBox extends BeanBox {
 		public TransactionInterceptor create() {
 			Properties props = new Properties();
 			props.put("insert*", "PROPAGATION_REQUIRED");
-			return new TransactionInterceptor((DataSourceTransactionManager) new TxManagerBox().getBean(), props);
+			return new TransactionInterceptor((DataSourceTransactionManager) BeanBox.getBean(TxManagerBox.class),
+					props);
 		}
 	}
 
 	public static class JdbcTemplateBox extends BeanBox {
 		public JdbcTemplate create() {
-			return new JdbcTemplate((DataSource) new DSPoolBeanBox().getBean());
+			return new JdbcTemplate((DataSource) BeanBox.getBean(DSPoolBeanBox.class));
 		}
 	}
 

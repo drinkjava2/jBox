@@ -26,7 +26,8 @@ import net.sf.cglib.proxy.MethodProxy;
 
 /**
  * @author Yong Zhu
- * @since 2016-2-13
+ * @version 2.4.1
+ * @since 2.4
  * @update 2016-08-23
  *
  */

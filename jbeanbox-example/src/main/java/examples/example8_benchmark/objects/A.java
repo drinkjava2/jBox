@@ -5,12 +5,11 @@ import net.sf.jbeanbox.InjectBox;
 public class A {
 	public B b;
 
-	@InjectBox(box0 = B.class)
+	@InjectBox
 	public A(B b) {
 		this.b = b;
 	}
 
- 
 	@Override
 	public String toString() {
 		return getClass().getSimpleName();

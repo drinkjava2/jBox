@@ -4,14 +4,14 @@ import net.sf.jbeanbox.BeanBox;
 
 /**
  * This example show how to only use annotation to build object graph <br/>
- * So far, in this project there are 3 kind of configurations:<br/>
+ * In this tool there are 3 kind of configurations and can mixed use at same time:<br/>
  * 
- * 1. Normal BeanBox configuration (Example 1) <br/>
- * 2. Java Type Safe configuration (use create & config method, see example 6) <br/>
- * 3. Annotation configuration
+ * 1. Normal BeanBox configuration <br/>
+ * 2. Java Type Safe configuration <br/>
+ * 3. Annotation configuration <br/>
  * 
  * @author Yong Zhu
- * @since 2016-8-28
+ * @since 2.4
  */
 
 public class Tester {

@@ -24,7 +24,8 @@ import org.aspectj.runtime.internal.AroundClosure;
  * ProceedingJoinPoint interface detail see AspectJ doc, here is a brief implementation
  * 
  * @author Yong Zhu
- * @since 2016-2-13
+ * @version 2.4.1
+ * @since 2.4
  * @update 2016-08-23
  * 
  */

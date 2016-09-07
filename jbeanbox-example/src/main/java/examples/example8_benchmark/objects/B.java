@@ -5,7 +5,7 @@ import net.sf.jbeanbox.InjectBox;
 public class B {
 	public C c;
 
-	@InjectBox(box0 = C.class)
+	@InjectBox
 	public B(C c) {
 		this.c = c;
 	}

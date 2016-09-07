@@ -6,7 +6,8 @@ import net.sf.jbeanbox.InjectBox;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * This example is similar like example5, but in "TesterBox" use Java type safe configurations to create bean instance. <br/>
+ * This example is similar like example5, but in "TesterBox" use Java type safe configurations to create bean instance.
+ * <br/>
  * 
  * @author Yong Zhu
  * @since 2016-8-23
@@ -20,7 +21,7 @@ public class Tester {
 
 	public void insertUser() {
 		dao.execute("insert into users values ('User1')");
-		//int i = 1 / 0; //Throw a runtime Exception to roll back transaction
+		// int i = 1 / 0; //Throw a runtime Exception to roll back transaction
 		dao.execute("insert into users values ('User2')");
 		System.out.println("Users saved successfully");
 	}
