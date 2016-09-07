@@ -47,10 +47,12 @@ public @interface InjectBox {
 
 	public Class<?> value() default Object.class;
 
-	// Default if no BeanBox can be created, will throw an exception, set to false to disable
+	// Default if no BeanBox can be created, will throw an exception, set to
+	// false to disable
 	public boolean required() default true;
 
-	// Below are for constructor parameters, more than 6 parameters better use other configuration
+	// Below are for constructor parameters, more than 6 parameters better use
+	// other configuration
 	public Class<?> box0() default Object.class;// inject BeanBox
 
 	public Class<?> box1() default Object.class;
@@ -63,41 +65,112 @@ public @interface InjectBox {
 
 	public Class<?> box5() default Object.class;
 
-	public String s0() default IMPOSSIBLE_STRING; // inject String, defalut is an impossible value
+	public String s0() default "";
 
-	public String s1() default IMPOSSIBLE_STRING;
+	public String s1() default "";
 
-	public String s2() default IMPOSSIBLE_STRING;
+	public String s2() default "";
 
-	public String s3() default IMPOSSIBLE_STRING;
+	public String s3() default "";
 
-	public String s4() default IMPOSSIBLE_STRING;
+	public String s4() default "";
 
-	public String s5() default IMPOSSIBLE_STRING;
+	public String s5() default "";
 
-	public int i0() default -99819981; // inject int
+	public int i0() default 0;
 
-	public int i1() default -99819981;
+	public int i1() default 0;
 
-	public int i2() default -99819981;
+	public int i2() default 0;
 
-	public int i3() default -99819981;
+	public int i3() default 0;
 
-	public int i4() default -99819981;
+	public int i4() default 0;
 
-	public int i5() default -99819981;
+	public int i5() default 0;
 
-	public String b0() default IMPOSSIBLE_STRING;// inject boolean
+	public boolean b0() default false;
 
-	public String b1() default IMPOSSIBLE_STRING;
+	public boolean b1() default false;
 
-	public String b2() default IMPOSSIBLE_STRING;
+	public boolean b2() default false;
 
-	public String b3() default IMPOSSIBLE_STRING;
+	public boolean b3() default false;
 
-	public String b4() default IMPOSSIBLE_STRING;
+	public boolean b4() default false;
 
-	public String b5() default IMPOSSIBLE_STRING;
+	public boolean b5() default false;
 
-	// TODO add byte, long, double, ...
+	public byte bt0() default 0;
+
+	public byte bt1() default 0;
+
+	public byte bt2() default 0;
+
+	public byte bt3() default 0;
+
+	public byte bt4() default 0;
+
+	public byte bt5() default 0;
+
+	public long l0() default 0;
+
+	public long l1() default 0;
+
+	public long l2() default 0;
+
+	public long l3() default 0;
+
+	public long l4() default 0;
+
+	public long l5() default 0;
+
+	public short st0() default 0;
+
+	public short st1() default 0;
+
+	public short st2() default 0;
+
+	public short st3() default 0;
+
+	public short st4() default 0;
+
+	public short st5() default 0;
+
+	public float f0() default 0;
+
+	public float f1() default 0;
+
+	public float f2() default 0;
+
+	public float f3() default 0;
+
+	public float f4() default 0;
+
+	public float f5() default 0;
+
+	public double d0() default 0;
+
+	public double d1() default 0;
+
+	public double d2() default 0;
+
+	public double d3() default 0;
+
+	public double d4() default 0;
+
+	public double d5() default 0;
+
+	public char c0() default '\u0000';
+
+	public char c1() default '\u0000';
+
+	public char c2() default '\u0000';
+
+	public char c3() default '\u0000';
+
+	public char c4() default '\u0000';
+
+	public char c5() default '\u0000';
+
 }

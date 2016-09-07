@@ -12,7 +12,7 @@ public class AA {
 	boolean bl;
 	String name;
 
-	@InjectBox(box0 = BB.class, s1 = "Hello", i3 = 12345, b4 = "false")
+	@InjectBox(box0 = BB.class, s1 = "Hello", i3 = 12345, b4 = true)
 	public AA(BB bb, String s, BB bb2, Integer i, Boolean bl) {
 		this.bb = bb;
 		this.s = s;

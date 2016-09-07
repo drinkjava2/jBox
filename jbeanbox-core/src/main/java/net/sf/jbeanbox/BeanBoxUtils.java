@@ -121,10 +121,163 @@ public class BeanBoxUtils {
 		return ObjectType.Instance;
 	}
 
+	@SuppressWarnings("unchecked")
+	private static Object getInjectValue(InjectBox a, Class<?> type, int i, BeanBoxContext context) {
+		if (i == 0 && !Object.class.equals(a.box0())) {
+			if (BeanBox.class.isAssignableFrom(a.box0()))
+				return BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box0(), context);
+			else
+				return new BeanBox(a.box0());
+		} else if (i == 1 && !Object.class.equals(a.box1())) {
+			if (BeanBox.class.isAssignableFrom(a.box1()))
+				return BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box1(), context);
+			else
+				return new BeanBox(a.box1());
+		} else if (i == 2 && !Object.class.equals(a.box2())) {
+			if (BeanBox.class.isAssignableFrom(a.box2()))
+				return BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box2(), context);
+			else
+				return new BeanBox(a.box2());
+		} else if (i == 3 && !Object.class.equals(a.box3())) {
+			if (BeanBox.class.isAssignableFrom(a.box3()))
+				return BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box3(), context);
+			else
+				return new BeanBox(a.box3());
+		} else if (i == 41 && !Object.class.equals(a.box4())) {
+			if (BeanBox.class.isAssignableFrom(a.box4()))
+				return BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box4(), context);
+			else
+				return new BeanBox(a.box4());
+		} else if (i == 5 && !Object.class.equals(a.box5())) {
+			if (BeanBox.class.isAssignableFrom(a.box5()))
+				return BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box5(), context);
+			else
+				return new BeanBox(a.box5());
+		}
+		if (String.class.isAssignableFrom(type)) {
+			if (i == 0)
+				return a.s0();
+			if (i == 1)
+				return a.s1();
+			if (i == 2)
+				return a.s2();
+			if (i == 3)
+				return a.s3();
+			if (i == 4)
+				return a.s4();
+			if (i == 5)
+				return a.s5();
+		} else if (Integer.class.isAssignableFrom(type)) {
+			if (i == 0)
+				return a.i0();
+			if (i == 1)
+				return a.i1();
+			if (i == 2)
+				return a.i2();
+			if (i == 3)
+				return a.i3();
+			if (i == 4)
+				return a.i4();
+			if (i == 5)
+				return a.i5();
+		} else if (Boolean.class.isAssignableFrom(type)) {
+			if (i == 0)
+				return a.b0();
+			if (i == 1)
+				return a.b1();
+			if (i == 2)
+				return a.b2();
+			if (i == 3)
+				return a.b3();
+			if (i == 4)
+				return a.b4();
+			if (i == 5)
+				return a.b5();
+		} else if (Byte.class.isAssignableFrom(type)) {
+			if (i == 0)
+				return a.bt0();
+			if (i == 1)
+				return a.bt1();
+			if (i == 2)
+				return a.bt2();
+			if (i == 3)
+				return a.bt3();
+			if (i == 4)
+				return a.bt4();
+			if (i == 5)
+				return a.bt5();
+		} else if (Long.class.isAssignableFrom(type)) {
+			if (i == 0)
+				return a.l0();
+			if (i == 1)
+				return a.l1();
+			if (i == 2)
+				return a.l2();
+			if (i == 3)
+				return a.l3();
+			if (i == 4)
+				return a.l4();
+			if (i == 5)
+				return a.l5();
+		} else if (Short.class.isAssignableFrom(type)) {
+			if (i == 0)
+				return a.st0();
+			if (i == 1)
+				return a.st1();
+			if (i == 2)
+				return a.st2();
+			if (i == 3)
+				return a.st3();
+			if (i == 4)
+				return a.st4();
+			if (i == 5)
+				return a.st5();
+		} else if (Float.class.isAssignableFrom(type)) {
+			if (i == 0)
+				return a.f0();
+			if (i == 1)
+				return a.f1();
+			if (i == 2)
+				return a.f2();
+			if (i == 3)
+				return a.f3();
+			if (i == 4)
+				return a.f4();
+			if (i == 5)
+				return a.f5();
+		} else if (Double.class.isAssignableFrom(type)) {
+			if (i == 0)
+				return a.d0();
+			if (i == 1)
+				return a.d1();
+			if (i == 2)
+				return a.d2();
+			if (i == 3)
+				return a.d3();
+			if (i == 4)
+				return a.d4();
+			if (i == 5)
+				return a.d5();
+		} else if (Character.class.isAssignableFrom(type)) {
+			if (i == 0)
+				return a.c0();
+			if (i == 1)
+				return a.c1();
+			if (i == 2)
+				return a.c2();
+			if (i == 3)
+				return a.c3();
+			if (i == 4)
+				return a.c4();
+			if (i == 5)
+				return a.c5();
+		}
+		return type;
+	}
+
 	/**
 	 * build BeanBox With Annotated Constructor
 	 */
-	@SuppressWarnings("unchecked")
 	public static BeanBox buildBeanBoxWithAnnotatedCtr(Class<?> clazz, BeanBoxContext context) {
 		Constructor<?>[] cons = clazz.getDeclaredConstructors();
 		for (Constructor<?> c : cons) {
@@ -139,116 +292,8 @@ public class BeanBoxUtils {
 							"BeanBox buildBeanBoxWithAnotatedCtr error, only support at most 6 constructor parameters,class="
 									+ clazz);
 				Object[] args = new Object[parameterCount];
-				for (int i = 0; i < parameterCount; i++) {
-					if (i == 0) {
-						if (!Object.class.equals(a.box0())) {
-							if (BeanBox.class.isAssignableFrom(a.box0()))
-								args[i] = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box0(), context);
-							else
-								args[i] = new BeanBox(a.box0());
-						} else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s0()))
-							args[i] = a.s0();
-						else if (!new Integer(InjectBox.IMPOSSIBLE_INT).equals(a.i0()))
-							args[i] = a.i0();
-						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.b0()))
-							if ("true".equals(a.b0()))
-								args[i] = true;
-							else
-								args[i] = false;
-						else
-							args[i] = parameterTypes[i];
-					}
-					if (i == 1) {
-						if (!Object.class.equals(a.box1())) {
-							if (BeanBox.class.isAssignableFrom(a.box1()))
-								args[i] = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box1(), context);
-							else
-								args[i] = new BeanBox(a.box1());
-						} else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s1()))
-							args[i] = a.s1();
-						else if (!new Integer(InjectBox.IMPOSSIBLE_INT).equals(a.i1()))
-							args[i] = a.i1();
-						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.b1()))
-							if ("true".equals(a.b1()))
-								args[i] = true;
-							else
-								args[i] = false;
-						else
-							args[i] = parameterTypes[i];
-					}
-					if (i == 2) {
-						if (!Object.class.equals(a.box2())) {
-							if (BeanBox.class.isAssignableFrom(a.box2()))
-								args[i] = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box2(), context);
-							else
-								args[i] = new BeanBox(a.box2());
-						} else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s2()))
-							args[i] = a.s2();
-						else if (!new Integer(InjectBox.IMPOSSIBLE_INT).equals(a.i2()))
-							args[i] = a.i2();
-						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.b2()))
-							if ("true".equals(a.b2()))
-								args[i] = true;
-							else
-								args[i] = false;
-						else
-							args[i] = parameterTypes[i];
-					}
-					if (i == 3) {
-						if (!Object.class.equals(a.box3())) {
-							if (BeanBox.class.isAssignableFrom(a.box3()))
-								args[i] = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box3(), context);
-							else
-								args[i] = new BeanBox(a.box3());
-						} else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s3()))
-							args[i] = a.s3();
-						else if (!new Integer(InjectBox.IMPOSSIBLE_INT).equals(a.i3()))
-							args[i] = a.i3();
-						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.b3()))
-							if ("true".equals(a.b3()))
-								args[i] = true;
-							else
-								args[i] = false;
-						else
-							args[i] = parameterTypes[i];
-					}
-					if (i == 4) {
-						if (!Object.class.equals(a.box4())) {
-							if (BeanBox.class.isAssignableFrom(a.box4()))
-								args[i] = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box4(), context);
-							else
-								args[i] = new BeanBox(a.box4());
-						} else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s4()))
-							args[i] = a.s4();
-						else if (!new Integer(InjectBox.IMPOSSIBLE_INT).equals(a.i4()))
-							args[i] = a.i4();
-						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.b4()))
-							if ("true".equals(a.b4()))
-								args[i] = true;
-							else
-								args[i] = false;
-						else
-							args[i] = parameterTypes[i];
-					}
-					if (i == 5) {
-						if (!Object.class.equals(a.box5())) {
-							if (BeanBox.class.isAssignableFrom(a.box5()))
-								args[i] = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) a.box5(), context);
-							else
-								args[i] = new BeanBox(a.box5());
-						} else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.s5()))
-							args[i] = a.s5();
-						else if (!new Integer(InjectBox.IMPOSSIBLE_INT).equals(a.i5()))
-							args[i] = a.i5();
-						else if (!InjectBox.IMPOSSIBLE_STRING.equals(a.b5()))
-							if ("true".equals(a.b5()))
-								args[i] = true;
-							else
-								args[i] = false;
-						else
-							args[i] = parameterTypes[i];
-					}
-				}
+				for (int i = 0; i < parameterCount; i++)
+					args[i] = getInjectValue(a, parameterTypes[i], i, context);
 				BeanBox box = new BeanBox().setContext(context).setConstructor(clazz, args);
 				return box;
 			}
@@ -267,18 +312,21 @@ public class BeanBoxUtils {
 	}
 
 	/**
-	 * Transfer all Exceptions to RuntimeException. The only place throw Exception in this project
+	 * Transfer all Exceptions to RuntimeException. The only place throw
+	 * Exception in this project
 	 */
 	public static void throwEX(Exception e, String errorMsg) throws AssertionError {
-		if (e != null)// can log exception here, but I don't want import Log4j in this small tool
+		if (e != null)// can log exception here, but I don't want import Log4j
+						// in this small tool
 			e.printStackTrace();
 		throw new RuntimeException(errorMsg);
 	}
 
 	/**
-	 * Make the given field accessible, explicitly setting it accessible if necessary. The {@code setAccessible(true)}
-	 * method is only called when actually necessary, to avoid unnecessary conflicts with a JVM SecurityManager (if
-	 * active).
+	 * Make the given field accessible, explicitly setting it accessible if
+	 * necessary. The {@code setAccessible(true)} method is only called when
+	 * actually necessary, to avoid unnecessary conflicts with a JVM
+	 * SecurityManager (if active).
 	 */
 	public static void makeAccessible(Field field) {
 		if ((!Modifier.isPublic(field.getModifiers()) || !Modifier.isPublic(field.getDeclaringClass().getModifiers())
@@ -288,9 +336,10 @@ public class BeanBoxUtils {
 	}
 
 	/**
-	 * Make the given method accessible, explicitly setting it accessible if necessary. The {@code setAccessible(true)}
-	 * method is only called when actually necessary, to avoid unnecessary conflicts with a JVM SecurityManager (if
-	 * active).
+	 * Make the given method accessible, explicitly setting it accessible if
+	 * necessary. The {@code setAccessible(true)} method is only called when
+	 * actually necessary, to avoid unnecessary conflicts with a JVM
+	 * SecurityManager (if active).
 	 */
 	public static void makeAccessible(Method method) {
 		if ((!Modifier.isPublic(method.getModifiers()) || !Modifier.isPublic(method.getDeclaringClass().getModifiers()))
@@ -300,8 +349,10 @@ public class BeanBoxUtils {
 	}
 
 	/**
-	 * Make the given constructor accessible, explicitly setting it accessible if necessary. The {@code
-	 * setAccessible(true)} method is only called when actually necessary, to avoid unnecessary
+	 * Make the given constructor accessible, explicitly setting it accessible
+	 * if necessary. The {@code
+	 * setAccessible(true)} method is only called when actually necessary, to
+	 * avoid unnecessary
 	 */
 	public static void makeAccessible(Constructor<?> ctor) {
 		if ((!Modifier.isPublic(ctor.getModifiers()) || !Modifier.isPublic(ctor.getDeclaringClass().getModifiers()))
@@ -311,8 +362,8 @@ public class BeanBoxUtils {
 	}
 
 	/**
-	 * If found advice for this class, use CGLib to create proxy bean, CGLIB is the only way to create proxy to make
-	 * source code simple.
+	 * If found advice for this class, use CGLib to create proxy bean, CGLIB is
+	 * the only way to create proxy to make source code simple.
 	 */
 	public static boolean ifHaveAdvice(CopyOnWriteArrayList<Advisor> advisors, Object classOrValue) {
 		if (classOrValue == null || !(classOrValue instanceof Class))
