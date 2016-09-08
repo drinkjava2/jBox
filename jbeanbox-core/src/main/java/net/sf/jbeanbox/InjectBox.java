@@ -24,35 +24,29 @@ import java.lang.annotation.Target;
  * Inject BeanBox to a field or constructor
  * 
  * On field example:<br/>
- * @InjectBox(FieldBox.class, required=true) <br/>
+ * @InjectBox(value=FieldBox.class, required=true) <br/>
  * Field someField;
  * 
- * On constructor example:<br/>
- * @InjectBox(s0="hello world", b2="false", box4=EBox.class) <br/>
- * public A(String s, B b, boolean b1, D d, E e){ ... }
- * 
- * currently only support String, boolean, Integer and Class type
+ * On constructor, Inject Object type paramerters:<br/>
+ * @InjectBox(s0="hello world", b2=false, box4=EBox.class) <br/>
+ * public A(String s, B b, Boolean b1, D d, E e){ ... }
  * 
  * @author Yong Zhu
  * @version 2.4.1
  * @since 2.4
- * @update 2016-08-31
+ * @update 2016-09-07
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.CONSTRUCTOR })
 public @interface InjectBox {
-	public static String IMPOSSIBLE_STRING = "StuPid AnNotatioN";
-	public static int IMPOSSIBLE_INT = -99819981;
 
 	public Class<?> value() default Object.class;
 
-	// Default if no BeanBox can be created, will throw an exception, set to
-	// false to disable
+	// Default if no BeanBox can be created, will throw an exception, set to false to disable
 	public boolean required() default true;
 
-	// Below are for constructor parameters, more than 6 parameters better use
-	// other configuration
+	// Below are for constructor parameters, more than 6 parameters better use other configuration
 	public Class<?> box0() default Object.class;// inject BeanBox
 
 	public Class<?> box1() default Object.class;
