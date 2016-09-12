@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.sf.jbeanbox;
+package com.github.drinkjava2;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -69,10 +69,24 @@ public class BeanBoxContext {
 	}
 
 	/**
-	 * Build a bean instance, usually no need call this method
+	 * Build or find a BeanBox and create a bean instance
 	 */
 	public <T> T getBean(Class<?> clazz) {
-		return getBeanBox(null, clazz, null, null, this, true).getBean();
+		return BeanBoxUtils.getBeanBox(null, clazz, null, null, this, true).getBean();
+	}
+
+	/**
+	 * Build or find a BeanBox and force create a prototype Bean instance
+	 */
+	public <T> T getPrototypeBean(Class<?> clazz) {
+		return BeanBoxUtils.getBeanBox(null, clazz, null, null, this, true).setPrototype(true).getBean();
+	}
+
+	/**
+	 * Build or find a BeanBox and force create a singleton Bean instance
+	 */
+	public <T> T getSingletonBean(Class<?> clazz) {
+		return BeanBoxUtils.getBeanBox(null, clazz, null, null, this, true).setPrototype(false).getBean();
 	}
 
 	/**
@@ -187,88 +201,4 @@ public class BeanBoxContext {
 				false));
 	}
 
-	/**
-	 * Wrap a class to a BeanBox, usually no need call this method
-	 */
-	private static BeanBox wrapClassToBeanBox(Class<?> clazz, BeanBoxContext context) {
-		return new BeanBox(clazz);
-	}
-
-	/**
-	 * Find BeanBox class and create BeanBox instance, for field with @InjectBox annotation, follow below order: <br/>
-	 * Format: A.class{ @Inject(B.class) C fieldname;} <br/>
-	 * 1) B.class (if is BeanBox)<br/>
-	 * 2) B$CBox.class in B.class <br/>
-	 * 3) B$FieldnameBox.class in B.class <br/>
-	 * 
-	 * Format: A.class{ @Inject C field; ...} <br/>
-	 * 4) C.class (if is BeanBox)<br/>
-	 * 5) CBox.class in same package of C <br/>
-	 * 6) C$CBox.class in C.class <br/>
-	 * 7) "ABox$CBox.class" in ABox.class <br/>
-	 * 8) "ABox$FieldnameBox.class" in ABox.class <br/>
-	 * 9) ConfigClass$CBox.class in globalConfig classes <br/>
-	 * 10) ConfigClass$FieldnameBox.class in globalConfig classes <br/>
-	 * 
-	 * for a context.getBean(C.class) call, follow above #4, #5, #6, #9 order <br/>
-	 * 
-	 * If no BeanBox class found, if A.class has 0 parameter constructor or annotated constructor, wrap to BeanBox.<br/>
-	 * if no BeanBox created at final, throw a error unless "required=false" set in @injectBox annotation
-	 */
-	@SuppressWarnings("unchecked")
-	public static BeanBox getBeanBox(Class<?> ownerClass, Class<?> clazz, Class<?> annotationClass, String fieldName,
-			BeanBoxContext context, boolean required) {
-		if (Object.class.equals(annotationClass))
-			annotationClass = null;
-		Class<?> box = null;
-		if (annotationClass != null) { // getBeanBox(A.class, B.class)
-			if (BeanBox.class.isAssignableFrom(annotationClass))
-				box = annotationClass;// #1
-			if (box == null && clazz != null)
-				box = BeanBoxUtils
-						.checkIfExist(annotationClass.getName() + "$" + clazz.getSimpleName() + context.boxIdentity);// #2
-			if (box == null)
-				box = BeanBoxUtils.checkIfExist(annotationClass.getName() + "$"
-						+ fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1) + context.boxIdentity);// #3
-		} else {// getBeanBox(A.class)
-			if (clazz == null)
-				BeanBoxUtils.throwEX(null, "BeanBox getBeanBox error! target class not set");
-			if (BeanBox.class.isAssignableFrom(clazz))
-				box = clazz;// #4
-			if (box == null)
-				box = BeanBoxUtils.checkIfExist(clazz.getName() + context.boxIdentity);// #5
-			if (box == null)
-				box = BeanBoxUtils.checkIfExist(clazz.getName() + "$" + clazz.getSimpleName() + context.boxIdentity);// #6
-			if (box == null && ownerClass != null)
-				box = BeanBoxUtils.checkIfExist(
-						ownerClass.getName() + context.boxIdentity + "$" + clazz.getSimpleName() + context.boxIdentity);// #7
-			if (box == null && ownerClass != null && !BeanBoxUtils.isEmptyStr(fieldName))
-				box = BeanBoxUtils.checkIfExist(
-						ownerClass.getName() + context.boxIdentity + "$" + fieldName + context.boxIdentity);// #8
-			if (box == null) {
-				for (Class<?> configs : context.configClassList) {
-					box = BeanBoxUtils
-							.checkIfExist(configs.getName() + "$" + clazz.getSimpleName() + context.boxIdentity);// #9
-					if (box != null)
-						break;
-					if (!BeanBoxUtils.isEmptyStr(fieldName))
-						box = BeanBoxUtils
-								.checkIfExist(configs.getName() + "$" + fieldName.substring(0, 1).toUpperCase()
-										+ fieldName.substring(1) + context.boxIdentity);// #10
-					if (box != null)
-						break;
-				}
-			}
-		}
-		BeanBox beanbox;
-		if (box == null)
-			beanbox = wrapClassToBeanBox(clazz, context); // try wrap it to a BeanBox
-		else
-			beanbox = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) box, context);
-		if (required && beanbox == null)
-			BeanBoxUtils.throwEX(null, "BeanBox getBeanBox error! class can not be created, class=" + clazz);
-		if (beanbox != null && beanbox.getClassOrValue() == null)
-			beanbox.setClassOrValue(clazz);
-		return beanbox;
-	}
 }

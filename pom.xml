@@ -18,7 +18,7 @@ See the Apache License Version 2.0 for the specific language governing permissio
 
   <packaging>pom</packaging>
 
-  <groupId>net.sf.jbeanbox</groupId>
+  <groupId>com.github.drinkjava2</groupId>
 
   <artifactId>jbeanbox-package</artifactId>
 
@@ -30,7 +30,7 @@ See the Apache License Version 2.0 for the specific language governing permissio
 
   <modules>
     <!-- core of jBeanBox -->
-    <module>jbeanbox-core</module>
+    <module>jbeanbox</module>
     
     <!-- examples how to use jBeanBox -->
     <module>jbeanbox-example</module>

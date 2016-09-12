@@ -1,6 +1,6 @@
 package examples.example8_benchmark.objects;
 
-import net.sf.jbeanbox.InjectBox;
+import com.github.drinkjava2.InjectBox;
 
 public class A {
 	public B b;
@@ -10,9 +10,9 @@ public class A {
 		this.b = b;
 	}
 
-	@Override
-	public String toString() {
-		return getClass().getSimpleName();
-	}
+	// @Override
+	// public String toString() {
+	// return getClass().getSimpleName();
+	// }
 
 }

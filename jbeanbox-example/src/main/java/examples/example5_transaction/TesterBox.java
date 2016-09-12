@@ -2,17 +2,16 @@ package examples.example5_transaction;
 
 import java.util.Properties;
 
-import net.sf.jbeanbox.BeanBox;
-
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 
+import com.github.drinkjava2.BeanBox;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 public class TesterBox extends BeanBox {
 	static {
-		BeanBox.defaultBeanBoxContext.setAOPAround("examples.example5_transaction.Test\\w*", "insert\\w*",
+		BeanBox.defaultContext.setAOPAround("examples.example5_transaction.Test\\w*", "insert\\w*",
 				new TxInterceptorBox(), "invoke");
 	}
 

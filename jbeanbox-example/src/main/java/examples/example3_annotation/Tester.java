@@ -1,8 +1,9 @@
 package examples.example3_annotation;
 
-import net.sf.jbeanbox.BeanBox;
-import net.sf.jbeanbox.BeanBoxContext;
-import net.sf.jbeanbox.InjectBox;
+import com.github.drinkjava2.BeanBox;
+import com.github.drinkjava2.BeanBoxContext;
+import com.github.drinkjava2.BeanBoxUtils;
+import com.github.drinkjava2.InjectBox;
 
 /**
  * 
@@ -18,7 +19,7 @@ public class Tester {
 	@InjectBox(A.class)
 	String s2;// Use A.StringBox.class (or A.StringBox2.class, 2 to 8 depends context setting)
 
-	@InjectBox(B.class)
+	@InjectBox(value = B.class, required = false)
 	String s3;// Use B$S3Box.class (or B$S3Box2.class)
 
 	@InjectBox
@@ -55,44 +56,44 @@ public class Tester {
 
 	public void setValueManually(BeanBoxContext ctx) {// internal test
 		s1 = ctx.getBean(A.StrBox.class);
-		s2 = BeanBoxContext.getBeanBox(null, String.class, A.class, null, ctx, false).getBean();
-		s3 = BeanBoxContext.getBeanBox(null, String.class, B.class, "s3", ctx, false).getBean();
+		s2 = BeanBoxUtils.getBeanBox(null, String.class, A.class, null, ctx, false).getBean();
+		s3 = BeanBoxUtils.getBeanBox(null, String.class, B.class, "s3", ctx, false).getBean();
 		c4 = ctx.getBean(C.class);
-		s5 = BeanBoxContext.getBeanBox(this.getClass(), String.class, null, null, ctx, false).getBean();
+		s5 = BeanBoxUtils.getBeanBox(this.getClass(), String.class, null, null, ctx, false).getBean();
 		d6 = ctx.getBean(D.class);
-		e7 = BeanBoxContext.getBeanBox(null, E.class, null, "e7", ctx, false).getBean();
+		e7 = BeanBoxUtils.getBeanBox(null, E.class, null, "e7", ctx, false).getBean();
 	}
 
 	public static void main(String[] args) {
 		System.out.println("\r\n==Teseter3.1==");
 		Tester t = BeanBox.getBean(Tester.class);
 		t.print();
-		BeanBox.defaultBeanBoxContext.close();
+		BeanBox.defaultContext.close();
 
 		System.out.println("\r\n==Teseter3.2==");
-		BeanBox.defaultBeanBoxContext.addConfig(Config.class);
+		BeanBox.defaultContext.addConfig(Config.class);
 		Tester t2 = new TesterBox().getBean();
 		t2.print();
-		BeanBox.defaultBeanBoxContext.close();
+		BeanBox.defaultContext.close();
 
 		System.out.println("\r\n==Teseter3.3==");
 		BeanBoxContext ctx = new BeanBoxContext(Config2.class).setBoxIdentity("Box2");
 		Tester t3 = ctx.getBean(Tester.class);
 		t3.print();
 		System.out.println(t3 == new TesterBox2().setContext(ctx).getBean());// true
-		BeanBox.defaultBeanBoxContext.close();
+		BeanBox.defaultContext.close();
 
 		// This one is test getBean method
 		System.out.println("\r\n==Teseter3.4==");
 		Tester t4 = new Tester();
-		t4.setValueManually(BeanBox.defaultBeanBoxContext.addConfig(Config.class));
+		t4.setValueManually(BeanBox.defaultContext.addConfig(Config.class));
 		t4.print();
-		BeanBox.defaultBeanBoxContext.close();
+		BeanBox.defaultContext.close();
 
 		System.out.println("\r\n==Teseter3.5==");
-		t4.setValueManually(BeanBox.defaultBeanBoxContext.addConfig(Config2.class).setBoxIdentity("Box2"));
+		t4.setValueManually(BeanBox.defaultContext.addConfig(Config2.class).setBoxIdentity("Box2"));
 		t4.print();
-		BeanBox.defaultBeanBoxContext.close();
+		BeanBox.defaultContext.close();
 
 	}
 }

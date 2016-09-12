@@ -1,15 +1,16 @@
 package examples.example8_benchmark.objects;
 
-import net.sf.jbeanbox.InjectBox;
+import com.github.drinkjava2.InjectBox;
 
+@InjectBox(prototype = true)
 public class D1 {
 	public E e;
 
-	@InjectBox(box0 = E.class)
+	@InjectBox
 	public D1(E e) {
 		this.e = e;
 	}
- 
+
 	@Override
 	public String toString() {
 		return getClass().getSimpleName();

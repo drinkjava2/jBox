@@ -1,13 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>net.sf.jbeanbox</groupId>
+
+  <groupId>com.github.drinkjava2</groupId>
   <artifactId>jbeanbox-example</artifactId>
   <packaging>jar</packaging>
   <version>2.4.1</version>
   <name>jbeanbox-example</name>
-  <url>http://maven.apache.org</url>
- 
+  <url>http://maven.apache.org</url> 
+
   <properties> 
      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
      <spring.version>3.2.16</spring.version>
@@ -16,8 +17,8 @@
 
   <dependencies>
     <dependency>
-        <groupId>net.sf.jbeanbox</groupId>
-        <artifactId>jbeanbox-core</artifactId>
+        <groupId>com.github.drinkjava2</groupId>
+        <artifactId>jbeanbox</artifactId>
         <version>2.4.1</version>
     </dependency>
 

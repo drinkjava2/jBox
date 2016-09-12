@@ -1,7 +1,8 @@
 package examples.example8_benchmark.objects;
 
-import net.sf.jbeanbox.InjectBox;
+import com.github.drinkjava2.InjectBox;
 
+@InjectBox(prototype = true)
 public class B {
 	public C c;
 

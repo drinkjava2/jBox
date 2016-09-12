@@ -64,7 +64,7 @@ public class AppTest {
 	@Test
 	public void test7() {
 		System.out.println("\r\n==============TEST EXAMPLE7===================");
-		examples.example7_annotation_only.Tester.main(null);
+		examples.example7_annotation2.Tester.main(null);
 	}
 
 	@Test

@@ -1,9 +1,9 @@
 package examples.example5_transaction;
 
-import net.sf.jbeanbox.BeanBox;
-import net.sf.jbeanbox.InjectBox;
-
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.github.drinkjava2.BeanBox;
+import com.github.drinkjava2.InjectBox;
 
 /**
  * This example shows how to use jBeanBox to replace Spring's core to achieve "Declarative Transaction". <br/>

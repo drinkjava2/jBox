@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.sf.jbeanbox;
+package com.github.drinkjava2;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -21,15 +21,27 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Inject BeanBox to a field or constructor
+ * InjectBox is the only annotation in this project <br/>
  * 
- * On field example:<br/>
+ * On field, use value or box0 to define a BeanBox, set required=true to throw a exception if injection failed, <br/>
+ * box0 to inject BeanBox, pox0 to inject prototype BeanBox, sox0 to inject singleton BeanBox: <br/>
+ * 
  * @InjectBox(value=FieldBox.class, required=true) <br/>
  * Field someField;
  * 
- * On constructor, Inject Object type paramerters:<br/>
+ * On field can also use s0, i0, bl0... to inject constant value<br/>
+ * @InjectBox(s0="Hello") <br/>
+ * Field someField;
+ * 
+ * On constructor, parameter index start from 0, if parameter omitted will use default value<br/>
  * @InjectBox(s0="hello world", b2=false, box4=EBox.class) <br/>
  * public A(String s, B b, Boolean b1, D d, E e){ ... }
+ * 
+ * 
+ * On Class, use prototype=true to define a prototype bean, otherwise default is singleton bean <br/>
+ * @InjectBox(prototype=true) <br/>
+ * public SomeClass {...} <br/>
+ * 
  * 
  * @author Yong Zhu
  * @version 2.4.1
@@ -38,16 +50,20 @@ import java.lang.annotation.Target;
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.CONSTRUCTOR })
+@Target({ ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.TYPE, ElementType.METHOD })
 public @interface InjectBox {
 
-	public Class<?> value() default Object.class;
+	// For field
+	public Class<?> value() default Object.class;// Note: equal to box0
 
-	// Default if no BeanBox can be created, will throw an exception, set to false to disable
+	// default if inject failed, will throw an exception, set to false to keep silence
 	public boolean required() default true;
 
-	// Below are for constructor parameters, more than 6 parameters better use other configuration
-	public Class<?> box0() default Object.class;// inject BeanBox
+	// Default type is singleton, if set prototype=true will build new instance each time
+	public boolean prototype() default false;
+
+	// Below are for constructor parameters, only support maximum 6 parameters, if need more add by yourself
+	public Class<?> box0() default Object.class;// BeanBox
 
 	public Class<?> box1() default Object.class;
 
@@ -58,6 +74,30 @@ public @interface InjectBox {
 	public Class<?> box4() default Object.class;
 
 	public Class<?> box5() default Object.class;
+
+	public Class<?> pox0() default Object.class;// force inject a prototype BeanBox
+
+	public Class<?> pox1() default Object.class;
+
+	public Class<?> pox2() default Object.class;
+
+	public Class<?> pox3() default Object.class;
+
+	public Class<?> pox4() default Object.class;
+
+	public Class<?> pox5() default Object.class;
+
+	public Class<?> sox0() default Object.class;// force inject a singleton BeanBox
+
+	public Class<?> sox1() default Object.class;
+
+	public Class<?> sox2() default Object.class;
+
+	public Class<?> sox3() default Object.class;
+
+	public Class<?> sox4() default Object.class;
+
+	public Class<?> sox5() default Object.class;
 
 	public String s0() default "";
 

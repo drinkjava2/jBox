@@ -15,7 +15,7 @@ public class Tester {
 		System.out.println("\r\n==============TEST EXAMPLE6===================");
 		examples.example6_type_safe.Tester.main(null);
 		System.out.println("\r\n==============TEST EXAMPLE7===================");
-		examples.example7_annotation_only.Tester.main(null);
+		examples.example7_annotation2.Tester.main(null);
 		System.out.println("\r\n==============TEST EXAMPLE8===================");
 		examples.example8_benchmark.Tester.main(null);
 	}

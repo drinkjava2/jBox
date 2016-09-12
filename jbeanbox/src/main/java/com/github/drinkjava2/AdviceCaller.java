@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.sf.jbeanbox;
+package com.github.drinkjava2;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.CopyOnWriteArrayList;

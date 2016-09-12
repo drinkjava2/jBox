@@ -7,21 +7,20 @@ jBeanBox is a micro scale IOC & AOP tool, uses java classes as configuration to 
 (jBeanBox is still in developing, looking for contributors to improve/test/debug this project)  
 
 Advantage of jBeanBox:  
-1) Simple, very few source code, No XML, only 1 Annotation. Easy to learn and use.  
+1) Simple, very few source code(~2000lines), No XML, only 1 Annotation, easy to learn and use.  
 2) The Java-Based configuration is simpler and easier to use than Spring or Guice's Java configuration.  
 3) jBeanBox is a full function IOC/AOP tool supports bean life cycle, multiple contexts.  
 
 Key Feature of jBeanBox:  
-* Use Java Configurations (called "BeanBox") to replace XML , configurations can be created/modified at runtime.
-* Bean instance lazy initialization (Similar like Guice)
-* SingleTon/Prototype support, SingleTon Cache (Similar like Spring)
+* Use Java initialization block Configurations (called "BeanBox") to replace XML , configurations can be created/modified at runtime.
+* Bean instance lazy initialization, SingleTon/Prototype support, SingleTon Cache 
 * AOP & AspectJ support
 * Multiple injection mechanisms (Similar like Spring)  
    Push type(No need source): Value injection, Bean injection, Constructor injection, Static factory injection, Bean factory injection  
    Pull type(Need source code): @InjectBox Annotation  
-* multiple contexts support (Similar like create multiple "ApplicationContexts" in Spring)  
-* Bean life cycle support(postConstruction & preDestory)   
-* create and config method call back allow create instance manually to get Java type safe(like Spring's Java configuration), and can mixed use with traditional injections. 
+* Multiple contexts support (Similar like create multiple "ApplicationContexts" in Spring)  
+* Bean life cycle support(postConstruction & preDestory method callback)   
+* Java method callback configurations to achieve Java type safe(similar like Spring's Java configuration), and can mixed use with other 2 configurations. 
  
  
 How to use jBeanBox?  
@@ -94,10 +93,7 @@ public class Tester {
 		BeanBox advice2 = new BeanBox(AspectjLogAdvice.class).setProperty("name", "AspectJ Logger");
 		BeanBox.defaultContext.setAspectjAfterReturning("examples.example2_aop.\\w*", "doPrint\\w*", advice2, "doAfterReturning");
 
-		Tester t = new BeanBox(Tester.class) {
-			{ setProperty("item", ItemImpl.class);
-			}
-		}.getBean();
+		Tester t = new BeanBox(Tester.class).setProperty("item", ItemImpl.class).getBean();
 		t.doPrintItem();
 	}
 }
@@ -127,9 +123,9 @@ public class Tester {
 	@InjectBox(required = false)
 	E e7;// Use Config$E7Box.class (or Config2$E7Box2)
 
-	public String s8; // injected by field, similar like injected by Spring's XML configuration
+	public String s8; // directly inject on field 
 
-	private String s9; // injected by setter, similar like injected by Spring's XML configuration, recommend this way
+	private String s9; // injected by setter, recommend
 
 	public void setS9(String s9) {
 		this.s9 = s9;
@@ -147,7 +143,7 @@ public class Tester {
 
 		BeanBoxContext ctx = new BeanBoxContext(Config2.class).setBoxIdentity("Box2");
 		Tester t2 = ctx.getBean(Tester.class);
-		t2.print();
+		t2.print(); //print result is different because configuration different
 	}
 }
 ```
@@ -222,7 +218,6 @@ public class TesterBox extends BeanBox {
 	}
 }
 
-
 public class Tester {
 
 	@InjectBox
@@ -242,7 +237,7 @@ public class Tester {
 }
 ```
 
-Example 6 - Use create method to create bean instance manually and use config method to set values, it's Java type safe, supports method name IDE refactor, below configuration do the same thing like example5 but use init java type safe methods instead:
+Example 6 - Java type safe type configuration, support method name IDE refactor, below configuration do the same thing like example5 but use java type safe configuration instead:
 ```
 public class TesterBox extends BeanBox {
 	static {
@@ -267,7 +262,6 @@ public class TesterBox extends BeanBox {
 		{
 			setProperty("driverClass", "com.mysql.jdbc.Driver");
 		}
-
 	}
 
 	static class TxManagerBox extends BeanBox {
@@ -291,68 +285,106 @@ public class TesterBox extends BeanBox {
 			return new JdbcTemplate((DataSource) new DSPoolBeanBox().getBean());
 		}
 	}
-
 }
 
 ```
 
-Example 7 - Only Use annotation do all the injection to replace configurations, similar like Spring or Guice's Annotation, but much simpler.
+Example 7 - Show annotation inject on field, constructor & method, and mixed use with other type configurations,   
+            parameters start from 0, s0 means first String type parameter, box2 means 3rd BeanBox type parameter 
 ```
-public class AA {
-	BB bb;
-	String s;
-	BB bb2;
-	Integer i;
-	boolean bl;
+public class Tester {
+	String name1;
+	String name2;
 
-	@InjectBox(s1 = "Hello", i3 = 12345, b4 = "false")
-	public AA(BB bb, String s, BB bb2, Integer i, Boolean bl) {
-		this.bb = bb;
-		this.s = s;
-		this.bb2 = bb2;
-		this.i = i;
-		this.bl = bl;
+	@InjectBox(s0 = "name3")
+	String name3;
+
+	AA a4, a5;
+
+	@InjectBox(s0 = "name1")
+	public Tester(String name1, AA a4) {// a4 automatically find AABox
+		this.name1 = name1;
+		this.a4 = a4;
 	}
 
-	void print() {
-		System.out.println("s=" + s);
-		System.out.println("i=" + i);
-		System.out.println("bl=" + bl);
-		System.out.println(bb.cc.d1.aa.bb.cc.d1.aa.bb.cc.d1.name);
-		System.out.println(bb.cc.d2.name);
+	@InjectBox(s0 = "name2", box1 = A5Box.class)
+	public void injectBymethod(String name2, AA a5) {
+		this.name2 = name2;
+		this.a5 = a5;
+	}
+
+	public static class AA {
+		public String name;
+	}
+
+	public static class AABox extends BeanBox {
+		{
+			this.setProperty("name", "name4");
+		}
+	}
+
+	public static class A5Box extends BeanBox {
+		public AA create() {
+			AA aa = new AA();
+			aa.name = "name5";
+			return aa;
+		}
+	}
+
+	public static void main(String[] args) {
+		Tester t = BeanBox.getBean(Tester.class);
+		System.out.println("name1=" + t.name1); // name1=name1
+		System.out.println("name2=" + t.name2); // name2=name2
+		System.out.println("name3=" + t.name3); // name3=name3
+		System.out.println("name4=" + t.a4.name); // name4=name4
+		System.out.println("name5=" + t.a5.name); // name5=name5
 	}
 }
 ```
 Example 8 - A simple BenchMark test, it shows jBeanBox is ~20 times quicker than Spring, 1~3 times slower than Guice, detail test please see new project "https://github.com/drinkjava2/di-benchmark"  
 ```
-Split Starting up DI containers & instantiating a dependency graph 4999 times:
----------------------------------------------------------------------------------------
-Spring scan: disabled
-             Vanilla| start:     3ms   fetch:    15ms
-               Guice| start:  1776ms   fetch:  3558ms
-             Feather| start:    19ms   fetch:   251ms
-              Dagger| start:   202ms   fetch:   377ms
-                Pico| start:   710ms   fetch:   727ms
-               Genie| start:  1675ms   fetch:   726ms
-      jBeanBoxNormal| start:    15ms   fetch:  1523ms
-    jBeanBoxTypeSafe| start:     8ms   fetch:   184ms
-  jBeanBoxAnnotation| start:     7ms   fetch:    85ms
-              Spring| start:110703ms   fetch:  9282ms 
+Split Starting up DI containers & instantiating a dependency graph 100 times:
+-------------------------------------------------------------------------------
+                                      Vanilla| start:     1ms   fetch:     6ms
+                                        Guice| start:   727ms   fetch:   747ms
+                                      Feather| start:     6ms   fetch:    39ms
+                                       Dagger| start:    74ms   fetch:    48ms
+                                         Pico| start:   115ms   fetch:   127ms
+                                        Genie| start:   658ms   fetch:    89ms
+                               jBeanBoxNormal| start:     3ms   fetch:   123ms
+                             jBeanBoxTypeSafe| start:     1ms   fetch:    40ms
+                           jBeanBoxAnnotation| start:     1ms   fetch:   106ms
+                      SpringJavaConfiguration| start:  4542ms   fetch:   621ms
+                      SpringAnnotationScanned| start:  4668ms   fetch:   757ms
 ```
 
-### Runtime benchmark
+Runtime benchmark, seems jBeanBox is close to Spring but much slower than Guice
 
 ```
-Runtime benchmark, fetch bean for 499999 times: 
+Runtime benchmark, fetch bean for 10000 times:
 --------------------------------------------------
-             Vanilla|    71ms
-               Guice|  2708ms
-             Feather|  1727ms
-              Dagger|   834ms
-               Genie|  1587ms
-                Pico| 11479ms
-      jBeanBoxNormal| 14788ms
-    jBeanBoxTypeSafe| 10031ms
-  jBeanBoxAnnotation|  7441ms
-              Spring|219018ms
+                                      Vanilla|    11ms
+                                        Guice|   153ms
+                                      Feather|    59ms
+                                       Dagger|    43ms
+                                        Genie|    52ms
+                                         Pico|   430ms
+                               jBeanBoxNormal|  3791ms
+                             jBeanBoxTypeSafe|   950ms
+                           jBeanBoxAnnotation|  4603ms
+                      SpringJavaConfiguration|  5003ms
+                      SpringAnnotationScanned|  6331ms
 ```
+
+If change configuration to Singleton, here is test result, seems jBeanBox need improve cache reading speed.
+```
+Runtime benchmark, fetch bean for 10000 times:
+--------------------------------------------------
+                               jBeanBoxNormal|   277ms
+                             jBeanBoxTypeSafe|   225ms
+                           jBeanBoxAnnotation|   101ms
+                      SpringJavaConfiguration|    38ms
+                      SpringAnnotationScanned|    14ms
+```
+
+

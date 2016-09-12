@@ -1,9 +1,9 @@
 package examples.example6_type_safe;
 
-import net.sf.jbeanbox.BeanBox;
-import net.sf.jbeanbox.InjectBox;
-
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.github.drinkjava2.BeanBox;
+import com.github.drinkjava2.InjectBox;
 
 /**
  * This example is similar like example5, but in "TesterBox" use Java type safe configurations to create bean instance.

@@ -1,6 +1,6 @@
 package examples.example3_annotation;
 
-import net.sf.jbeanbox.BeanBox;
+import com.github.drinkjava2.BeanBox;
 
 public class Config2 {
 	public static class DBox2 extends BeanBox {

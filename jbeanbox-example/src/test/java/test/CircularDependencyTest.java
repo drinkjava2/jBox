@@ -2,11 +2,11 @@ package test;
 
 import org.junit.Test;
 
-import net.sf.jbeanbox.BeanBox;
-import net.sf.jbeanbox.InjectBox;
+import com.github.drinkjava2.BeanBox;
+import com.github.drinkjava2.InjectBox;
 
 /**
- * Circular Dependency Test
+ * Circular Dependency internal Test
  */
 /**
  * @author Yong Zhu
@@ -34,6 +34,7 @@ public class CircularDependencyTest {
 	}
 
 	public static void main(String[] args) {
+		// uncomment below lines will cause a circular dependency exception
 		// System.out.println("\r\n============== CircularDependencyTest===================");
 		// BeanBox.getBean(ClassA.class);
 	}

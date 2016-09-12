@@ -1,6 +1,6 @@
 package examples.example4_PostConstructorAndPreDestory;
 
-import net.sf.jbeanbox.BeanBox;
+import com.github.drinkjava2.BeanBox;
 
 /**
  * @author Yong
@@ -25,6 +25,6 @@ public class Tester {
 
 	public static void main(String[] args) {
 		BeanBox.getBean(Tester.class);
-		BeanBox.defaultBeanBoxContext.close();// print Bye Sam
+		BeanBox.defaultContext.close();// print Bye Sam
 	}
 }

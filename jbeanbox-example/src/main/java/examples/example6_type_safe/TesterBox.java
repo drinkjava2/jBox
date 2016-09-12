@@ -4,12 +4,11 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
-import net.sf.jbeanbox.BeanBox;
-
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 
+import com.github.drinkjava2.BeanBox;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 /**
@@ -22,8 +21,8 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
  */
 public class TesterBox extends BeanBox {
 	static {
-		BeanBox.defaultBeanBoxContext.close();// clean up
-		BeanBox.defaultBeanBoxContext.setAOPAround("examples.example6_type_safe.Test\\w*", "insert\\w*",
+		BeanBox.defaultContext.close();// clean up
+		BeanBox.defaultContext.setAOPAround("examples.example6_type_safe.Test\\w*", "insert\\w*",
 				new TxInterceptorBox(), "invoke");
 	}
 

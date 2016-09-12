@@ -1,6 +1,6 @@
 package examples.example1_injections;
 
-import net.sf.jbeanbox.BeanBox;
+import com.github.drinkjava2.BeanBox;
 
 /**
  * @author Yong Zhu
@@ -10,6 +10,10 @@ public class Tester {
 	public static void main(String[] args) {
 		Order order = BeanBox.getBean(Order.class);
 		order.printALlItems();
-		System.out.println("Order bean is a SingleTon? " + (order == OrderBox.getBean(OrderBox.class)));
+		Order order1 = BeanBox.getBean(Order.class);
+		Order order2 = BeanBox.getPrototypeBean(Order.class);// force return a prototype bean
+		System.out.println("Order1 is SingleTon? " + (order == order1));
+		System.out.println("Order2 is SingleTon? " + (order == order2));
+
 	}
 }
