@@ -1,4 +1,4 @@
-package net.sf.jbeanbox;
+package com.github.drinkjava2;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
