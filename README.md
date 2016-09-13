@@ -54,21 +54,28 @@ public class Company{
 //Configuration class, equal to XML in Spring
 public class OrderBox extends BeanBox {
 	{  
+	  //setPrototype(false);   //default is singleton	
 	  setProperty("company", CompanyBox.class);
 	}
 	
-	public static class CompanyBox extends BeanBox {
+	public static class CompanyBox1 extends BeanBox {
 		{
 			setClassOrValue(Company.class);
 			setProperty("name", "Pet Store");
 		}
 	}
+	
+	public static class CompanyBox extends CompanyBox1 {
+		{
+			setProperty("name", "Pet Store");
+		}
+	}	
 }
 
 public class Tester {
 	public static void main(String[] args) {
 		Order order = BeanBox.getBean(Order.class);
-		System.out.println("Order bean is a SingleTon? " + (order == new OrderBox().getBean()));//true
+		System.out.println("Order bean is a SingleTon? " + (order == BeanBox.getBean(Order.class)));//true
 	}
 } 
 ```
@@ -189,8 +196,8 @@ public class TesterBox extends BeanBox {
 	static class DSPoolBeanBox extends BeanBox {
 		{
 			setClassOrValue(ComboPooledDataSource.class);
-			setProperty("jdbcUrl", "jdbc:mysql://127.0.0.1:3306/test?user=root&password=root888");
-			setProperty("driverClass", "com.mysql.jdbc.Driver");// change to your jdbc driver name
+			setProperty("jdbcUrl", "jdbc:mysql://127.0.0.1:3306/test?user=root&password=yourpwd");
+			setProperty("driverClass", "com.mysql.jdbc.Driver");
 			setProperty("maxPoolSize", 10);
 			setProperty("CheckoutTimeout", 2000);
 		}
@@ -255,7 +262,7 @@ public class TesterBox extends BeanBox {
 
 		public void config(ComboPooledDataSource ds) {
 			ds.setJdbcUrl("jdbc:mysql://127.0.0.1:3306/test");
-			ds.setPassword("root888");// change to your PWD
+			ds.setPassword("yourpwd");
 			ds.setCheckoutTimeout(2000);
 		}
 
@@ -341,7 +348,7 @@ public class Tester {
 	}
 }
 ```
-Example 8 - A simple BenchMark test, it shows jBeanBox is ~20 times quicker than Spring, 1~3 times slower than Guice, detail test please see new project "https://github.com/drinkjava2/di-benchmark"  
+Example 8 - A simple BenchMark test, detail test moved to new project "https://github.com/drinkjava2/di-benchmark"  
 ```
 Split Starting up DI containers & instantiating a dependency graph 100 times:
 -------------------------------------------------------------------------------
@@ -357,8 +364,6 @@ Split Starting up DI containers & instantiating a dependency graph 100 times:
                       SpringJavaConfiguration| start:  4542ms   fetch:   621ms
                       SpringAnnotationScanned| start:  4668ms   fetch:   757ms
 ```
-
-Runtime benchmark, seems jBeanBox is close to Spring but much slower than Guice
 
 ```
 Runtime benchmark, fetch bean for 10000 times:
@@ -386,5 +391,3 @@ Runtime benchmark, fetch bean for 10000 times:
                       SpringJavaConfiguration|    38ms
                       SpringAnnotationScanned|    14ms
 ```
-
-
