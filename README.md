@@ -61,13 +61,13 @@ public class OrderBox extends BeanBox {
 	public static class CompanyBox1 extends BeanBox {
 		{
 			setClassOrValue(Company.class);
-			setProperty("name", "Pet Store");
+			setProperty("name", "Pet Store1");
 		}
 	}
 	
 	public static class CompanyBox extends CompanyBox1 {
 		{
-			setProperty("name", "Pet Store");
+			setProperty("name", "Pet Store2");
 		}
 	}	
 }
