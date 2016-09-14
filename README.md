@@ -54,7 +54,8 @@ public class Company{
 //Configuration class, equal to XML in Spring
 public class OrderBox extends BeanBox {
 	{  
-	  //setPrototype(false);   //default is singleton	
+	  //setPrototype(false);   //default is singleton
+          //setClassOrValue(Order.class); //if called by getBean(), no need this line	
 	  setProperty("company", CompanyBox.class);
 	}
 	
@@ -296,8 +297,8 @@ public class TesterBox extends BeanBox {
 
 ```
 
-Example 7 - Show annotation inject on field, constructor & method, and mixed use with other type configurations,   
-            parameters start from 0, s0 means first String type parameter, box2 means 3rd BeanBox type parameter 
+Example 7 - Show annotation inject on field, constructor & method, and mixed use with other 2 configurations,   
+            parameters start from 0, s0 means first String type parameter, box2 means 3rd parameter is a BeanBox
 ```
 public class Tester {
 	String name1;
@@ -350,7 +351,7 @@ public class Tester {
 ```
 Example 8 - A simple BenchMark test, detail test moved to new project "https://github.com/drinkjava2/di-benchmark"  
 ```
-Split Starting up DI containers & instantiating a dependency graph 100 times:
+Split Starting up DI containers & instantiating a dependency graph 100 times (Prototype):
 -------------------------------------------------------------------------------
                                       Vanilla| start:     1ms   fetch:     6ms
                                         Guice| start:   727ms   fetch:   747ms
@@ -366,7 +367,7 @@ Split Starting up DI containers & instantiating a dependency graph 100 times:
 ```
 
 ```
-Runtime benchmark, fetch bean for 10000 times:
+Runtime benchmark, fetch bean for 10000 times (Prototype):
 --------------------------------------------------
                                       Vanilla|    11ms
                                         Guice|   153ms
@@ -381,13 +382,13 @@ Runtime benchmark, fetch bean for 10000 times:
                       SpringAnnotationScanned|  6331ms
 ```
 
-If change configuration to Singleton, here is test result, seems jBeanBox need improve cache reading speed.
+If change configuration to Singleton (only compared jBeanBox & Spring):
 ```
-Runtime benchmark, fetch bean for 10000 times:
+Runtime benchmark, fetch bean for 100000 times:
 --------------------------------------------------
-                               jBeanBoxNormal|   277ms
-                             jBeanBoxTypeSafe|   225ms
-                           jBeanBoxAnnotation|   101ms
-                      SpringJavaConfiguration|    38ms
-                      SpringAnnotationScanned|    14ms
+                               jBeanBoxNormal|    47ms
+                             jBeanBoxTypeSafe|    31ms
+                           jBeanBoxAnnotation|    78ms
+                      SpringJavaConfiguration|    94ms
+                      SpringAnnotationScanned|    78ms
 ```

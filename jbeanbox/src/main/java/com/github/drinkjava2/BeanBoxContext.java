@@ -32,6 +32,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class BeanBoxContext {
 	// The default BoxIdentity is "Box", BoxIdentity will be use for looking for BeanBox class
 	String boxIdentity = "Box";
+	private static final String BEAN_BOX_CLASS_NAME = BeanBox.class.getName();
 
 	Boolean ignoreAnnotation = false; // if set true, will ignore @injectBox annotation
 
@@ -71,8 +72,20 @@ public class BeanBoxContext {
 	/**
 	 * Build or find a BeanBox and create a bean instance
 	 */
+	@SuppressWarnings("unchecked")
 	public <T> T getBean(Class<?> clazz) {
-		return BeanBoxUtils.getBeanBox(null, clazz, null, null, this, true).getBean();
+		String beanID = clazz.getName();
+		if (!BEAN_BOX_CLASS_NAME.equals(beanID) && signletonCache.containsKey(beanID))
+			return (T) signletonCache.get(beanID);
+		BeanBox box = BeanBoxUtils.getBeanBox(null, clazz, null, null, this, true);
+		if (!box.isPrototype())
+			synchronized (signletonCache) {
+				Object obj = box.getBean();
+				signletonCache.put(beanID, obj);
+				return (T) obj;
+			}
+		else
+			return box.getBean();
 	}
 
 	/**
@@ -85,8 +98,20 @@ public class BeanBoxContext {
 	/**
 	 * Build or find a BeanBox and force create a singleton Bean instance
 	 */
+	@SuppressWarnings("unchecked")
 	public <T> T getSingletonBean(Class<?> clazz) {
-		return BeanBoxUtils.getBeanBox(null, clazz, null, null, this, true).setPrototype(false).getBean();
+		String beanID = clazz.getName();
+		if (!BEAN_BOX_CLASS_NAME.equals(beanID) && signletonCache.containsKey(beanID))
+			return (T) signletonCache.get(beanID);
+		BeanBox box = BeanBoxUtils.getBeanBox(null, clazz, null, null, this, true).setPrototype(false);
+		if (!box.isPrototype())
+			synchronized (signletonCache) {
+				Object obj = box.getBean();
+				signletonCache.put(beanID, obj);
+				return (T) obj;
+			}
+		else
+			return box.getBean();
 	}
 
 	/**

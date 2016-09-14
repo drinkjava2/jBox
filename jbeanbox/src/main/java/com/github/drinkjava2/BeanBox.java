@@ -58,6 +58,7 @@ public class BeanBox {
 	private ConcurrentHashMap<String, Object[]> properties = new ConcurrentHashMap<String, Object[]>();// properties
 	public static final BeanBoxContext defaultContext = new BeanBoxContext();// this is a global default context
 	public BeanBoxContext context = defaultContext;
+	private String beanID;// id for save and search in singleton cache
 
 	/**
 	 * Create a BeanBox
@@ -120,6 +121,14 @@ public class BeanBox {
 		return this;
 	}
 
+	/**
+	 * Set BeanID, no need call this method by user
+	 * @param beanID
+	 */
+	protected void setBeanID(String beanID) {
+		this.beanID = beanID;
+	}
+	
 	public boolean isPrototype() {
 		return prototype;
 	}
@@ -436,21 +445,21 @@ public class BeanBox {
 		if (isValueType)
 			return (T) classOrValue;
 		Object instance = null;
-		Method createBeanMethod = null;
-		if (getCircularCounter() > 100) {// throw exception before out of stack memory
-			decreaseCircularCounter();
-			BeanBoxUtils.throwEX(null, "BeanBox getBean circular dependency error found! classOrValue=" + classOrValue);
-		}
-		String beanID = getClass().getName();// use beanBox class name as ID
+
+		String beanID = getClass().getName();
 		if (BeanBox.class.getName().equals(beanID)) {
 			if (this.getClassOrValue() instanceof Class)// use real bean class name & args as beanID
 				beanID = ((Class<?>) this.getClassOrValue()).getName()
 						+ (constructorArgs == null ? "" : constructorArgs);
-			else {
-				decreaseCircularCounter();
+			else
 				BeanBoxUtils.throwEX(null, "BeanBox createOrGetFromCache error! BeanBox ID can not be determined!");
-			}
 		}
+
+		if (getCircularCounter() > 100) {// throw exception before out of stack memory
+			decreaseCircularCounter();
+			BeanBoxUtils.throwEX(null, "BeanBox getBean circular dependency error found! classOrValue=" + classOrValue);
+		}
+		Method createBeanMethod = null;
 		synchronized (context.signletonCache) {
 			if (!prototype) {
 				instance = context.signletonCache.get(beanID);
