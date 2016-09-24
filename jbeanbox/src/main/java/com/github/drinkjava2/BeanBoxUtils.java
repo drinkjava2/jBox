@@ -22,7 +22,7 @@ import java.lang.reflect.Modifier;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import net.sf.cglib.proxy.Enhancer;
+import com.github.drinkjava2.cglib3_2_0.proxy.Enhancer;
 
 /**
  * Lots public static methods be moved into this BeanBoxUtils class

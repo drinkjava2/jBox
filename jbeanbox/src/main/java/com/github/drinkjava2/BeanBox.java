@@ -58,7 +58,6 @@ public class BeanBox {
 	private ConcurrentHashMap<String, Object[]> properties = new ConcurrentHashMap<String, Object[]>();// properties
 	public static final BeanBoxContext defaultContext = new BeanBoxContext();// this is a global default context
 	public BeanBoxContext context = defaultContext;
-	private String beanID;// id for save and search in singleton cache
 
 	/**
 	 * Create a BeanBox
@@ -121,14 +120,6 @@ public class BeanBox {
 		return this;
 	}
 
-	/**
-	 * Set BeanID, no need call this method by user
-	 * @param beanID
-	 */
-	protected void setBeanID(String beanID) {
-		this.beanID = beanID;
-	}
-	
 	public boolean isPrototype() {
 		return prototype;
 	}

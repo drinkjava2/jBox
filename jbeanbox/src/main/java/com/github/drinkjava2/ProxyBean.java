@@ -18,8 +18,8 @@ package com.github.drinkjava2;
 import java.lang.reflect.Method;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
+import com.github.drinkjava2.cglib3_2_0.proxy.MethodInterceptor;
+import com.github.drinkjava2.cglib3_2_0.proxy.MethodProxy;
 
 /**
  * ProxyBean created by CGLib

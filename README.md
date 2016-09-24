@@ -4,16 +4,15 @@ jBeanBox
 **License:** [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 jBeanBox is a micro scale IOC & AOP tool, uses java classes as configuration to replace XML.  
-(jBeanBox is still in developing, looking for contributors to improve/test/debug this project)  
 
 Advantage of jBeanBox:  
-1) Simple, very few source code(~2000lines), No XML, only 1 Annotation, easy to learn and use.  
+1) Simple, very few source code(~2000 lines), No XML, only 1 Annotation, easy to learn and use.  
 2) The Java-Based configuration is simpler and easier to use than Spring or Guice's Java configuration.  
 3) jBeanBox is a full function IOC/AOP tool supports bean life cycle, multiple contexts.  
 
 Key Feature of jBeanBox:  
 * Use Java initialization block Configurations (called "BeanBox") to replace XML , configurations can be created/modified at runtime.
-* Bean instance lazy initialization, SingleTon/Prototype support, SingleTon Cache 
+* Bean instance lazy initialization, SingleTon/Prototype support, SingleTon Cache. 
 * AOP & AspectJ support
 * Multiple injection mechanisms (Similar like Spring)  
    Push type(No need source): Value injection, Bean injection, Constructor injection, Static factory injection, Bean factory injection  

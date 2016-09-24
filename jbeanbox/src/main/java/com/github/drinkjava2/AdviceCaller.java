@@ -22,7 +22,7 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 
-import net.sf.cglib.proxy.MethodProxy;
+import com.github.drinkjava2.cglib3_2_0.proxy.MethodProxy;
 
 /**
  * @author Yong Zhu
