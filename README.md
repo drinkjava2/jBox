@@ -23,38 +23,42 @@ Key Feature of jBeanBox:
  
  
 How to use jBeanBox?  
-Download jbeanbox-core-x.x.jar or jbeanbox-core-x.x-sources.jar and below 4 jars put them in your project lib folder:  
-http://central.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0.jar  
-http://central.maven.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar  
-http://central.maven.org/maven2/org/aspectj/aspectjrt/1.8.9/aspectjrt-1.8.9.jar  
-http://central.maven.org/maven2/cglib/cglib/2.2.2/cglib-2.2.2.jar  
-You can use Maven to download these jars by run "mvn -f pom.xml dependency:copy-dependencies".
+jBeanBox is released in central repository, add below lines in your project pom.xml file:  
+```
+<dependency>
+    <groupId>com.github.drinkjava2</groupId>
+    <artifactId>jbeanbox</artifactId>
+    <version>2.4.1</version>
+</dependency>
+```
 
-How to import jBeanBox project into Eclipse?  
-1)install JDK6+, Git bash, Maven, on command mode, run:  
+How to import jBeanBox project into Eclipse (for developer)?  
+1)install JDK1.7+, Git bash, Maven3.3.9+, on command mode, run:  
 2)git clone https://github.com/drinkjava2/jBeanBox  
 3)cd jBeanBox  
 4)mvn eclipse:eclipse  
 5)mvn test  
-6)Open Eclipse, "import"->"Existing Projects into Workspace", select jBeanBox folder, there are 2 module projects   "jbeanbox-core" and "jbeanbox-example" will be imported in Eclipse.  
+6)Open Eclipse, "import"->"Existing Projects into Workspace", select jBeanBox folder, there are 2 module projects   "jbeanbox" and "jbeanbox-example" will be imported in Eclipse.  
 
 ===
 A basic introduction of how to use jBeanBox:  
-Example 1 - Basic Injection 
+Example 1 - Basic Injection (Detail source code files see jbeanbox-example project folder)  
 ```
 public class Order{
-  private Company company  //getter & setter...
+  private Company company  
+  //getter & setter...
 }
 
 public class Company{
-  private String name;  //getter & settter...	
+  private String name;  
+  //getter & settter...	
 }
 
 //Configuration class, equal to XML in Spring
 public class OrderBox extends BeanBox {
 	{  
-	  //setPrototype(false);   //default is singleton
-          //setClassOrValue(Order.class); //if called by getBean(), no need this line	
+	  //setPrototype(false);   //default is singleton, this line can omit
+          //setClassOrValue(Order.class); //if called by getBean(), this line can omit	
 	  setProperty("company", CompanyBox.class);
 	}
 	
@@ -95,10 +99,12 @@ public class Tester {
 
 	public static void main(String[] args) {
 		BeanBox advice = new BeanBox(AOPLogAdvice.class).setProperty("name", "AOP Logger");
-		BeanBox.defaultContext.setAOPAround("examples.example2_aop.\\w*", "doPrint\\w*", advice, "doAround");
+		BeanBox.defaultContext.setAOPAround("examples.example2_aop.\\w*", "doPrint\\w*", 
+			advice, "doAround");
 		
 		BeanBox advice2 = new BeanBox(AspectjLogAdvice.class).setProperty("name", "AspectJ Logger");
-		BeanBox.defaultContext.setAspectjAfterReturning("examples.example2_aop.\\w*", "doPrint\\w*", advice2, "doAfterReturning");
+		BeanBox.defaultContext.setAspectjAfterReturning("examples.example2_aop.\\w*", "doPrint\\w*", 
+			advice2, "doAfterReturning");
 
 		Tester t = new BeanBox(Tester.class).setProperty("item", ItemImpl.class).getBean();
 		t.doPrintItem();
@@ -283,7 +289,8 @@ public class TesterBox extends BeanBox {
 		public TransactionInterceptor create() {
 			Properties props = new Properties();
 			props.put("insert*", "PROPAGATION_REQUIRED");
-			return new TransactionInterceptor((DataSourceTransactionManager) new TxManagerBox().getBean(), props);
+			return new TransactionInterceptor((DataSourceTransactionManager) 
+							new TxManagerBox().getBean(), props);
 		}
 	}
 
@@ -297,7 +304,7 @@ public class TesterBox extends BeanBox {
 ```
 
 Example 7 - Show annotation inject on field, constructor & method, and mixed use with other 2 configurations,   
-            parameters start from 0, s0 means first String type parameter, box2 means 3rd parameter is a BeanBox
+            parameters start from 0, s0 means 1st String parameter, i1 means 2nd Integer paramerter, box2 means 3rd BeanBox paramerter
 ```
 public class Tester {
 	String name1;
@@ -348,7 +355,7 @@ public class Tester {
 	}
 }
 ```
-Example 8 - A simple BenchMark test, detail test moved to new project "https://github.com/drinkjava2/di-benchmark"  
+Example 8 - A simple BenchMark test, more detail please see project "https://github.com/drinkjava2/di-benchmark"  
 ```
 Split Starting up DI containers & instantiating a dependency graph 100 times (Prototype):
 -------------------------------------------------------------------------------
@@ -381,9 +388,9 @@ Runtime benchmark, fetch bean for 10000 times (Prototype):
                       SpringAnnotationScanned|  6331ms
 ```
 
-If change configuration to Singleton (only compared jBeanBox & Spring):
+If change configuration to Singleton, only compared jBeanBox & Spring:
 ```
-Runtime benchmark, fetch bean for 100000 times:
+Runtime benchmark, fetch bean for 100000 times (Singleton):
 --------------------------------------------------
                                jBeanBoxNormal|    47ms
                              jBeanBoxTypeSafe|    31ms
