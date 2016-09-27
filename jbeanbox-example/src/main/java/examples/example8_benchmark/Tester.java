@@ -31,10 +31,10 @@ public class Tester {
 
 		// #1 use config1, normal configuration
 		BeanBoxContext ctx = new BeanBoxContext(BeanBoxConfig1.class).setIgnoreAnnotation(true);
-		aold = ctx.getPrototypeBean(A.class);
+		aold = ctx.getBean(A.class);
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < repeattimes; i++) {
-			a = ctx.getPrototypeBean(A.class);
+			a = ctx.getBean(A.class);
 		}
 		long end = System.currentTimeMillis();
 		String type = (aold == a) ? "(Singlton)" : "(Prototype)";
@@ -42,58 +42,64 @@ public class Tester {
 
 		// #2 use config2, java type safe configuration
 		ctx = new BeanBoxContext(BeanBoxConfig2.class).setIgnoreAnnotation(true);
-		aold = ctx.getPrototypeBean(A.class);
+		aold = ctx.getBean(A.class);
 		start = System.currentTimeMillis();
 		for (int i = 0; i < repeattimes; i++) {
-			a = ctx.getPrototypeBean(A.class);
+			a = ctx.getBean(A.class);
 		}
 		end = System.currentTimeMillis();
-		type = (aold == a) ? "(Singlton)" : "(Prototype)";
+		type = singltTonORPrototype(aold, a);
 		System.out.println(String.format("%45s|%6sms", "BeanBox Type Safe Configuration" + type, end - start));
 
 		// #3 use config3, only annotations
 		ctx = new BeanBoxContext();
-		aold = ctx.getPrototypeBean(A.class);
+		aold = ctx.getBean(A.class);
 		start = System.currentTimeMillis();
 		for (int i = 0; i < repeattimes; i++) {
-			a = ctx.getPrototypeBean(A.class);
+			a = ctx.getBean(A.class);
 		}
 		end = System.currentTimeMillis();
-		type = (aold == a) ? "(Singlton)" : "(Prototype)";
+		type = singltTonORPrototype(aold, a);
 		System.out.println(String.format("%45s|%6sms", "BeanBox Annotation Only" + type, end - start));
 
 		// #4 use config1, normal configuration
 		ctx = new BeanBoxContext(BeanBoxConfig1.class).setIgnoreAnnotation(true);
-		aold = ctx.getSingletonBean(A.class);
+		aold = ctx.getSingletonBean(A.class);// force return a singleton bean
 		start = System.currentTimeMillis();
 		for (int i = 0; i < repeattimes; i++) {
 			a = ctx.getSingletonBean(A.class);
 		}
 		end = System.currentTimeMillis();
-		type = (aold == a) ? "(Singlton)" : "(Prototype)";
+		type = singltTonORPrototype(aold, a);
 		System.out.println(String.format("%45s|%6sms", "BeanBox Normal Configuration" + type, end - start));
 
 		// #5 use config2, java type safe configuration
 		ctx = new BeanBoxContext(BeanBoxConfig2.class).setIgnoreAnnotation(true);
-		aold = ctx.getSingletonBean(A.class);
+		aold = ctx.getSingletonBean(A.class); // force return a singleton bean
 		start = System.currentTimeMillis();
 		for (int i = 0; i < repeattimes; i++) {
 			a = ctx.getSingletonBean(A.class);
 		}
 		end = System.currentTimeMillis();
-		type = (aold == a) ? "(Singlton)" : "(Prototype)";
+		type = singltTonORPrototype(aold, a);
 		System.out.println(String.format("%45s|%6sms", "BeanBox Type Safe Configuration" + type, end - start));
 
 		// #6 use config3, only annotations
 		ctx = new BeanBoxContext();
-		aold = ctx.getSingletonBean(A.class);
+		aold = ctx.getSingletonBean(A.class);// force return a singleton bean
 		start = System.currentTimeMillis();
 		for (int i = 0; i < repeattimes; i++) {
 			a = ctx.getSingletonBean(A.class);
 		}
 		end = System.currentTimeMillis();
-		type = (aold == a) ? "(Singlton)" : "(Prototype)";
+		type = singltTonORPrototype(aold, a);
 		System.out.println(String.format("%45s|%6sms", "BeanBox Annotation Only" + type, end - start));
 
+	}
+
+	private static String singltTonORPrototype(A aold, A a) {
+		String type;
+		type = (aold == a) ? "(Singlton)" : "(Prototype)";
+		return type;
 	}
 }

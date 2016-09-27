@@ -11,43 +11,44 @@ import examples.example8_benchmark.objects.D2;
 import examples.example8_benchmark.objects.E;
 
 public class BeanBoxConfig1 {
-	public static class ABox extends BeanBox {
+	public static class PrototypeBox extends BeanBox {
+		{
+			this.setPrototype(true);
+		}
+	}
+
+	public static class ABox extends PrototypeBox {
 		{
 			this.setConstructor(A.class, B.class);
 		}
 	}
 
-	public static class BBox extends BeanBox {
+	public static class BBox extends PrototypeBox {
 		{
-			this.setPrototype(true);
 			this.setConstructor(B.class, C.class);
 		}
 	}
 
-	public static class CBox extends BeanBox {
+	public static class CBox extends PrototypeBox {
 		{
-			this.setPrototype(true);
 			this.setConstructor(C.class, D1.class, D2.class);
 		}
 	}
 
-	public static class D1Box extends BeanBox {
+	public static class D1Box extends PrototypeBox {
 		{
-			this.setPrototype(true);
 			this.setConstructor(D1.class, E.class);
 		}
 	}
 
-	public static class D2Box extends BeanBox {
+	public static class D2Box extends PrototypeBox {
 		{
-			this.setPrototype(true);
 			this.setConstructor(D2.class, E.class);
 		}
 	}
 
-	public static class EBox extends BeanBox {
+	public static class EBox extends PrototypeBox {
 		{
-			this.setPrototype(true);
 			this.setClassOrValue(E.class);
 		}
 	}

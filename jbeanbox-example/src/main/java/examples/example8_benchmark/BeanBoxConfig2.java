@@ -11,43 +11,44 @@ import examples.example8_benchmark.objects.D2;
 import examples.example8_benchmark.objects.E;
 
 public class BeanBoxConfig2 {
-	public static class ABox extends BeanBox {
+	public static class PrototypeBox extends BeanBox {
+		{
+			this.setPrototype(true);
+		}
+	}
+
+	public static class ABox extends PrototypeBox {
 		public A create() {
-			return new A((B) new BBox().getBean()); // If use JDK8, no need write "(B)"
+			return new A((B) context.getBean(B.class)); // If use JDK8, no need write "(B)"
 		}
 	}
 
-	public static class BBox extends BeanBox {
+	public static class BBox extends PrototypeBox {
 		public B create() {
-			this.setPrototype(true);
-			return new B((C) new CBox().getBean());
+			return new B((C) context.getBean(C.class));
 		}
 	}
 
-	public static class CBox extends BeanBox {
+	public static class CBox extends PrototypeBox {
 		public C create() {
-			this.setPrototype(true);
-			return new C((D1) new D1Box().getBean(), (D2) new D2Box().getBean());
+			return new C((D1) context.getBean(D1.class), (D2) context.getBean(D2.class));
 		}
 	}
 
-	public static class D1Box extends BeanBox {
+	public static class D1Box extends PrototypeBox {
 		public D1 create() {
-			this.setPrototype(true);
-			return new D1((E) new EBox().getBean());
+			return new D1((E) context.getBean(E.class));
 		}
 	}
 
-	public static class D2Box extends BeanBox {
+	public static class D2Box extends PrototypeBox {
 		public D2 create() {
-			this.setPrototype(true);
-			return new D2((E) new EBox().getBean());
+			return new D2((E) context.getBean(E.class));
 		}
 	}
 
-	public static class EBox extends BeanBox {
+	public static class EBox extends PrototypeBox {
 		public E create() {
-			this.setPrototype(true);
 			return new E();
 		}
 	}

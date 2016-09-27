@@ -21,7 +21,7 @@ public class Tester {
 
 	public void insertUser() {
 		dao.execute("insert into users values ('User1')");
-		// int i = 1 / 0; //Throw a runtime Exception to roll back transaction
+		//int i = 1 / 0; //Throw a runtime Exception to roll back transaction
 		dao.execute("insert into users values ('User2')");
 		System.out.println("Users saved successfully");
 	}
