@@ -43,8 +43,8 @@ jBeanBox的缺点：
 5)mvn test  
 6)打开Eclipse, 按"import"->"Existing Projects into Workspace", 选中jBeanBox目录, 即可将两个子项目"jbeanbox-core"和"jbeanbox-example"导入，注意导入时不要勾选“Copy to project folder”。  
 
-#jBeanBox使用示例： 
-示例1 - HelloWorld 第一个IOC注入演示
+#jBeanBox使用示例：  
+示例1 - HelloWorld 第一个IOC注入演示  
 	下面这个简单程序演示了jBeanBox最基本的两个特点: 1)以约定方式(类名+Box)寻找配置 2)配置写在Java类初始块中。 配置类的查找方式有很多种， 将配置类写在目标类的内部只是其中一种方式。
 ```
 import com.github.drinkjava2.BeanBox;
@@ -61,6 +61,7 @@ public class HelloWorld {
 	}
 }
 ```
+
 
 示例2 - 基础jBeanBox注入
 
