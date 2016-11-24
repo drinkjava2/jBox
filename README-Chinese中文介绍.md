@@ -43,9 +43,26 @@ jBeanBox的缺点：
 5)mvn test  
 6)打开Eclipse, 按"import"->"Existing Projects into Workspace", 选中jBeanBox目录, 即可将两个子项目"jbeanbox-core"和"jbeanbox-example"导入，注意导入时不要勾选“Copy to project folder”。  
 
-#jBeanBox使用示例：  
+#jBeanBox使用示例： 
+示例1 - HelloWorld 第一个IOC注入演示
+	下面这个简单程序演示了jBeanBox最基本的两个特点: 1)以约定方式(类名+Box)寻找配置 2)配置写在Java类初始块中。 配置类的查找方式有很多种， 将配置类写在目标类的内部只是其中一种方式。
+```
+import com.github.drinkjava2.BeanBox;
+public class HelloWorld {
+	private String field1;
+	public static class HelloWorldBox extends BeanBox {
+		{
+		  this.setProperty("field1", "Hello World!");
+		}
+	}
+	public static void main(String[] args) {
+		HelloWorld h = BeanBox.getBean(HelloWorld.class);
+		System.out.println(h.field1); //print "Hello World!"
+	}
+}
+```
 
-示例1 - 基础jBeanBox注入
+示例2 - 基础jBeanBox注入
 
 ```
 public class Order{ //order类
@@ -60,8 +77,8 @@ public class Company{ // Company类
 
 public class OrderBox extends BeanBox {//OrderBox为BeanBox子类，这是一个配置文件，用来代替XML
 	{   
-          //setPrototype(false);  //默认为单例类，如果设为true将每次创建一个新的实例
-	  //setClassOrValue(Order.class)	//设定目标类，如果用getBean调用可以不加这句	
+          //setPrototype(false);  //默认即为单例类，如果设为true将每次创建一个新实例
+          //setClassOrValue(Order.class); //设定目标类，如果用getBean调用可以不加这句	
 	  setProperty("company", CompanyBox.class); //设定要注入的对象,可以是目标类，也可以是一个BeanBox配置类	 
 	}
 	
@@ -74,7 +91,7 @@ public class OrderBox extends BeanBox {//OrderBox为BeanBox子类，这是一个
 
     public static class CompanyBox extends CompanyBox1 {//配置的继承
         {
-            setProperty("name", "Pet Store2");//属性覆盖
+            setProperty("name", "Pet Store2");//属性的覆盖
         }
     } 
 }
@@ -86,9 +103,9 @@ public class Tester {
 	}
 } 
 ```
-为节省篇幅，一些java类以及静态工厂、实例工厂演示未在此说明中列出，请详见jbeanbox-eaxmple项目源码，下同。
+为节省篇幅，一些java类以及静态工厂、实例工厂演示未在此示例中列出，请自行翻看jbeanbox-eaxmple项目源码，下同。
 
- 示例2： AOP & Aspectj演示，为了与Spring兼容，此项目已集成了AOP联盟接口和Aspectj接口支持，但是切点只支持Java正则表达式一种方式。
+ 示例3： AOP & Aspectj演示，为了与Spring兼容，此项目已集成了AOP联盟接口和Aspectj接口支持，但是切点只支持Java正则表达式一种方式。
 ("AOPLogAdvice", "AspectjLogAdvice"源码此处略）
 ```
 public class Tester {
@@ -117,7 +134,7 @@ public class Tester {
 ```
 BeanBox.defaultContext是个单例类全局变量，对于无需创建多个上下文实例的小型项目可以直接使用这个全局实例变量以简化编码。
 
-示例3: @injectBox注解和上下文演示  
+示例4: @injectBox注解和上下文演示  
  此项目有且仅有一个注解@injectBox，注入1到7为注解注入，属于拉式注入，注入8和9为传统无侵入的推式注入。可以看出，注解的引入可简化源码，提高开发效率，但代价是难以理解和增加维护困难，且不支持无源码的第三方库。此示例可能比较难理解，因为配置文件比较多而且这里没有列出，请详见jbeanbox-example/src/main/java/examples/example3_annotation目录。基本原理是在注入时，首先在类的内外部、配置文件中先找到对应的BeanBox配置类并注入，如找不到配置将默认按无参构造子创建实例。
 
 ```
@@ -175,7 +192,7 @@ public class Tester {
 }
 ```
 
-示例4: Bean的生命周期管理(PostConstructor和PreDestory方法回调)  
+示例5: Bean的生命周期管理(PostConstructor和PreDestory方法回调)  
 ```
 public class Tester {
 	private String name;
@@ -202,7 +219,7 @@ public class Tester {
 }
 ```
 
-示例5: 利用jBeanBox取代Spring内核实现无XML的声明式事务  
+示例6: 利用jBeanBox取代Spring内核实现无XML的声明式事务  
  声明式事务是AOP的典型运用场合，基本原理是利用线程局部变量来管理连接，AOP的特点就是服务和内核是插拔式设计，内核和服务可以单独使用。Spring中提供的一些业务支持理论上都可以抽取出来在其它IOC/AOP工具上使用，如果抽取不出来，说明它绑死在Spring内核上了，这与它的设计理念是不符的。本着不重新发明轮子的原则，此示例将Spring中的声明式事务服务抽取出来，与jBeanBox整合，也就是说这一次的整合只利用了Spring的事务服务，而不使用它的IOC/AOP内核 ，很诡异的组合，但目的很明确：取消XML配置。以下是jBeanBox整合了c3p0数据池+JDBCTemplate+Spring声明式事务的一个例子，实测通过:
 
 ```
@@ -262,7 +279,7 @@ public class Tester {//测试类
 ```
 此示例中需要额外用到C3P0、Mysql驱动(须安装MySQL并配置)以及Spring的一些包，运行"mvn test"可自动下载并测试。  
 
-示例6: 利用Java方法来手工生成实例。这种方式和Spring的Java配置类似，优点是实现了传统注入方式不支持的方法名重构，缺点是灵活性略差，在根据参数动态创建、修改配置和配置的继承重用上有局限性。jBeanBox支持Java方法回调和普通注入配置方式的混用。下面示例与示例5一样实现了同样的功能，但是用create回调方法来手工创建实例，用config回调方法来手工注入属性，(如运行在JAVA8下，强制类型转换可以省略)：
+示例7: 利用Java方法来手工生成实例。这种方式和Spring的Java配置类似，优点是实现了传统注入方式不支持的方法名重构，缺点是灵活性略差，在根据参数动态创建、修改配置和配置的继承重用上有局限性。jBeanBox支持Java方法回调和普通注入配置方式的混用。下面示例与示例5一样实现了同样的功能，但是用create回调方法来手工创建实例，用config回调方法来手工注入属性，(如运行在JAVA8下，强制类型转换可以省略)：
 ```
 public class TesterBox extends BeanBox {
 	static {
@@ -314,7 +331,7 @@ public class TesterBox extends BeanBox {
 }
 
 ```
-示例7 演示用注解来注入属性、构造函数参数和方法参数  
+示例8 演示用注解来注入属性、构造函数参数和方法参数  
 目前jBeanBox有三种配置方式，初始块、Java方法、注解，这三种方式各有特点，初始块最灵活，可完全替代XML，但不支持方法名重构;Java方法回调是类型安全但灵活性差，不支持配置的继承和动态修改;注解最简洁但仅适用于有源码的场合。这三种配置方法可以同时混合使用，互相补充。 参数用代号加数字指定，从0开始，如s0表示第一个String参数, i1表示第二个Integer参数,box2表示第三个BeanBox参数
 ```
 public class Tester {
@@ -367,7 +384,7 @@ public class Tester {
 }
 ```
 
-示例8 是一个简单的构造一个对象图的Benchmark测试，详细的测试已移到新项目[di-benchmark](https://github.com/drinkjava2/di-benchmark) 中，简单测试了一下，以下是测试结果：
+示例9 是一个简单的构造一个对象图的Benchmark测试，详细的测试已移到新项目[di-benchmark](https://github.com/drinkjava2/di-benchmark) 中，简单测试了一下，以下是测试结果：
 ```
 Split Starting up DI containers & instantiating a dependency graph 100 times:
 -------------------------------------------------------------------------------
@@ -412,3 +429,4 @@ Runtime benchmark, fetch bean for 100000 times:
                       SpringJavaConfiguration|    94ms
                       SpringAnnotationScanned|    78ms
 ```
+作为一个源码只有2000行的小项目， 以上即为jBeanBox全部文档，如有疑问，请下载示例运行或查看源码。
