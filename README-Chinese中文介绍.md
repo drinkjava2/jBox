@@ -1,34 +1,32 @@
-﻿#jBeanBox
----
-jBeanBox是一个微形但功能较齐全的IOC/AOP工具，利用了Java的初始化块实现的Java配置代替XML，比目前Spring或Guice的Java配置更简单更实用。jBeanBox采用Apache License 2.0开源协议。
-其他一些IOC/AOP框架的问题：
-1）Spring，HiveMind及其他一些利用XML作为配置文件的IOC/AOP框架：XML不支持类名称拼写检查和IDE重构，很难在运行时更改
-配置。（从Spring3.0开始使用一种基于Java的配置来取代XML，但Java配置与与注解混用，复杂且不支持配置的继承重用、动态变更配置。我的看法是，作为一个IOC/AOP工具来说，Spring过于复杂了。
-2）Guice和其他依赖于注解的IOC/AOP项目：注解是一种拉式注入，入侵性强，不支持第三方库，IOC/AOP工具不应该完全依赖于更改Java源码，而且Guice只是一个DI工具，不具备Bean生命周期管理功能。
+﻿#jBeanBox 
+jBeanBox是一个微形但功能较齐全的IOC/AOP工具，利用了Java的初始化块实现的Java配置代替XML，比目前Spring或Guice的Java配置更简单更实用。jBeanBox采用Apache License 2.0开源协议。  
+其他一些IOC/AOP框架的问题：  
+1）Spring，HiveMind及其他一些利用XML作为配置文件的IOC/AOP框架：XML不支持类名称拼写检查和IDE重构，很难在运行时更改配置。(从Spring3.0开始使用一种基于Java的配置来取代XML，但Java配置与与注解混用，复杂且不支持配置的继承重用、动态变更配置。我的看法是，作为一个IOC/AOP工具来说，Spring过于复杂了。)  
+2）Guice和其他依赖于注解的IOC/AOP项目：注解是一种拉式注入，入侵性强，不支持第三方库，IOC/AOP工具不应该完全依赖于更改Java源码，而且Guice只是一个DI工具，不具备Bean生命周期管理功能。  
 
-jBeanBox的特点：
-1）简单，很少的源码(不到2000行)实现了所有的IOC/AOP功能，没有XML，只有1个注解(InjectBox)。学习曲线低、易维护、易扩充和移植。
-2）使用Java来代替XML，其实现比Spring或Guice的Java配置更简单实用，支持配置的继承重用、运行期动态创建和修改。
-3) 与Spring内核的功能重叠面多，Spring配置可以很容易移植到jBeanBox上，Spring的一些服务如声明式事务可以抽取出来在jBeanBox上使用。
-4) 是一个全功能的IOC/AOP工具，而不仅仅只是一个DI工具，旨在小项目中全部或部分取代Spring IoC/AOP内核，其主要功能有：
-*以Java初始块为基础的纯Java配置类（第一种配置方式）来代替XML，简单易用。
-*以Java方法回调为基础的Java配置类(第二种配置方式), 实现完全的Java类型安全和IDE重构支持。
-*基于注解的配置(第三种配置方式)，整个项目只有一个@InjectBox注解，易于学习。 以上三种配置各有特点，甚至可以在同一个配置中混合使用。
-*Bean实例延迟初始化（如Guice类似）
-*单例/多例支持，默认情况下所有实例为单例（与Spring类似）; 单例缓存
-*内置AOP和AspectJ支持,切点简化为正则表达式。
-*多种注射机制：
-推式注入:值注入，实例注入，构造方法注入，静态工厂注入，实例工厂注入 (与Spring传统XML注入类似)
-拉式注入：利用@InjectBox注解 (与Guice和Spring的注解注入类似），支持域成员、构造函数参数和方法参数注入，可注入常量。
-*以约定方式寻找配置，这是jBeanBOx的一个主要特点
-*多上下文支持（除了默认全局范围上下文外，支持创建多个上下文，类似于Spring中创建多个ApplicationContext实例）
-*Bean生命周期管理（postConstruction和preDestory方法回调）
+jBeanBox的特点：  
+1）简单，很少的源码(不到2000行)实现了所有的IOC/AOP功能，没有XML，只有1个注解(InjectBox)。学习曲线低、易维护、易扩充和移植。  
+2）使用Java来代替XML，其实现比Spring或Guice的Java配置更简单实用，支持配置的继承重用、运行期动态创建和修改。  
+3) 与Spring内核的功能重叠面多，Spring配置可以很容易移植到jBeanBox上，Spring的一些服务如声明式事务可以抽取出来在jBeanBox上使用。  
+4) 是一个全功能的IOC/AOP工具，而不仅仅只是一个DI工具，旨在小项目中全部或部分取代Spring IoC/AOP内核，其主要功能有：  
+*以Java初始块为基础的纯Java配置类（第一种配置方式）来代替XML，简单易用。  
+*以Java方法回调为基础的Java配置类(第二种配置方式), 实现完全的Java类型安全和IDE重构支持。  
+*基于注解的配置(第三种配置方式)，整个项目只有一个@InjectBox注解，易于学习。 以上三种配置各有特点，甚至可以在同一个配置中混合使用。  
+*Bean实例延迟初始化（如Guice类似）  
+*单例/多例支持，默认情况下所有实例为单例（与Spring类似）; 单例缓存  
+*内置AOP和AspectJ支持,切点简化为正则表达式。  
+*多种注射机制：  
+推式注入:值注入，实例注入，构造方法注入，静态工厂注入，实例工厂注入 (与Spring传统XML注入类似)  
+拉式注入：利用@InjectBox注解 (与Guice和Spring的注解注入类似），支持域成员、构造函数参数和方法参数注入，可注入常量。  
+*以约定方式寻找配置，这是jBeanBOx的一个主要特点  
+*多上下文支持（除了默认全局范围上下文外，支持创建多个上下文，类似于Spring中创建多个ApplicationContext实例）  
+*Bean生命周期管理（postConstruction和preDestory方法回调）  
 
-jBeanBox的缺点：
-比较新，缺少足够的测试。设置AOP时，目标类不能是final类(因采用了CGLIB代理)。
+jBeanBox的缺点：  
+比较新，缺少足够的测试。设置AOP时，目标类不能是final类(因采用了CGLIB代理)。  
  
-如何在项目中使用jBeanBox?
-在pom.xml加入以下配置：
+如何在项目中使用jBeanBox?  
+在pom.xml加入以下配置：  
 ```
 <dependency>
     <groupId>com.github.drinkjava2</groupId>
@@ -37,13 +35,13 @@ jBeanBox的缺点：
 </dependency>
 ```
 
-如何将jBeanBox项目导入Eclipse?
-1)安装JDK6以上版本、 Git bash、 Maven, 在命令行下运行：
-2)git clone https://github.com/drinkjava2/jBeanBox
-3)cd jBeanBox
-4)mvn eclipse:eclipse
-5)mvn test
-6)打开Eclipse, 按"import"->"Existing Projects into Workspace", 选中jBeanBox目录, 即可将两个子项目"jbeanbox-core"和"jbeanbox-example"导入，注意导入时不要勾选“Copy to project folder”。
+如何将jBeanBox项目导入Eclipse?  
+1)安装JDK6以上版本、 Git bash、 Maven, 在命令行下运行：  
+2)git clone https://github.com/drinkjava2/jBeanBox  
+3)cd jBeanBox  
+4)mvn eclipse:eclipse  
+5)mvn test  
+6)打开Eclipse, 按"import"->"Existing Projects into Workspace", 选中jBeanBox目录, 即可将两个子项目"jbeanbox-core"和"jbeanbox-example"导入，注意导入时不要勾选“Copy to project folder”。  
 
 #jBeanBox使用示例：  
 
@@ -119,7 +117,7 @@ public class Tester {
 ```
 BeanBox.defaultContext是个单例类全局变量，对于无需创建多个上下文实例的小型项目可以直接使用这个全局实例变量以简化编码。
 
-示例3: @injectBox注解和上下文演示
+示例3: @injectBox注解和上下文演示  
  此项目有且仅有一个注解@injectBox，注入1到7为注解注入，属于拉式注入，注入8和9为传统无侵入的推式注入。可以看出，注解的引入可简化源码，提高开发效率，但代价是难以理解和增加维护困难，且不支持无源码的第三方库。此示例可能比较难理解，因为配置文件比较多而且这里没有列出，请详见jbeanbox-example/src/main/java/examples/example3_annotation目录。基本原理是在注入时，首先在类的内外部、配置文件中先找到对应的BeanBox配置类并注入，如找不到配置将默认按无参构造子创建实例。
 
 ```
@@ -177,8 +175,7 @@ public class Tester {
 }
 ```
 
-示例4: Bean的生命周期管理(PostConstructor和PreDestory方法回调)
-
+示例4: Bean的生命周期管理(PostConstructor和PreDestory方法回调)  
 ```
 public class Tester {
 	private String name;
@@ -205,7 +202,7 @@ public class Tester {
 }
 ```
 
-示例5: 利用jBeanBox取代Spring内核实现无XML的声明式事务
+示例5: 利用jBeanBox取代Spring内核实现无XML的声明式事务  
  声明式事务是AOP的典型运用场合，基本原理是利用线程局部变量来管理连接，AOP的特点就是服务和内核是插拔式设计，内核和服务可以单独使用。Spring中提供的一些业务支持理论上都可以抽取出来在其它IOC/AOP工具上使用，如果抽取不出来，说明它绑死在Spring内核上了，这与它的设计理念是不符的。本着不重新发明轮子的原则，此示例将Spring中的声明式事务服务抽取出来，与jBeanBox整合，也就是说这一次的整合只利用了Spring的事务服务，而不使用它的IOC/AOP内核 ，很诡异的组合，但目的很明确：取消XML配置。以下是jBeanBox整合了c3p0数据池+JDBCTemplate+Spring声明式事务的一个例子，实测通过:
 
 ```
@@ -263,11 +260,9 @@ public class Tester {//测试类
 	}
 }
 ```
-此示例中需要额外用到C3P0、Mysql驱动(须安装MySQL并配置)以及Spring的一些包，运行"mvn test"可自动下载并测试。 
-
+此示例中需要额外用到C3P0、Mysql驱动(须安装MySQL并配置)以及Spring的一些包，运行"mvn test"可自动下载并测试。  
 
 示例6: 利用Java方法来手工生成实例。这种方式和Spring的Java配置类似，优点是实现了传统注入方式不支持的方法名重构，缺点是灵活性略差，在根据参数动态创建、修改配置和配置的继承重用上有局限性。jBeanBox支持Java方法回调和普通注入配置方式的混用。下面示例与示例5一样实现了同样的功能，但是用create回调方法来手工创建实例，用config回调方法来手工注入属性，(如运行在JAVA8下，强制类型转换可以省略)：
-
 ```
 public class TesterBox extends BeanBox {
 	static {
@@ -319,8 +314,8 @@ public class TesterBox extends BeanBox {
 }
 
 ```
-
-示例7 演示用注解来注入属性、构造函数参数和方法参数。目前jBeanBox有三种配置方式，初始块、Java方法、注解，这三种方式各有特点，初始块最灵活，可完全替代XML，但不支持方法名重构，Java方法回调是类型安全但灵活性差，注解最简洁但需要源码，这三种配置方法可以同时混合使用，互相补充。 参数用代号加数字指定，从0开始，如s0表示第一个String参数, i1表示第二个Integer参数,box2表示第三个BeanBox参数
+示例7 演示用注解来注入属性、构造函数参数和方法参数  
+目前jBeanBox有三种配置方式，初始块、Java方法、注解，这三种方式各有特点，初始块最灵活，可完全替代XML，但不支持方法名重构;Java方法回调是类型安全但灵活性差，不支持配置的继承和动态修改;注解最简洁但仅适用于有源码的场合。这三种配置方法可以同时混合使用，互相补充。 参数用代号加数字指定，从0开始，如s0表示第一个String参数, i1表示第二个Integer参数,box2表示第三个BeanBox参数
 ```
 public class Tester {
 	String name1;
