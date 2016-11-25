@@ -60,7 +60,7 @@ public class HelloWorld {
 ```
 This Helloworld shows 2 key charactors of jBeanBox: 1)Write configuration in Java initialization block. 2)Configuration classes be searched follow some convention usually "classname+Box", usaually at the same folder of target class or just write inside of target class.
 
-Example 1 - Basic Injection (Detail source code files see jbeanbox-example project folder)  
+Example 2 - Basic Injection (Detail source code files see jbeanbox-example project folder)  
 ```
 public class Order{
   private Company company  
@@ -102,7 +102,7 @@ public class Tester {
 } 
 ```
 
-Example 2 - AOP & Aspectj demo
+Example 3 - AOP & Aspectj demo
 ```
 public class Tester {
 	private Iitem item;
@@ -131,7 +131,7 @@ public class Tester {
 ``` 
 Source code of AOPLogAdvice and AspectjLogAdvice can look in jbeanbox-example folder.
 
-Example 3 - @InjectBox &  multiple Contexts
+Example 4 - @InjectBox &  multiple Contexts
 ```
 public class Tester {
 	@InjectBox(A.StrBox.class)
@@ -180,7 +180,7 @@ public class Tester {
 }
 ```
  
-Example 4 - PostConstructor and PreDestory 
+Example 5 - PostConstructor and PreDestory 
 ```
 public class Tester {
 	private String name;
@@ -207,7 +207,7 @@ public class Tester {
 }
 ```
  
-Example 5 - This example shows how to use jBeanBox to replace Spring's core to achieve "Declarative Transaction".
+Example 6 - This example shows how to use jBeanBox to replace Spring's core to achieve "Declarative Transaction".
 This example integrated "C3P0" + "JDBCTemplate" + "Spring Declarative Transaction Service"  but did not use Spring's IOC/AOP core, a weird combination but target is clear: "To eliminate XML".
 
 ```
@@ -268,7 +268,7 @@ public class Tester {
 }
 ```
 
-Example 6 - Java type safe type configuration, support method name IDE refactor, below configuration do the same thing like example5 but use java type safe configuration instead:
+Example 7 - Java type safe type configuration, support method name IDE refactor, below configuration do the same thing like example5 but use java type safe configuration instead:
 ```
 public class TesterBox extends BeanBox {
 	static {
@@ -321,7 +321,7 @@ public class TesterBox extends BeanBox {
 
 ```
 
-Example 7 - Show annotation inject on field, constructor & method, and mixed use with other 2 configurations,   
+Example 8 - Show annotation inject on field, constructor & method, and mixed use with other 2 configurations,   
             parameters start from 0, s0 means 1st String parameter, i1 means 2nd Integer paramerter, box2 means 3rd BeanBox paramerter
 ```
 public class Tester {
@@ -373,7 +373,7 @@ public class Tester {
 	}
 }
 ```
-Example 8 - A simple BenchMark test, more detail please see project "https://github.com/drinkjava2/di-benchmark"  
+Example 9 - A simple BenchMark test, more detail please see project "https://github.com/drinkjava2/di-benchmark"  
 ```
 Split Starting up DI containers & instantiating a dependency graph 100 times (Prototype):
 -------------------------------------------------------------------------------
