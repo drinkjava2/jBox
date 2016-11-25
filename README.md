@@ -41,7 +41,25 @@ How to import jBeanBox project into Eclipse (for developer)?
 6)Open Eclipse, "import"->"Existing Projects into Workspace", select jBeanBox folder, there are 2 module projects   "jbeanbox" and "jbeanbox-example" will be imported in Eclipse.  
 
 ===
-A basic introduction of how to use jBeanBox:  
+## Examples show how to use jBeanBox:  
+Example 1 - Hello World
+```
+import com.github.drinkjava2.BeanBox;
+public class HelloWorld {
+	private String field1;
+	public static class HelloWorldBox extends BeanBox {
+		{
+		  this.setProperty("field1", "Hello World!");
+		}
+	}
+	public static void main(String[] args) {
+		HelloWorld h = BeanBox.getBean(HelloWorld.class);
+		System.out.println(h.field1); //print "Hello World!"
+	}
+}
+```
+This Helloworld shows 2 key charactors of jBeanBox: 1)Write configuration in Java initialization block. 2)Configuration classes be searched follow some convention usually "classname+Box", usaually at the same folder of target class or just write inside of target class.
+
 Example 1 - Basic Injection (Detail source code files see jbeanbox-example project folder)  
 ```
 public class Order{
@@ -110,7 +128,8 @@ public class Tester {
 		t.doPrintItem();
 	}
 }
-```
+``` 
+Source code of AOPLogAdvice and AspectjLogAdvice can look in jbeanbox-example folder.
 
 Example 3 - @InjectBox &  multiple Contexts
 ```
@@ -160,7 +179,6 @@ public class Tester {
 	}
 }
 ```
-
  
 Example 4 - PostConstructor and PreDestory 
 ```
