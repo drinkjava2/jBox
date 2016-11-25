@@ -58,7 +58,7 @@ public class HelloWorld {
 	}
 }
 ```
-This Helloworld shows 2 key charactors of jBeanBox: 1)Write configuration in Java initialization block. 2)Configuration classes be searched follow some convention usually "classname+Box", usaually at the same folder of target class or just write inside of target class.
+This Helloworld shows 2 key charactors of jBeanBox: 1)Configurations be written in Java initialization block. 2)Configuration classes be searched follow some conventions usually "classname+Box", and usaually in same folder of target class or just write inside of target class.
 
 Example 2 - Basic Injection (Detail source code files see jbeanbox-example project folder)  
 ```
