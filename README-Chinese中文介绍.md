@@ -34,18 +34,41 @@ jBeanBox的缺点：
     <version>2.4.1</version>
 </dependency>
 ```
+或SNAPSHOT版:
+```
+<dependency>
+    <groupId>com.github.drinkjava2</groupId>
+    <artifactId>jbeanbox</artifactId>
+    <version>2.4.2-SNAPSHOT</version>
+</dependency>
+```
+jBeanBox仅仅依赖于"aopalliance-1.0"和"aspectjrt-1.8.9"两个包（因为这两个是标准AOP接口)，如果使用Maven将自动下载这两个jar包，jBeanBox内部使用了CGLIB及ASM库，为了防止可能发生的与其它CGLIB版本冲突，已将这两个包打包到jBeanBox内部命名空间。
+jBeanBox不依赖于common log或Log4j,但是如果在类路径中找到它们的配置，将自动采用它们作为Logger输出。
+
+How to import jBeanBox project into Eclipse (for developer)?  
+1)install JDK1.7+, Git bash, Maven3.3.9+, on command mode, run:  
+2)git clone https://github.com/drinkjava2/jBeanBox  
+3)cd jBeanBox  
+4)mvn eclipse:eclipse  
+5)Open Eclipse, "import"->"Existing Projects into Workspace", select jBeanBox folder, done.  
+6)For developers should work on "develop" branch by run "git checkout develop"
+
+
+
 
 如何将jBeanBox项目导入Eclipse?  
 1)安装JDK6以上版本、 Git bash、 Maven, 在命令行下运行：  
 2)git clone https://github.com/drinkjava2/jBeanBox  
 3)cd jBeanBox  
 4)mvn eclipse:eclipse  
-5)mvn test  
-6)打开Eclipse, 按"import"->"Existing Projects into Workspace", 选中jBeanBox目录, 即可将两个子项目"jbeanbox-core"和"jbeanbox-example"导入，注意导入时不要勾选“Copy to project folder”。  
+5)打开Eclipse, 按"import"->"Existing Projects into Workspace", 选中jBeanBox目录, 即可将项目导入，注意导入时不要勾选“Copy to project folder”
+6)对于开发者，应工作在develp分支，请使用"git checkout develop"命令检出develop分支。
 
 #jBeanBox使用示例：  
 示例1 - HelloWorld 第一个IOC注入演示  
-	下面这个简单程序演示了jBeanBox最基本的两个特点: 1)以约定方式(类名+Box)寻找配置 2)配置写在Java类初始块中。 配置类的查找方式有很多种， 将配置类写在目标类的内部只是其中一种方式。
+	下面这个简单程序演示了jBeanBox最基本的两个特点:  
+	1)配置写在Java类初始块中。
+	2)以约定方式寻找配置, 通常是 "类名+Box", 配置类的查找方式有很多种，最常见的是将配置类放在写在目标类的相同目录下，或是干脆写在目标类的内部:
 ```
 import com.github.drinkjava2.BeanBox;
 public class HelloWorld {
@@ -62,9 +85,7 @@ public class HelloWorld {
 }
 ```
 
-
-示例2 - 基础jBeanBox注入
-
+示例2 - 基础的各种jBeanBox注入方式
 ```
 public class Order{ //order类
   private Company company  
@@ -78,9 +99,9 @@ public class Company{ // Company类
 
 public class OrderBox extends BeanBox {//OrderBox为BeanBox子类，这是一个配置文件，用来代替XML
 	{   
-          //setPrototype(false);  //默认即为单例类，如果设为true将每次创建一个新实例
-          //setClassOrValue(Order.class); //设定目标类，如果用getBean调用可以不加这句	
-	  setProperty("company", CompanyBox.class); //设定要注入的对象,可以是目标类，也可以是一个BeanBox配置类	 
+          //setPrototype(false);  //默认为单例类，如果设为true将每次创建一个新实例
+          //setClassOrValue(Order.class); //设定目标类，如用getBean()调用则可以省略此行
+          setProperty("company", CompanyBox.class); //设定要注入的对象,可以是目标类，也可以是一个BeanBox配置类	 
 	}
 	
     public static class CompanyBox1 extends BeanBox {
@@ -104,7 +125,7 @@ public class Tester {
 	}
 } 
 ```
-为节省篇幅，一些java类以及静态工厂、实例工厂演示未在此示例中列出，请自行翻看jbeanbox-eaxmple项目源码，下同。
+为节省篇幅，一些java类以及静态工厂、实例工厂演示未在此示例中列出，请自行翻看项目演示源码，下同。
 
  示例3： AOP & Aspectj演示，为了与Spring兼容，此项目已集成了AOP联盟接口和Aspectj接口支持，但是切点只支持Java正则表达式一种方式。
 ("AOPLogAdvice", "AspectjLogAdvice"源码此处略）
@@ -133,11 +154,10 @@ public class Tester {
 	}
 }
 ```
-BeanBox.defaultContext是个单例类全局变量，对于无需创建多个上下文实例的小型项目可以直接使用这个全局实例变量以简化编码。
+BeanBox.defaultContext是个单例类全局变量，对于无需创建多个上下文实例的小型项目可以直接使用这个全局实例变量以简化编码，实际上整个当前JAVA命名空间就等同于jBeanBox的缺省容器。 如果用BeanBox.getBean(XX.class)而不是用某个上下文context.getBean(xx.class)来获取一个Bean实例时，就等同于defaultContext.getBean()。
 
 示例4: @injectBox注解和上下文演示  
- 此项目有且仅有一个注解@injectBox，注入1到7为注解注入，属于拉式注入，注入8和9为传统无侵入的推式注入。可以看出，注解的引入可简化源码，提高开发效率，但代价是难以理解和增加维护困难，且不支持无源码的第三方库。此示例可能比较难理解，因为配置文件比较多而且这里没有列出，请详见jbeanbox-example/src/main/java/examples/example3_annotation目录。基本原理是在注入时，首先在类的内外部、配置文件中先找到对应的BeanBox配置类并注入，如找不到配置将默认按无参构造子创建实例。
-
+ 此项目有且仅有一个注解@injectBox，注入1到7为注解注入，属于拉式注入，注入8和9为传统无侵入的推式注入(拉式和推式是我自创的称谓，比较形象） 。可以看出，注解的引入可简化源码，提高开发效率，但代价是难以理解和增加维护困难，且不支持无源码的第三方库。此示例可能比较难理解，因为配置文件比较多而且这里没有列出，请详见jbeanbox-example/src/main/java/examples/example3_annotation目录。基本原理是在注入时，首先在类的内外部、配置文件中先找到对应的BeanBox配置类并注入，如找不到配置将默认按无参构造子创建实例，配置类的寻找方式有点绕人，但一般常用的就那几种。
 ```
 public class Tester {
 	@InjectBox(A.StrBox.class)
@@ -333,7 +353,7 @@ public class TesterBox extends BeanBox {
 
 ```
 示例8 演示用注解来注入属性、构造函数参数和方法参数  
-目前jBeanBox有三种配置方式，初始块、Java方法、注解，这三种方式各有特点，初始块最灵活，可完全替代XML，但不支持方法名重构;Java方法回调是类型安全但灵活性差，不支持配置的继承和动态修改;注解最简洁但仅适用于有源码的场合。这三种配置方法可以同时混合使用，互相补充。 参数用代号加数字指定，从0开始，如s0表示第一个String参数, i1表示第二个Integer参数,box2表示第三个BeanBox参数
+目前jBeanBox有三种配置方式，初始块、Java方法、注解，这三种方式各有特点，初始块最灵活，可完全替代XML，但不支持方法名重构;Java方法回调是类型安全但灵活性差，对配置的继承和动态修改有问题;注解最简洁但仅适用于有源码的场合。这三种配置方法可以同时混合使用，互相补充。 参数用代号加数字指定，从0开始，如s0表示第一个String参数, i1表示第二个Integer参数,box2表示第三个BeanBox参数 (备注： 从下个版本v2.4.2起参数代号将改成从1开始，更符合通常习惯, s0将不再使用,而使用s)
 ```
 public class Tester {
 	String name1;
@@ -430,4 +450,4 @@ Runtime benchmark, fetch bean for 100000 times:
                       SpringJavaConfiguration|    94ms
                       SpringAnnotationScanned|    78ms
 ```
-作为一个源码只有2000行的小项目， 以上即为jBeanBox全部文档，如有疑问，请下载示例运行或查看源码。
+作为一个源码不到3000行的小项目， 以上即为jBeanBox全部文档，如有疑问，请下载示例运行或查看源码。
