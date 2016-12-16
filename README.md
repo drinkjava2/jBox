@@ -6,7 +6,7 @@ jBeanBox
 jBeanBox is a micro scale IOC & AOP tool, uses java classes as configuration to replace XML.  
 
 Advantage of jBeanBox:  
-1) Simple, very few source code(~2000 lines), No XML, only 1 Annotation, easy to learn and use.  
+1) Simple, very few source code(core sourcecode less than 3000 lines), No XML, only 1 Annotation, easy to learn and use.  
 2) The Java-Based configuration is simpler and easier to use than Spring or Guice's Java configuration.  
 3) jBeanBox is a full function IOC/AOP tool supports bean life cycle, multiple contexts.  
 
@@ -31,14 +31,24 @@ jBeanBox is released in central repository, add below lines in your project pom.
     <version>2.4.1</version>
 </dependency>
 ```
+or 
+```
+<dependency>
+    <groupId>com.github.drinkjava2</groupId>
+    <artifactId>jbeanbox</artifactId>
+    <version>2.4.2-SNAPSHOT</version>
+</dependency>
+```
+jBeanBox only has dependency to "aopalliance-1.0" and "aspectjrt-1.8.9", if use Maven will automatically download these 2 jars. In side of jBeanBox it used CGLIB and ASM, but to avoid jar conflict, jBeanBox already packeged these 2 libs and changed namesapce.  
+jBeanBox does not require common log or Log4j, but if it found them in class path, it will use them as logger.
 
 How to import jBeanBox project into Eclipse (for developer)?  
 1)install JDK1.7+, Git bash, Maven3.3.9+, on command mode, run:  
 2)git clone https://github.com/drinkjava2/jBeanBox  
 3)cd jBeanBox  
 4)mvn eclipse:eclipse  
-5)mvn test  
-6)Open Eclipse, "import"->"Existing Projects into Workspace", select jBeanBox folder, there are 2 module projects   "jbeanbox" and "jbeanbox-example" will be imported in Eclipse.  
+5)Open Eclipse, "import"->"Existing Projects into Workspace", select jBeanBox folder, done.  
+6)For developers should work on "develop" branch by run "git checkout develop"
 
 ===
 ## Examples show how to use jBeanBox:  
@@ -58,8 +68,10 @@ public class HelloWorld {
 	}
 }
 ```
-This Helloworld shows 2 key charactors of jBeanBox: 1)Configurations be written in Java initialization block. 2)Configuration classes be searched follow some conventions usually "classname+Box", and usaually in same folder of target class or just write inside of target class.
-
+This HelloWorld shows 2 key features of jBeanBox:  
+   1)Configuration be written in Java initialization block.  
+   2)Configuration classes be searched following some conventions usually "classname+Box", and usaually in same folder of target class or just write inside of target class.  
+ 
 Example 2 - Basic Injection (Detail source code files see jbeanbox-example project folder)  
 ```
 public class Order{
@@ -75,7 +87,7 @@ public class Company{
 //Configuration class, equal to XML in Spring
 public class OrderBox extends BeanBox {
 	{  
-	  //setPrototype(false);   //default is singleton, this line can omit
+          //setPrototype(false);   //default is singleton, this line can omit
           //setClassOrValue(Order.class); //if called by getBean(), this line can omit	
 	  setProperty("company", CompanyBox.class);
 	}
@@ -268,61 +280,60 @@ public class Tester {
 }
 ```
 
-Example 7 - Java type safe type configuration, support method name IDE refactor, below configuration do the same thing like example5 but use java type safe configuration instead:
+Example 7 - Java type safe type configuration, is very similar to Spring's Java based configuration, advantage of this kind configuration is it's type safe and support method name IDE refactor, disadvantage is not flexible. Below configuration do the same thing like example6 but use java type safe configuration instead, in this example mixed used with 2 different configurations: Type-Safe and Initilization block.
 ```
 public class TesterBox extends BeanBox {
-	static {
-		BeanBox.defaultBeanBoxContext.close();// clean up
-		BeanBox.defaultBeanBoxContext.setAOPAround("examples.example6_type_safe.Test\\w*", "insert\\w*",
-				new TxInterceptorBox(), "invoke");
-	}
+    static {
+        BeanBox.defaultBeanBoxContext.close();// clean up
+        BeanBox.defaultBeanBoxContext.setAOPAround("examples.example6_type_safe.Test\\w*", "insert\\w*",
+                new TxInterceptorBox(), "invoke");
+    }
 
-	static class DSPoolBeanBox extends BeanBox {// Type-unsafe and type-safe configurations can mixed use.
-		public DataSource create() {
-			ComboPooledDataSource ds = new ComboPooledDataSource();
-			ds.setUser("root");
-			return ds;
-		}
+    static class DSPoolBeanBox extends BeanBox {// Type-unsafe and type-safe configurations can mixed use.
+        public DataSource create() {
+            ComboPooledDataSource ds = new ComboPooledDataSource();
+            ds.setUser("root");
+            return ds;
+        }
 
-		public void config(ComboPooledDataSource ds) {
-			ds.setJdbcUrl("jdbc:mysql://127.0.0.1:3306/test");
-			ds.setPassword("yourpwd");
-			ds.setCheckoutTimeout(2000);
-		}
+        public void config(ComboPooledDataSource ds) {
+            ds.setJdbcUrl("jdbc:mysql://127.0.0.1:3306/test");
+            ds.setPassword("yourPassword");
+            ds.setCheckoutTimeout(2000);
+        }
 
-		{
-			setProperty("driverClass", "com.mysql.jdbc.Driver");
-		}
-	}
+        {    setProperty("driverClass", "com.mysql.jdbc.Driver");
+        }
 
-	static class TxManagerBox extends BeanBox {
-		public DataSourceTransactionManager create() {
-			DataSourceTransactionManager dm = new DataSourceTransactionManager();
-			dm.setDataSource((DataSource) new DSPoolBeanBox().getBean());
-			return dm;
-		}
-	}
+    }
 
-	static class TxInterceptorBox extends BeanBox {// Advice
-		public TransactionInterceptor create() {
-			Properties props = new Properties();
-			props.put("insert*", "PROPAGATION_REQUIRED");
-			return new TransactionInterceptor((DataSourceTransactionManager) 
-							new TxManagerBox().getBean(), props);
-		}
-	}
+    static class TxManagerBox extends BeanBox {
+        public DataSourceTransactionManager create() {
+            DataSourceTransactionManager dm = new DataSourceTransactionManager();
+            dm.setDataSource((DataSource) context.getBean(DSPoolBeanBox.class));
+            return dm;
+        }
+    }
 
-	public static class JdbcTemplateBox extends BeanBox {
-		public JdbcTemplate create() {
-			return new JdbcTemplate((DataSource) new DSPoolBeanBox().getBean());
-		}
-	}
+    static class TxInterceptorBox extends BeanBox {// Advice
+        public TransactionInterceptor create() {
+            Properties props = new Properties();
+            props.put("insert*", "PROPAGATION_REQUIRED");
+            return new TransactionInterceptor((DataSourceTransactionManager) context.getBean(TxManagerBox.class),
+                    props);
+        }
+    }
+
+    public static class JdbcTemplateBox extends BeanBox {
+        public JdbcTemplate create() {
+            return new JdbcTemplate((DataSource) context.getBean(DSPoolBeanBox.class));
+        }
+    }
 }
-
 ```
 
 Example 8 - Show annotation inject on field, constructor & method, and mixed use with other 2 configurations,   
-            parameters start from 0, s0 means 1st String parameter, i1 means 2nd Integer paramerter, box2 means 3rd BeanBox paramerter
+            parameters start from 0, s0 means 1st String parameter, i1 means 2nd Integer paramerter, box2 means 3rd BeanBox paramerter (Note: I have a plan, from v2.4.2 parameter order will start from s1, s0 will be replace by s)
 ```
 public class Tester {
 	String name1;
