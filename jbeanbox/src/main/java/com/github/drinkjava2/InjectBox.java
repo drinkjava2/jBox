@@ -44,9 +44,7 @@ import java.lang.annotation.Target;
  * 
  * 
  * @author Yong Zhu
- * @version 2.4.1
  * @since 2.4
- * @update 2016-09-07
  *
  */
 @Retention(RetentionPolicy.RUNTIME)

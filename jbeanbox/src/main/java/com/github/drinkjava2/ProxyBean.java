@@ -16,6 +16,7 @@
 package com.github.drinkjava2;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.github.drinkjava2.cglib3_2_0.proxy.MethodInterceptor;
@@ -25,21 +26,19 @@ import com.github.drinkjava2.cglib3_2_0.proxy.MethodProxy;
  * ProxyBean created by CGLib
  * 
  * @author Yong Zhu
- * @version 2.4.1
  * @since 2.4
- * @update 2016-08-21
  *
  */
 class ProxyBean implements MethodInterceptor {
-	protected CopyOnWriteArrayList<Advisor> myAdvisors = new CopyOnWriteArrayList<Advisor>();
+	protected CopyOnWriteArrayList<Advisor> myAdvisors = new CopyOnWriteArrayList<>();
 
-	protected ProxyBean(Class<?> clazz, CopyOnWriteArrayList<Advisor> globalAdvicors) {
+	protected ProxyBean(Class<?> clazz, List<Advisor> globalAdvicors) {
 		String beanClassName = clazz.getName();
 		int i = beanClassName.indexOf("$$");// If created by CGLib, use the original class name as bean ID
 		if (i > 0)
 			beanClassName = beanClassName.substring(0, i);
 		for (Advisor advisor : globalAdvicors) {// Make a copy from global advisors which only belong to this Bean
-			Method[] methods = ((Class<?>) clazz).getMethods();
+			Method[] methods = clazz.getMethods();
 			for (Method method : methods)
 				if (advisor.match(beanClassName, method.getName())) {
 					myAdvisors.add(advisor);
@@ -48,8 +47,9 @@ class ProxyBean implements MethodInterceptor {
 		}
 	}
 
+	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy cgLibMethodProxy) throws Throwable {
-		if (myAdvisors.size() > 0 && myAdvisors.get(0).match(obj.getClass().getName(), method.getName()))
+		if (!myAdvisors.isEmpty() && myAdvisors.get(0).match(obj.getClass().getName(), method.getName()))
 			// Start a advice chain call
 			return new AdviceCaller(this, obj, method, args, cgLibMethodProxy, myAdvisors).callNextAdvisor();
 		else

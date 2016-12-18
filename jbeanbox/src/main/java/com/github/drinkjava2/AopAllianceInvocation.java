@@ -24,9 +24,7 @@ import org.aopalliance.intercept.MethodInvocation;
  * MethodInvocation interface detail see AOP alliance doc, here is a brief implementation
  * 
  * @author Yong Zhu
- * @version 2.4.1
  * @since 2.4
- * @update 2016-08-23
  *
  */
 class AopAllianceInvocation implements MethodInvocation {
@@ -42,22 +40,27 @@ class AopAllianceInvocation implements MethodInvocation {
 		this.caller = caller;
 	}
 
+	@Override
 	public final Object getThis() {
 		return this.target;
 	}
 
+	@Override
 	public final AccessibleObject getStaticPart() {
 		return this.method;
 	}
 
+	@Override
 	public final Method getMethod() {
 		return this.method;
 	}
 
+	@Override
 	public final Object[] getArguments() {
-		return (this.arguments != null ? this.arguments : new Object[0]);
+		return this.arguments != null ? this.arguments : new Object[0];
 	}
 
+	@Override
 	public Object proceed() throws Throwable {
 		return caller.callNextAdvisor();
 	}

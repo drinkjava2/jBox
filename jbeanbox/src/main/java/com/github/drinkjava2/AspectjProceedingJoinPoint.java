@@ -24,9 +24,7 @@ import org.aspectj.runtime.internal.AroundClosure;
  * ProceedingJoinPoint interface detail see AspectJ doc, here is a brief implementation
  * 
  * @author Yong Zhu
- * @version 2.4.1
  * @since 2.4
- * @update 2016-08-23
  * 
  */
 class AspectjProceedingJoinPoint extends AspectjJoinPoint implements ProceedingJoinPoint {
@@ -35,14 +33,17 @@ class AspectjProceedingJoinPoint extends AspectjJoinPoint implements ProceedingJ
 		super(proxyBean, target, method, arguments, caller);
 	}
 
+	@Override
 	public Object proceed() throws Throwable {
 		return caller.callNextAdvisor();
 	}
 
+	@Override
 	public Object proceed(Object[] args) throws Throwable {
 		return proceed();
 	}
 
+	@Override
 	public void set$AroundClosure(AroundClosure arc) {
 		throw new UnsupportedOperationException();
 	}

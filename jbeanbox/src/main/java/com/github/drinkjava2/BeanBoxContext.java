@@ -17,19 +17,21 @@ package com.github.drinkjava2;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * BeanBoxContext acts the same role like ApplicationContext in Spring
  * 
- * @author Yong Zhu
- * @version 2.4.1
- * @since 2.4
- * @update 2016-09-06
- *
+ * @author Yong Zhu (Yong9981@gmail.com)
+ * @since 1.0
  */
 public class BeanBoxContext {
+
+	private static final BeanBoxLogger log = BeanBoxLogger.getLog(BeanBoxContext.class);
+
 	// The default BoxIdentity is "Box", BoxIdentity will be use for looking for BeanBox class
 	String boxIdentity = "Box";
 	private static final String BEAN_BOX_CLASS_NAME = BeanBox.class.getName();
@@ -37,16 +39,16 @@ public class BeanBoxContext {
 	Boolean ignoreAnnotation = false; // if set true, will ignore @injectBox annotation
 
 	// Advisors cache
-	protected CopyOnWriteArrayList<Advisor> advisorList = new CopyOnWriteArrayList<Advisor>();
+	protected CopyOnWriteArrayList<Advisor> advisorList = new CopyOnWriteArrayList<>();
 
 	// Singleton instance cache
-	protected HashMap<String, Object> signletonCache = new HashMap<String, Object>();
+	protected HashMap<String, Object> signletonCache = new HashMap<>();
 
-	// Configuration class cache
-	public CopyOnWriteArrayList<Class<?>> configClassList = new CopyOnWriteArrayList<Class<?>>();
+	// Configuration file class cache
+	private List<Class<?>> configClassList = new CopyOnWriteArrayList<>();
 
 	// preDestory method cache
-	protected ConcurrentHashMap<String, Method> preDestoryMethodCache = new ConcurrentHashMap<String, Method>();
+	protected ConcurrentHashMap<String, Method> preDestoryMethodCache = new ConcurrentHashMap<>();
 
 	public BeanBoxContext(Class<?>... configClasses) {
 		for (Class<?> configClass : configClasses) {
@@ -67,6 +69,10 @@ public class BeanBoxContext {
 	 */
 	public String getBoxIdentity() {
 		return boxIdentity;
+	}
+
+	public List<Class<?>> getConfigClassList() {
+		return configClassList;
 	}
 
 	/**
@@ -138,20 +144,21 @@ public class BeanBoxContext {
 	 * When close() method be called, call preDestory() methods for all cached singleTon Beans.
 	 */
 	public void close() {
-		for (String beanID : preDestoryMethodCache.keySet()) {
+		for (Entry<String, Method> entry : preDestoryMethodCache.entrySet()) {
+			String beanID = entry.getKey();
 			Object bean = signletonCache.get(beanID);
-			Method method = preDestoryMethodCache.get(beanID);
+			Method method = entry.getValue();
 			try {
 				method.invoke(bean, new Object[] {});
 			} catch (Exception e) {
-				e.printStackTrace();
+				log.error(e);
 			}
 		}
 		boxIdentity = "Box";
-		advisorList = new CopyOnWriteArrayList<Advisor>();
-		signletonCache = new HashMap<String, Object>();
-		configClassList = new CopyOnWriteArrayList<Class<?>>();
-		preDestoryMethodCache = new ConcurrentHashMap<String, Method>();
+		advisorList = new CopyOnWriteArrayList<>();
+		signletonCache = new HashMap<>();
+		configClassList = new CopyOnWriteArrayList<>();
+		preDestoryMethodCache = new ConcurrentHashMap<>();
 	}
 
 	/**

@@ -22,18 +22,16 @@ See the Apache License Version 2.0 for the specific language governing permissio
 
   <artifactId>jbeanbox-package</artifactId>
 
-  <version>2.4.1</version>
+  <version>2.4.2</version>
 
   <name>jBeanBox</name>
 
   <description>jBeanBox is a micro scale IOC/AOP framework for Java 6 and above</description>
 
   <modules>
-    <!-- core of jBeanBox -->
+    <!-- jBeanBox module -->
     <module>jbeanbox</module>
-    
-    <!-- examples how to use jBeanBox -->
-    <module>jbeanbox-example</module>
+     
   </modules>
 
   <properties> 

@@ -16,35 +16,37 @@
 package com.github.drinkjava2;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.github.drinkjava2.cglib3_2_0.proxy.Enhancer;
 
 /**
- * Lots public static methods be moved into this BeanBoxUtils class
+ * Put lots miscellaneous public static methods here, have no time to organize them
  * 
  * @author Yong Zhu
- * @version 2.4.1
  * @since 2.4
- * @update 2016-09-06
  * 
  */
 public class BeanBoxUtils {
-	private static ConcurrentHashMap<String, Integer> classExistCache = new ConcurrentHashMap<String, Integer>();
+	private static final BeanBoxLogger log = BeanBoxLogger.getLog(BeanBoxUtils.class);
+
+	private static ConcurrentHashMap<String, Integer> classExistCache = new ConcurrentHashMap<>();
+
+	private BeanBoxUtils() {
+		// default private constructor
+	}
 
 	/**
 	 * Return true if empty or null
 	 */
 	public static boolean isEmptyStr(String str) {
-		return (str == null || "".equals(str));
+		return str == null || "".equals(str);
 	}
 
 	/**
-	 * Search class by name
+	 * Check if class exist by search class name
 	 */
 	public static Class<?> checkIfExist(String className) {
 		Integer i = classExistCache.get(className);
@@ -57,7 +59,8 @@ public class BeanBoxUtils {
 				}
 				classExistCache.put(className, 0);
 				return null;
-			} catch (Throwable e) {
+			} catch (Exception e) {
+				BeanBoxException.eatException(e);
 				classExistCache.put(className, 0);
 				return null;
 			}
@@ -65,7 +68,7 @@ public class BeanBoxUtils {
 			try {
 				return Class.forName(className);
 			} catch (Exception e) {
-				e.printStackTrace();
+				log.error(e);
 			}
 		}
 		return null;
@@ -80,10 +83,12 @@ public class BeanBoxUtils {
 			c0.setAccessible(true);
 			Object o = c0.newInstance();
 			if (o instanceof BeanBox)
-				throwEX(null, "BeanBox createInstanceWithCtr0 error:  clazz=" + clazz + " should not be a BeanBox");
+				BeanBoxException.throwEX(null,
+						"BeanBox createInstanceWithCtr0 error:  clazz=" + clazz + " should not be a BeanBox");
 			return o;
 		} catch (Exception e) {
-			throwEX(null, "BeanBox createInstanceWithCtr0 error: no 0 parameter constructor found! clazz=" + clazz);
+			BeanBoxException.throwEX(e,
+					"BeanBox createInstanceWithCtr0 error: no 0 parameter constructor found! clazz=" + clazz);
 		}
 		return null;
 	}
@@ -109,13 +114,13 @@ public class BeanBoxUtils {
 			box.setContext(context);
 			return box;
 		} catch (Exception e) {
-			throwEX(null, "BeanBox createBeanBoxWithCtr0 error:  clazz=" + clazz);
+			BeanBoxException.throwEX(e, "BeanBox createBeanBoxWithCtr0 error:  clazz=" + clazz);
 		}
 		return null;
 	}
 
-	static enum ObjectType {
-		BeanBoxClass, BeanBoxInstance, Clazz, Instance
+	enum ObjectType {
+		BEANBOX_CLASS, BEANBOX_INSTANCE, CLASS, INSTANCE
 	}
 
 	/**
@@ -123,26 +128,28 @@ public class BeanBoxUtils {
 	 */
 	public static ObjectType judgeType(Object unknowObject) {
 		if (unknowObject instanceof BeanBox)
-			return ObjectType.BeanBoxInstance;
+			return ObjectType.BEANBOX_INSTANCE;
 		else if (unknowObject instanceof Class && BeanBox.class.isAssignableFrom((Class<?>) unknowObject))
-			return ObjectType.BeanBoxClass;
+			return ObjectType.BEANBOX_CLASS;
 		else if (unknowObject instanceof Class)
-			return ObjectType.Clazz;
-		return ObjectType.Instance;
+			return ObjectType.CLASS;
+		return ObjectType.INSTANCE;
 	}
 
 	@SuppressWarnings("unchecked")
 	public static Object getRealValue(Object unknow, BeanBoxContext context) {
 		ObjectType type = BeanBoxUtils.judgeType(unknow);
 		switch (type) {
-		case BeanBoxInstance:
+		case BEANBOX_INSTANCE:
 			return ((BeanBox) unknow).setContext(context).getBean();
-		case BeanBoxClass:
+		case BEANBOX_CLASS:
 			return BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) unknow, context).getBean();
-		case Clazz:
+		case CLASS:
 			return context.getBean((Class<?>) unknow);
-		case Instance:
+		case INSTANCE:
 			return unknow;
+		default:
+			BeanBoxException.throwEX(null, "BeanBoxUtils getRealValue default case error");
 		}
 		return null;
 	}
@@ -150,8 +157,8 @@ public class BeanBoxUtils {
 	/**
 	 * Get annotated BeanBox instance, detail see InjectBox.java
 	 */
-	public static Object getInjectFieldValue(Class<?> ownerClass, InjectBox a, Class<?> fieldClass, String fieldname,
-			int i, BeanBoxContext context) {
+	public static Object getInjectFieldValue(Class<?> ownerClass, InjectBox a, Class<?> fieldClass, // NOSONAR
+			String fieldname, int i, BeanBoxContext context) {
 		Class<?> box = null;
 		if (i == 0 && !Object.class.equals(a.value()))
 			box = a.value();
@@ -227,7 +234,7 @@ public class BeanBoxUtils {
 			try {
 				return InjectBox.class.getMethod(methodname).invoke(a);
 			} catch (Exception e) {
-				BeanBoxUtils.throwEX(e, "BeanBox getInjectFieldValue error, method" + methodname + "in fieldClass="
+				BeanBoxException.throwEX(e, "BeanBox getInjectFieldValue error, method" + methodname + "in fieldClass="
 						+ fieldClass + " not exist");
 			}
 		return null;
@@ -246,7 +253,7 @@ public class BeanBoxUtils {
 					return null;
 				int parameterCount = parameterTypes.length;
 				if (parameterCount == 0 || parameterCount > 6)
-					BeanBoxUtils.throwEX(null,
+					BeanBoxException.throwEX(null,
 							"BeanBox buildBeanBoxWithAnotatedCtr error, only support at most 6 constructor parameters,class="
 									+ clazz);
 				Object[] args = new Object[parameterCount];
@@ -258,7 +265,7 @@ public class BeanBoxUtils {
 					instance = c.newInstance(getObjectRealValue(context, args));
 					return instance;
 				} catch (Exception e) {
-					BeanBoxUtils.throwEX(e, "BeanBox buildBeanBoxWithAnnotatedCtr error, clazz=" + clazz);
+					BeanBoxException.throwEX(e, "BeanBox buildBeanBoxWithAnnotatedCtr error, clazz=" + clazz);
 				}
 			}
 		}
@@ -268,7 +275,7 @@ public class BeanBoxUtils {
 	/**
 	 * Use CGLib create proxy bean, if advice set for this class
 	 */
-	public static Object getProxyBean(Class<?> clazz, CopyOnWriteArrayList<Advisor> advisorList) {
+	public static Object getProxyBean(Class<?> clazz, List<Advisor> advisorList) {
 		Enhancer enhancer = new Enhancer();
 		enhancer.setSuperclass(clazz);
 		enhancer.setCallback(new ProxyBean(clazz, advisorList));
@@ -276,54 +283,10 @@ public class BeanBoxUtils {
 	}
 
 	/**
-	 * Transfer all Exceptions to RuntimeException. The only place throw Exception in this project
-	 */
-	public static void throwEX(Exception e, String errorMsg) throws AssertionError {
-		if (e != null)
-			e.printStackTrace();
-		throw new RuntimeException(errorMsg);
-	}
-
-	/**
-	 * Make the given field accessible, explicitly setting it accessible if necessary. The {@code setAccessible(true)}
-	 * method is only called when actually necessary, to avoid unnecessary conflicts with a JVM SecurityManager (if
-	 * active).
-	 */
-	public static void makeAccessible(Field field) {
-		if ((!Modifier.isPublic(field.getModifiers()) || !Modifier.isPublic(field.getDeclaringClass().getModifiers())
-				|| Modifier.isFinal(field.getModifiers())) && !field.isAccessible()) {
-			field.setAccessible(true);
-		}
-	}
-
-	/**
-	 * Make the given method accessible, explicitly setting it accessible if necessary. The {@code setAccessible(true)}
-	 * method is only called when actually necessary, to avoid unnecessary conflicts with a JVM SecurityManager (if
-	 * active).
-	 */
-	public static void makeAccessible(Method method) {
-		if ((!Modifier.isPublic(method.getModifiers()) || !Modifier.isPublic(method.getDeclaringClass().getModifiers()))
-				&& !method.isAccessible()) {
-			method.setAccessible(true);
-		}
-	}
-
-	/**
-	 * Make the given constructor accessible, explicitly setting it accessible if necessary. The {@code
-	 * setAccessible(true)} method is only called when actually necessary, to avoid unnecessary
-	 */
-	public static void makeAccessible(Constructor<?> ctor) {
-		if ((!Modifier.isPublic(ctor.getModifiers()) || !Modifier.isPublic(ctor.getDeclaringClass().getModifiers()))
-				&& !ctor.isAccessible()) {
-			ctor.setAccessible(true);
-		}
-	}
-
-	/**
 	 * If found advice for this class, use CGLib to create proxy bean, CGLIB is the only way to create proxy to make
 	 * source code simple.
 	 */
-	public static boolean ifHaveAdvice(CopyOnWriteArrayList<Advisor> advisors, Object classOrValue) {
+	public static boolean ifHaveAdvice(List<Advisor> advisors, Object classOrValue) {
 		if (classOrValue == null || !(classOrValue instanceof Class))
 			return false;
 		Method[] methods = ((Class<?>) classOrValue).getMethods();
@@ -335,10 +298,10 @@ public class BeanBoxUtils {
 	}
 
 	protected static boolean isPrimitiveType(Class<?> fieldClass) {
-		return ((String.class.equals(fieldClass) || Integer.class.equals(fieldClass) || Boolean.class.equals(fieldClass)
+		return String.class.equals(fieldClass) || Integer.class.equals(fieldClass) || Boolean.class.equals(fieldClass)// NOSONAR
 				|| Byte.class.equals(fieldClass) || Long.class.equals(fieldClass) || Short.class.equals(fieldClass)
 				|| Float.class.equals(fieldClass) || Double.class.equals(fieldClass)
-				|| Character.class.equals(fieldClass)));
+				|| Character.class.equals(fieldClass);
 	}
 
 	/**
@@ -363,27 +326,28 @@ public class BeanBoxUtils {
 	 * if no BeanBox created at final, throw a error unless "required=false" set in @injectBox annotation
 	 */
 	@SuppressWarnings("unchecked")
-	public static BeanBox getBeanBox(Class<?> ownerClass, Class<?> fieldClass, Class<?> annotationClass,
+	public static BeanBox getBeanBox(Class<?> ownerClass, Class<?> fieldClass, Class<?> annotatinClass, // NOSONAR
 			String fieldName, BeanBoxContext context, boolean required) {
-		if (Object.class.equals(annotationClass))
-			annotationClass = null;
+		Class<?> annoClass = annotatinClass;
+		if (Object.class.equals(annoClass))
+			annoClass = null;
 		Class<?> box = null;
-		if (annotationClass != null) { // getBeanBox(A.class, B.class)
-			if (BeanBox.class.isAssignableFrom(annotationClass))
-				box = annotationClass;// #1
+		if (annoClass != null) { // getBeanBox(A.class, B.class)
+			if (BeanBox.class.isAssignableFrom(annoClass))
+				box = annoClass;// #1
 			if (box == null && fieldClass != null)
-				box = BeanBoxUtils.checkIfExist(
-						annotationClass.getName() + "$" + fieldClass.getSimpleName() + context.boxIdentity);// #2
+				box = BeanBoxUtils
+						.checkIfExist(annoClass.getName() + "$" + fieldClass.getSimpleName() + context.boxIdentity);// #2
 			if (box == null)
-				box = BeanBoxUtils.checkIfExist(annotationClass.getName() + "$"
-						+ fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1) + context.boxIdentity);// #3
+				box = BeanBoxUtils.checkIfExist(annoClass.getName() + "$" + fieldName.substring(0, 1).toUpperCase()
+						+ fieldName.substring(1) + context.boxIdentity);// #3
 		} else {// getBeanBox(A.class)
 			if (fieldClass == null)
-				BeanBoxUtils.throwEX(null, "BeanBox getBeanBox error! target class not set");
+				BeanBoxException.throwEX(null, "BeanBox getBeanBox error! target class not set");
 			if (BeanBox.class.isAssignableFrom(fieldClass))
 				box = fieldClass;
 			if (box == null)
-				box = BeanBoxUtils.checkIfExist(fieldClass.getName() + context.boxIdentity);// #5
+				box = BeanBoxUtils.checkIfExist(fieldClass.getName() + context.boxIdentity);// NOSONAR #5
 			if (box == null)
 				box = BeanBoxUtils
 						.checkIfExist(fieldClass.getName() + "$" + fieldClass.getSimpleName() + context.boxIdentity);// #6
@@ -398,16 +362,16 @@ public class BeanBoxUtils {
 				box = BeanBoxUtils.checkIfExist(
 						ownerClass.getName() + context.boxIdentity + "$" + fieldName + context.boxIdentity);// #8
 			if (box == null) {
-				for (Class<?> configs : context.configClassList) {
+				for (Class<?> configs : context.getConfigClassList()) {// NOSONAR
 					box = BeanBoxUtils
 							.checkIfExist(configs.getName() + "$" + fieldClass.getSimpleName() + context.boxIdentity);// #9
-					if (box != null)
+					if (box != null)// NOSONAR
 						break;
-					if (!BeanBoxUtils.isEmptyStr(fieldName))
+					if (!BeanBoxUtils.isEmptyStr(fieldName))// NOSONAR
 						box = BeanBoxUtils
 								.checkIfExist(configs.getName() + "$" + fieldName.substring(0, 1).toUpperCase()
 										+ fieldName.substring(1) + context.boxIdentity);// #10
-					if (box != null)
+					if (box != null)// NOSONAR
 						break;
 				}
 			}
@@ -418,14 +382,14 @@ public class BeanBoxUtils {
 		if (box == null) {
 			beanbox = new BeanBox(fieldClass).setContext(context); // try wrap it to a BeanBox
 			if (!context.ignoreAnnotation) {
-				InjectBox in = fieldClass.getAnnotation(InjectBox.class);
-				if (in != null && in.prototype() == true)
+				InjectBox in = fieldClass.getAnnotation(InjectBox.class);// NOSONAR
+				if (in != null && in.prototype())
 					beanbox.setPrototype(true);
 			}
 		} else
 			beanbox = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) box, context);
 		if (required && beanbox == null)
-			BeanBoxUtils.throwEX(null, "BeanBox getBeanBox error! class can not be created, class=" + fieldClass);
+			BeanBoxException.throwEX(null, "BeanBox getBeanBox error! class can not be created, class=" + fieldClass);
 		if (beanbox != null && beanbox.getClassOrValue() == null)
 			beanbox.setClassOrValue(fieldClass);
 		return beanbox;

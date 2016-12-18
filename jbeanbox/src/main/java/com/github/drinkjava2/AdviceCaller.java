@@ -25,10 +25,10 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import com.github.drinkjava2.cglib3_2_0.proxy.MethodProxy;
 
 /**
+ * Advice Caller
+ * 
  * @author Yong Zhu
- * @version 2.4.1
  * @since 2.4
- * @update 2016-08-23
  *
  */
 class AdviceCaller {
@@ -63,7 +63,7 @@ class AdviceCaller {
 	/**
 	 * Check and run the next advisor, first one no need check because already checked
 	 */
-	public Object callNextAdvisor() throws Throwable {
+	public Object callNextAdvisor() throws Throwable {// NOSONAR
 		if (this.currentAdvisorIndex >= this.myAdvisors.size() - 1)
 			return cgLibMethodProxy.invokeSuper(target, args);
 		Advisor advisor = myAdvisors.get(++this.currentAdvisorIndex);
@@ -71,8 +71,7 @@ class AdviceCaller {
 			Object advice = advisor.adviceBeanBox.getBean();
 			if (advisor.isAOPAlliance) {// AOP alliance type advice
 				if ("AROUND".equals(advisor.adviceType)) {
-					// public Object doAround(MethodInvocation caller) throws Throwable, AOP alliance & Spring's
-					// around advice
+					// public Object doAround(MethodInvocation caller) throws Throwable
 					Method m = advice.getClass().getMethod(advisor.adviceMethodName,
 							new Class[] { MethodInvocation.class });
 					return m.invoke(advice, new AopAllianceInvocation(target, method, args, this));
@@ -83,8 +82,7 @@ class AdviceCaller {
 					m.invoke(advice, new Object[] { method, args, target });
 					return callNextAdvisor();
 				} else if ("AFTERRETURNING".equals(advisor.adviceType)) {
-					// public void afterReturning(Object result, Method method, Object[] args, Object target) throws
-					// Throwable {}
+					// public void afterReturning(Object result, Method method, Object[] args, Object target)
 					Object result = callNextAdvisor();
 					Method m = advice.getClass().getMethod(advisor.adviceMethodName,
 							new Class[] { Object.class, Method.class, Object[].class, Object.class });
@@ -93,7 +91,7 @@ class AdviceCaller {
 				} else if ("AFTERTHROWING".equals(advisor.adviceType)) {
 					// public void afterThrowing(Method method, Object[] args, Object target, Exception ex)
 					// Detai see org.springframework.aop.ThrowsAdvice, here only implemented 4 arguments
-					try {
+					try {// NOSONAR
 						return callNextAdvisor();
 					} catch (Exception ex) {
 						Method m = advice.getClass().getMethod(advisor.adviceMethodName,
@@ -122,7 +120,7 @@ class AdviceCaller {
 					return result;
 				} else if ("AFTERTHROWING".equals(advisor.adviceType)) {
 					// public void afterThrowing(JoinPoint caller, Exception ex) throws Throwable
-					try {
+					try {// NOSONAR
 						return callNextAdvisor();
 					} catch (Exception ex) {
 						Method m = advice.getClass().getMethod(advisor.adviceMethodName,

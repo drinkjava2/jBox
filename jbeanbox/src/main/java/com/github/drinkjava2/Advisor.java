@@ -17,16 +17,17 @@ package com.github.drinkjava2;
 
 import java.util.regex.Pattern;
 
-// =============Advisor class begin===========
 /**
+ * Advisor class, Advisor = Advice + Point-cut
+ * 
  * @author Yong Zhu
- * @version 2.4.1
  * @since 2.4
- * @update 2016-08-23
  *
  */
-class Advisor {// Advisor = Advice + Point-cut
-	String classnameReg, methodNameReg, adviceMethodName;
+class Advisor {
+	String classnameReg;
+	String methodNameReg;
+	String adviceMethodName;
 	BeanBox adviceBeanBox;
 	boolean isAOPAlliance = false;
 	String adviceType;
@@ -59,10 +60,11 @@ class Advisor {// Advisor = Advice + Point-cut
 	 * Check if beanClassName and methodName match classnameReg and methodNameReg
 	 */
 	protected boolean match(String beanClassName, String methodName) {
-		int i = beanClassName.indexOf("$$");
+		String beanclzName = beanClassName;
+		int i = beanclzName.indexOf("$$");
 		if (i > 0)
-			beanClassName = beanClassName.substring(0, i);
-		return Pattern.compile(classnameReg).matcher(beanClassName).matches()
+			beanclzName = beanclzName.substring(0, i);
+		return Pattern.compile(classnameReg).matcher(beanclzName).matches()
 				&& Pattern.compile(methodNameReg).matcher(methodName).matches();
 	}
 }

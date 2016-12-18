@@ -1,11 +1,9 @@
-jBeanBox
-====
-
+#jBeanBox  
 **License:** [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
-jBeanBox is a micro scale IOC & AOP tool, uses java classes as configuration to replace XML.  
+jBeanBox is a micro scale IOC & AOP tool for JAVA7+, uses java classes as configuration to replace XML.  
 
-Advantage of jBeanBox:  
+###Advantage of jBeanBox:  
 1) Simple, very few source code(core sourcecode less than 3000 lines), No XML, only 1 Annotation, easy to learn and use.  
 2) The Java-Based configuration is simpler and easier to use than Spring or Guice's Java configuration.  
 3) jBeanBox is a full function IOC/AOP tool supports bean life cycle, multiple contexts.  
@@ -21,8 +19,10 @@ Key Feature of jBeanBox:
 * Bean life cycle support(postConstruction & preDestory method callback)   
 * Java method callback configurations to achieve Java type safe(similar like Spring's Java configuration), and can mixed use with other 2 configurations. 
  
+###Problems of jBeanBox: 
+It's pretty new, need do more test.
  
-How to use jBeanBox?  
+###How to use jBeanBox?  
 jBeanBox is released in central repository, add below lines in your project pom.xml file:  
 ```
 <dependency>
@@ -39,10 +39,10 @@ or
     <version>2.4.2-SNAPSHOT</version>
 </dependency>
 ```
-jBeanBox only has dependency to "aopalliance-1.0" and "aspectjrt-1.8.9", if use Maven will automatically download these 2 jars. In side of jBeanBox it used CGLIB and ASM, but to avoid jar conflict, jBeanBox already packeged these 2 libs and changed namesapce.  
-jBeanBox does not require common log or Log4j, but if it found them in class path, it will use them as logger.
+jBeanBox only has dependency to "aopalliance-1.0" and "aspectjrt-1.8.9", if use Maven will automatically download these 2 jars. In side of jBeanBox it depends on CGLIB and ASM, but to avoid jar conflict, jBeanBox already included these 2 libs and changed namesapce.  
+jBeanBox does not require common log or Log4j, but if it found them in class path, will use them as logger output.
 
-How to import jBeanBox project into Eclipse (for developer)?  
+###How to import jBeanBox project into Eclipse (for developer)?  
 1)install JDK1.7+, Git bash, Maven3.3.9+, on command mode, run:  
 2)git clone https://github.com/drinkjava2/jBeanBox  
 3)cd jBeanBox  
@@ -51,28 +51,28 @@ How to import jBeanBox project into Eclipse (for developer)?
 6)For developers should work on "develop" branch by run "git checkout develop"
 
 ===
-## Examples show how to use jBeanBox:  
+### Examples show how to use jBeanBox:  
 Example 1 - Hello World
 ```
 import com.github.drinkjava2.BeanBox;
 public class HelloWorld {
-	private String field1;
-	public static class HelloWorldBox extends BeanBox {
-		{
-		  this.setProperty("field1", "Hello World!");
-		}
-	}
-	public static void main(String[] args) {
-		HelloWorld h = BeanBox.getBean(HelloWorld.class);
-		System.out.println(h.field1); //print "Hello World!"
-	}
+  private String field1;
+  public static class HelloWorldBox extends BeanBox {
+    {
+      this.setProperty("field1", "Hello World!");
+    }
+  }
+  public static void main(String[] args) {
+    HelloWorld h = BeanBox.getBean(HelloWorld.class);
+    System.out.println(h.field1); //print "Hello World!"
+  }
 }
 ```
 This HelloWorld shows 2 key features of jBeanBox:  
    1)Configuration be written in Java initialization block.  
    2)Configuration classes be searched following some conventions usually "classname+Box", and usaually in same folder of target class or just write inside of target class.  
  
-Example 2 - Basic Injection (Detail source code files see jbeanbox-example project folder)  
+Example 2 - Basic Injection (Detail source code see test folder)  
 ```
 public class Order{
   private Company company  
@@ -81,141 +81,141 @@ public class Order{
 
 public class Company{
   private String name;  
-  //getter & settter...	
+  //getter & settter...  
 }
 
 //Configuration class, equal to XML in Spring
 public class OrderBox extends BeanBox {
-	{  
-          //setPrototype(false);   //default is singleton, this line can omit
-          //setClassOrValue(Order.class); //if called by getBean(), this line can omit	
-	  setProperty("company", CompanyBox.class);
-	}
-	
-	public static class CompanyBox1 extends BeanBox {
-		{
-			setClassOrValue(Company.class);
-			setProperty("name", "Pet Store1");
-		}
-	}
-	
-	public static class CompanyBox extends CompanyBox1 {
-		{
-			setProperty("name", "Pet Store2");
-		}
-	}	
+  {  
+      //setPrototype(false);   //default is singleton, this line can omit
+      //setClassOrValue(Order.class); //if called by getBean(), this line can omit  
+      setProperty("company", CompanyBox.class);
+  }
+  
+  public static class CompanyBox1 extends BeanBox {
+    {
+      setClassOrValue(Company.class);
+      setProperty("name", "Pet Store1");
+    }
+  }
+  
+  public static class CompanyBox extends CompanyBox1 {
+    {
+      setProperty("name", "Pet Store2"); //override property
+    }
+  }  
 }
 
 public class Tester {
-	public static void main(String[] args) {
-		Order order = BeanBox.getBean(Order.class);
-		System.out.println("Order bean is a SingleTon? " + (order == BeanBox.getBean(Order.class)));//true
-	}
+  public static void main(String[] args) {
+    Order order = BeanBox.getBean(Order.class);
+    System.out.println("Order bean is a SingleTon? " + (order == BeanBox.getBean(Order.class)));//true
+  }
 } 
 ```
 
 Example 3 - AOP & Aspectj demo
 ```
 public class Tester {
-	private Iitem item;
+  private Iitem item;
 
-	public void setItem(Iitem item) {
-		this.item = item;
-	}
+  public void setItem(Iitem item) {
+    this.item = item;
+  }
 
-	public void doPrintItem() {
-		item.doPrint();
-	}
+  public void doPrintItem() {
+    item.doPrint();
+  }
 
-	public static void main(String[] args) {
-		BeanBox advice = new BeanBox(AOPLogAdvice.class).setProperty("name", "AOP Logger");
-		BeanBox.defaultContext.setAOPAround("examples.example2_aop.\\w*", "doPrint\\w*", 
-			advice, "doAround");
-		
-		BeanBox advice2 = new BeanBox(AspectjLogAdvice.class).setProperty("name", "AspectJ Logger");
-		BeanBox.defaultContext.setAspectjAfterReturning("examples.example2_aop.\\w*", "doPrint\\w*", 
-			advice2, "doAfterReturning");
+  public static void main(String[] args) {
+    BeanBox advice = new BeanBox(AOPLogAdvice.class).setProperty("name", "AOP Logger");
+    BeanBox.defaultContext.setAOPAround("examples.example2_aop.\\w*", "doPrint\\w*", 
+      advice, "doAround");
+    
+    BeanBox advice2 = new BeanBox(AspectjLogAdvice.class).setProperty("name", "AspectJ Logger");
+    BeanBox.defaultContext.setAspectjAfterReturning("examples.example2_aop.\\w*", "doPrint\\w*", 
+      advice2, "doAfterReturning");
 
-		Tester t = new BeanBox(Tester.class).setProperty("item", ItemImpl.class).getBean();
-		t.doPrintItem();
-	}
+    Tester t = new BeanBox(Tester.class).setProperty("item", ItemImpl.class).getBean();
+    t.doPrintItem();
+  }
 }
 ``` 
-Source code of AOPLogAdvice and AspectjLogAdvice can look in jbeanbox-example folder.
+Source code of AOPLogAdvice and AspectjLogAdvice can see in test folder.
 
 Example 4 - @InjectBox &  multiple Contexts
 ```
 public class Tester {
-	@InjectBox(A.StrBox.class)
-	String s1;// Use StrBox.class as configuration
+  @InjectBox(A.StrBox.class)
+  String s1;// Use StrBox.class as configuration
 
-	@InjectBox(A.class)
-	String s2;// Use A.StringBox.class (or A.StringBox2.class depends context setting)
+  @InjectBox(A.class)
+  String s2;// Use A.StringBox.class (or A.StringBox2.class depends context setting)
 
-	@InjectBox(B.class)
-	String s3;// Use B$S3Box.class (or B$S3Box2.class)
+  @InjectBox(B.class)
+  String s3;// Use B$S3Box.class (or B$S3Box2.class)
 
-	@InjectBox
-	C c4;// Use CBox.class (or CBox2.class)
+  @InjectBox
+  C c4;// Use CBox.class (or CBox2.class)
 
-	@InjectBox
-	String s5;// Use TesterBox$StringBox.class (or TesterBox$StringBox2.class)
+  @InjectBox
+  String s5;// Use TesterBox$StringBox.class (or TesterBox$StringBox2.class)
 
-	@InjectBox(required = false) //default required is true
-	D d6;// Use Config$DBox.class (or Config2$DBox2)
+  @InjectBox(required = false) //default required is true
+  D d6;// Use Config$DBox.class (or Config2$DBox2)
 
-	@InjectBox(required = false)
-	E e7;// Use Config$E7Box.class (or Config2$E7Box2)
+  @InjectBox(required = false)
+  E e7;// Use Config$E7Box.class (or Config2$E7Box2)
 
-	public String s8; // directly inject on field 
+  public String s8; // directly inject on field 
 
-	private String s9; // injected by setter, recommend
+  private String s9; // injected by setter, recommend
 
-	public void setS9(String s9) {
-		this.s9 = s9;
-	}
+  public void setS9(String s9) {
+    this.s9 = s9;
+  }
 
-	public void print() {
-			//print out s1 to s9		
-			System.out.println(s1);
-			...
-	}
+  public void print() {
+      //print out s1 to s9    
+      System.out.println(s1);
+      ...
+  }
 
-	public static void main(String[] args) {
-		Tester t = BeanBox.getBean(Tester.class);
-		t.print();
+  public static void main(String[] args) {
+    Tester t = BeanBox.getBean(Tester.class);
+    t.print();
 
-		BeanBoxContext ctx = new BeanBoxContext(Config2.class).setBoxIdentity("Box2");
-		Tester t2 = ctx.getBean(Tester.class);
-		t2.print(); //print result is different because configuration different
-	}
+    BeanBoxContext ctx = new BeanBoxContext(Config2.class).setBoxIdentity("Box2");
+    Tester t2 = ctx.getBean(Tester.class);
+    t2.print(); //print result is different because configuration different
+  }
 }
 ```
  
 Example 5 - PostConstructor and PreDestory 
 ```
 public class Tester {
-	private String name;
+  private String name;
 
-	public void init() {
-		name = "Sam";
-	}
+  public void init() {
+    name = "Sam";
+  }
 
-	public void destory() {
-		System.out.println("Bye " + name);
-	}
+  public void destory() {
+    System.out.println("Bye " + name);
+  }
 
-	public static class TesterBox extends BeanBox {
-		{
-			setPostConstructor("init");
-			setPreDestory("destory");
-		}
-	}
+  public static class TesterBox extends BeanBox {
+    {
+      setPostConstructor("init");
+      setPreDestory("destory");
+    }
+  }
 
-	public static void main(String[] args) {
-		BeanBox.getBean(Tester.class);
-		BeanBox.defaultContext.close();// print Bye Sam
-	}
+  public static void main(String[] args) {
+    BeanBox.getBean(Tester.class);
+    BeanBox.defaultContext.close();// print Bye Sam
+  }
 }
 ```
  
@@ -224,58 +224,58 @@ This example integrated "C3P0" + "JDBCTemplate" + "Spring Declarative Transactio
 
 ```
 public class TesterBox extends BeanBox {
-	static {
-		BeanBox.defaultBeanBoxContext.setAOPAround("examples.example5_transaction.Test\\w*", "insert\\w*",
-				new TxInterceptorBox(), "invoke");
-	}
+  static {
+    BeanBox.defaultBeanBoxContext.setAOPAround("examples.example5_transaction.Test\\w*", "insert\\w*",
+        new TxInterceptorBox(), "invoke");
+  }
 
-	static class DSPoolBeanBox extends BeanBox {
-		{
-			setClassOrValue(ComboPooledDataSource.class);
-			setProperty("jdbcUrl", "jdbc:mysql://127.0.0.1:3306/test?user=root&password=yourpwd");
-			setProperty("driverClass", "com.mysql.jdbc.Driver");
-			setProperty("maxPoolSize", 10);
-			setProperty("CheckoutTimeout", 2000);
-		}
-	}
+  static class DSPoolBeanBox extends BeanBox {
+    {
+      setClassOrValue(ComboPooledDataSource.class);
+      setProperty("jdbcUrl", "jdbc:mysql://127.0.0.1:3306/test?user=root&password=yourpwd");
+      setProperty("driverClass", "com.mysql.jdbc.Driver");
+      setProperty("maxPoolSize", 10);
+      setProperty("CheckoutTimeout", 2000);
+    }
+  }
 
-	static class TxManagerBox extends BeanBox {
-		{
-			setClassOrValue(DataSourceTransactionManager.class);
-			setProperty("dataSource", DSPoolBeanBox.class);
-		}
-	}
+  static class TxManagerBox extends BeanBox {
+    {
+      setClassOrValue(DataSourceTransactionManager.class);
+      setProperty("dataSource", DSPoolBeanBox.class);
+    }
+  }
 
-	static class TxInterceptorBox extends BeanBox {// Advice
-		{
-			Properties props = new Properties();
-			props.put("insert*", "PROPAGATION_REQUIRED");
-			setConstructor(TransactionInterceptor.class, TxManagerBox.class, props);
-		}
-	}
+  static class TxInterceptorBox extends BeanBox {// Advice
+    {
+      Properties props = new Properties();
+      props.put("insert*", "PROPAGATION_REQUIRED");
+      setConstructor(TransactionInterceptor.class, TxManagerBox.class, props);
+    }
+  }
 
-	public static class JdbcTemplateBox extends BeanBox {
-		{
-			setConstructor(JdbcTemplate.class, DSPoolBeanBox.class);
-		}
-	}
+  public static class JdbcTemplateBox extends BeanBox {
+    {
+      setConstructor(JdbcTemplate.class, DSPoolBeanBox.class);
+    }
+  }
 }
 
 public class Tester {
 
-	@InjectBox
-	private JdbcTemplate dao;
+  @InjectBox
+  private JdbcTemplate dao;
 
-	public void insertUser() {
-		dao.execute("insert into users values ('User1')");
-		// int i = 1 / 0; // Throw a runtime Exception to roll back transaction
-		dao.execute("insert into users values ('User2')");
-	}
+  public void insertUser() {
+    dao.execute("insert into users values ('User1')");
+    // int i = 1 / 0; // Throw a runtime Exception to roll back transaction
+    dao.execute("insert into users values ('User2')");
+  }
 
-	public static void main(String[] args) {
-		Tester tester = BeanBox.getBean(Tester.class);
-		tester.insertUser();
-	}
+  public static void main(String[] args) {
+    Tester tester = BeanBox.getBean(Tester.class);
+    tester.insertUser();
+  }
 
 }
 ```
@@ -336,52 +336,52 @@ Example 8 - Show annotation inject on field, constructor & method, and mixed use
             parameters start from 0, s0 means 1st String parameter, i1 means 2nd Integer paramerter, box2 means 3rd BeanBox paramerter (Note: I have a plan, from v2.4.2 parameter order will start from s1, s0 will be replace by s)
 ```
 public class Tester {
-	String name1;
-	String name2;
+  String name1;
+  String name2;
 
-	@InjectBox(s0 = "name3")
-	String name3;
+  @InjectBox(s0 = "name3")
+  String name3;
 
-	AA a4, a5;
+  AA a4, a5;
 
-	@InjectBox(s0 = "name1")
-	public Tester(String name1, AA a4) {// a4 automatically find AABox
-		this.name1 = name1;
-		this.a4 = a4;
-	}
+  @InjectBox(s0 = "name1")
+  public Tester(String name1, AA a4) {// a4 automatically find AABox
+    this.name1 = name1;
+    this.a4 = a4;
+  }
 
-	@InjectBox(s0 = "name2", box1 = A5Box.class)
-	public void injectBymethod(String name2, AA a5) {
-		this.name2 = name2;
-		this.a5 = a5;
-	}
+  @InjectBox(s0 = "name2", box1 = A5Box.class)
+  public void injectBymethod(String name2, AA a5) {
+    this.name2 = name2;
+    this.a5 = a5;
+  }
 
-	public static class AA {
-		public String name;
-	}
+  public static class AA {
+    public String name;
+  }
 
-	public static class AABox extends BeanBox {
-		{
-			this.setProperty("name", "name4");
-		}
-	}
+  public static class AABox extends BeanBox {
+    {
+      this.setProperty("name", "name4");
+    }
+  }
 
-	public static class A5Box extends BeanBox {
-		public AA create() {
-			AA aa = new AA();
-			aa.name = "name5";
-			return aa;
-		}
-	}
+  public static class A5Box extends BeanBox {
+    public AA create() {
+      AA aa = new AA();
+      aa.name = "name5";
+      return aa;
+    }
+  }
 
-	public static void main(String[] args) {
-		Tester t = BeanBox.getBean(Tester.class);
-		System.out.println("name1=" + t.name1); // name1=name1
-		System.out.println("name2=" + t.name2); // name2=name2
-		System.out.println("name3=" + t.name3); // name3=name3
-		System.out.println("name4=" + t.a4.name); // name4=name4
-		System.out.println("name5=" + t.a5.name); // name5=name5
-	}
+  public static void main(String[] args) {
+    Tester t = BeanBox.getBean(Tester.class);
+    System.out.println("name1=" + t.name1); // name1=name1
+    System.out.println("name2=" + t.name2); // name2=name2
+    System.out.println("name3=" + t.name3); // name3=name3
+    System.out.println("name4=" + t.a4.name); // name4=name4
+    System.out.println("name5=" + t.a5.name); // name5=name5
+  }
 }
 ```
 Example 9 - A simple BenchMark test, more detail please see project "https://github.com/drinkjava2/di-benchmark"  
