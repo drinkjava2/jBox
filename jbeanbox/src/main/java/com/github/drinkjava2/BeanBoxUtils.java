@@ -29,14 +29,10 @@ import com.github.drinkjava2.cglib3_2_0.proxy.Enhancer;
  * @since 2.4
  * 
  */
-public class BeanBoxUtils {
+public abstract class BeanBoxUtils {
 	private static final BeanBoxLogger log = BeanBoxLogger.getLog(BeanBoxUtils.class);
 
 	private static ConcurrentHashMap<String, Integer> classExistCache = new ConcurrentHashMap<>();
-
-	private BeanBoxUtils() {
-		// default private constructor
-	}
 
 	/**
 	 * Return true if empty or null
@@ -87,10 +83,9 @@ public class BeanBoxUtils {
 						"BeanBox createInstanceWithCtr0 error:  clazz=" + clazz + " should not be a BeanBox");
 			return o;
 		} catch (Exception e) {
-			BeanBoxException.throwEX(e,
-					"BeanBox createInstanceWithCtr0 error: no 0 parameter constructor found! clazz=" + clazz);
+			BeanBoxException.eatException(e);
+			return null;
 		}
-		return null;
 	}
 
 	/**
@@ -243,7 +238,7 @@ public class BeanBoxUtils {
 	/**
 	 * build BeanBox With Annotated Constructor
 	 */
-	public static Object buildBeanBoxWithAnnotatedCtr(Class<?> clazz, BeanBoxContext context) {
+	public static Object buildBeanBoxWithAnnotatedCtr(Class<?> clazz, BeanBoxContext context) {//NOSONAR
 		Constructor<?>[] cons = clazz.getDeclaredConstructors();
 		for (Constructor<?> c : cons) {
 			if (c.isAnnotationPresent(InjectBox.class)) {
@@ -265,7 +260,7 @@ public class BeanBoxUtils {
 					instance = c.newInstance(getObjectRealValue(context, args));
 					return instance;
 				} catch (Exception e) {
-					BeanBoxException.throwEX(e, "BeanBox buildBeanBoxWithAnnotatedCtr error, clazz=" + clazz);
+					return BeanBoxException.eatException(e);
 				}
 			}
 		}

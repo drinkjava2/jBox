@@ -26,7 +26,7 @@ public class TesterBox extends BeanBox {
 	}
 
 	static class DSPoolBeanBox extends BeanBox {// Type-unsafe and type-safe configurations can mixed use.
-		public DataSource create() {
+		public ComboPooledDataSource create() {
 			ComboPooledDataSource ds = new ComboPooledDataSource();
 			ds.setUser("root");
 			return ds;

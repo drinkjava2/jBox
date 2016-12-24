@@ -7,34 +7,29 @@ import java.lang.reflect.Method;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.github.drinkjava2.ReflectionUtils;
+import com.github.drinkjava2.BeanBox;
+import com.github.drinkjava2.springsrc.ReflectionUtils;
 
 public class ReflectionUtilsTest {
 
 	@Test
 	public void testGetDeclaredMethod() {
 		Object obj = new Son();
-		Method method = ReflectionUtils.getDeclaredMethod(obj, "publicMethod");
+		Method method = ReflectionUtils.findMethod(obj.getClass(), "publicMethod");
 		Assert.assertEquals("publicMethod", method.getName());
-		method = ReflectionUtils.getDeclaredMethod(obj, "defaultMethod");
+		ReflectionUtils.invokeMethod(method, obj);
+		method = ReflectionUtils.findMethod(obj.getClass(), "defaultMethod");
 		Assert.assertEquals("defaultMethod", method.getName());
-		method = ReflectionUtils.getDeclaredMethod(obj, "protectedMethod");
+		ReflectionUtils.makeAccessible(method);
+		ReflectionUtils.invokeMethod(method, obj);
+		method = ReflectionUtils.findMethod(obj.getClass(), "protectedMethod");
 		Assert.assertEquals("protectedMethod", method.getName());
-		method = ReflectionUtils.getDeclaredMethod(obj, "privateMethod");
+		ReflectionUtils.makeAccessible(method);
+		ReflectionUtils.invokeMethod(method, obj);
+		method = ReflectionUtils.findMethod(obj.getClass(), "privateMethod");
 		Assert.assertEquals("privateMethod", method.getName());
-
-	}
-
-	/**
-	 * Test invoke Parent class method
-	 */
-	@Test
-	public void testInvokeMethod() throws Exception {
-		Object obj = new Son();
-		ReflectionUtils.invokeMethod(obj, "publicMethod", null, null);
-		ReflectionUtils.invokeMethod(obj, "defaultMethod", null, null);
-		ReflectionUtils.invokeMethod(obj, "protectedMethod", null, null);
-		ReflectionUtils.invokeMethod(obj, "privateMethod", null, null);
+		ReflectionUtils.makeAccessible(method);
+		ReflectionUtils.invokeMethod(method, obj);
 	}
 
 	/**
@@ -43,35 +38,49 @@ public class ReflectionUtilsTest {
 	@Test
 	public void testGetDeclaredField() {
 		Object obj = new Son();
-		Field field = ReflectionUtils.getDeclaredField(obj, "publicField");
+
+		Field field = ReflectionUtils.findField(obj.getClass(), "publicField");
 		Assert.assertEquals("publicField", field.getName());
-		field = ReflectionUtils.getDeclaredField(obj, "defaultField");
+		ReflectionUtils.setField(field, obj, "publicField");
+		Assert.assertEquals("publicField", ReflectionUtils.getField(field, obj));
+		field = ReflectionUtils.findField(obj.getClass(), "defaultField");
 		Assert.assertEquals("defaultField", field.getName());
-		field = ReflectionUtils.getDeclaredField(obj, "protectedField");
+		ReflectionUtils.makeAccessible(field);
+		ReflectionUtils.setField(field, obj, "defaultField");
+		Assert.assertEquals("defaultField", ReflectionUtils.getField(field, obj));
+		field = ReflectionUtils.findField(obj.getClass(), "protectedField");
 		Assert.assertEquals("protectedField", field.getName());
-		field = ReflectionUtils.getDeclaredField(obj, "privateField");
+		ReflectionUtils.makeAccessible(field);
+		ReflectionUtils.setField(field, obj, "protectedField");
+		Assert.assertEquals("protectedField", ReflectionUtils.getField(field, obj));
+		field = ReflectionUtils.findField(obj.getClass(), "privateField");
 		Assert.assertEquals("privateField", field.getName());
+		ReflectionUtils.makeAccessible(field);
+		ReflectionUtils.setField(field, obj, "privateField");
+		Assert.assertEquals("privateField", ReflectionUtils.getField(field, obj));
+	}
+
+	public static class SonBox extends BeanBox {
+		{
+			this.setClassOrValue(Son.class);
+			this.setProperty("user", "user1");
+			this.setProperty("userName", "user2");
+			this.setProperty("age", 10);
+		}
 	}
 
 	@Test
-	public void testGetFieldValue() {
-		Object obj = new Son();
-		Assert.assertEquals("publicField", ReflectionUtils.getFieldValue(obj, "publicField"));
-		Assert.assertEquals("defaultField", ReflectionUtils.getFieldValue(obj, "defaultField"));
-		Assert.assertEquals("protectedField", ReflectionUtils.getFieldValue(obj, "protectedField"));
-		Assert.assertEquals("privateField", ReflectionUtils.getFieldValue(obj, "privateField"));
+	public void testSon() {
+		Son son = BeanBox.getBean(SonBox.class);
+		Assert.assertEquals("user1", son.getUser());
+		Assert.assertEquals("user2", son.getUserName());
+		Assert.assertEquals(10, (int) son.getAge());
 	}
 
-	@Test
-	public void testSetFieldValue() {
-		Object obj = new Son();
-		ReflectionUtils.setFieldValue(obj, "publicField", "a");
-		Assert.assertEquals("a", ReflectionUtils.getFieldValue(obj, "publicField"));
-		ReflectionUtils.setFieldValue(obj, "defaultField", "b");
-		Assert.assertEquals("b", ReflectionUtils.getFieldValue(obj, "defaultField"));
-		ReflectionUtils.setFieldValue(obj, "protectedField", "c");
-		Assert.assertEquals("c", ReflectionUtils.getFieldValue(obj, "protectedField"));
-		ReflectionUtils.setFieldValue(obj, "privateField", "d");
-		Assert.assertEquals("d", ReflectionUtils.getFieldValue(obj, "privateField"));
+	public static void main(String[] args) {
+		Son son = BeanBox.getBean(SonBox.class);
+		Assert.assertEquals("user1", son.getUser());
+		Assert.assertEquals("user2", son.getUserName());
+		Assert.assertEquals(10, (int) son.getAge());
 	}
 }

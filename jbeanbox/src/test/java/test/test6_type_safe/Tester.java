@@ -32,4 +32,5 @@ public class Tester {
 		Tester tester = BeanBox.getBean(Tester.class);
 		tester.insertUser();
 	}
+
 }

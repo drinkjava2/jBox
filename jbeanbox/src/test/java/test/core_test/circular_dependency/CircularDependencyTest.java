@@ -3,7 +3,6 @@ package test.core_test.circular_dependency;
 import org.junit.Test;
 
 import com.github.drinkjava2.BeanBox;
-import com.github.drinkjava2.BeanBoxException;
 import com.github.drinkjava2.InjectBox;
 
 /**
@@ -17,6 +16,7 @@ import com.github.drinkjava2.InjectBox;
 public class CircularDependencyTest {
 
 	public static class ClassA {
+		@InjectBox
 		public ClassA(ClassB b) {
 		}
 	}
@@ -27,13 +27,7 @@ public class CircularDependencyTest {
 		}
 	}
 
-	public static class ClassABox extends BeanBox {
-		{
-			this.setConstructor(ClassA.class, ClassB.class);
-		}
-	}
-
-	@Test(expected = BeanBoxException.class)
+	@Test
 	public void doTest() {
 		BeanBox.getBean(ClassA.class);
 	}

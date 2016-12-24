@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.drinkjava2.BeanBoxUtils.ObjectType;
+import com.github.drinkjava2.springsrc.ReflectionUtils;
 
 /**
  * jBeanBox is a macro scale IOC & AOP framework for Java 7 and above.
@@ -293,8 +294,8 @@ public class BeanBox {
 	 * Inject properties values into bean instance
 	 */
 	private void injectInstancePropertyValues(Object instance) {
-		Method[] methods = instance.getClass().getDeclaredMethods();
 		Set<String> keys = properties.keySet();
+		Method[] methods = ReflectionUtils.getAllDeclaredMethods(instance.getClass());
 		for (String property : keys) {
 			boolean found = false;
 			for (Method method : methods) {
@@ -384,7 +385,7 @@ public class BeanBox {
 			case BEANBOX_INSTANCE: {// NOSONAR
 				BeanBox b = (BeanBox) beanArgs[i];
 				try {
-					Method method = b.getClass().getDeclaredMethod(CREATE_BEAN);
+					Method method = ReflectionUtils.findMethod(b.getClass(), CREATE_BEAN);
 					if (method != null)// NOSONAR
 						classes[i] = method.getReturnType();
 				} catch (Exception e) {
@@ -453,7 +454,6 @@ public class BeanBox {
 		if (isValueType)
 			return (T) classOrValue;
 		Object instance = null;
-
 		String beanID = getClass().getName();
 		String beanBoxName = BeanBox.class.getName();
 		if (beanID.equals(beanBoxName)) {
@@ -467,7 +467,8 @@ public class BeanBox {
 		if (plusCircularCounter() > 100) {// throw exception before out of stack memory
 			decreaseCircularCounter();
 			log.error("BeanBox getBean circular dependency error found! classOrValue=" + classOrValue);
-			BeanBoxException.throwEX(null, "Circular dependency error found.");
+			return null;
+			//BeanBoxException.throwEX(null, "BeanBox Circular dependency error found.");
 		}
 		Method createBeanMethod = null;
 		synchronized (context.signletonCache) {
@@ -478,8 +479,8 @@ public class BeanBox {
 					return (T) instance;// found singleTon bean in cache, good luck
 				}
 			}
-			try {// Check if has create method in BeanBox
-				createBeanMethod = getClass().getDeclaredMethod(CREATE_BEAN);
+			try {// Check if has create method in BeanBox 
+				createBeanMethod = ReflectionUtils.findMethod(getClass(), CREATE_BEAN); 
 				this.setClassOrValue(createBeanMethod.getReturnType());
 			} catch (Exception e) {
 				BeanBoxException.eatException(e);
@@ -507,10 +508,8 @@ public class BeanBox {
 						BeanBoxException.throwEX(e, "BeanBox create constructor error! constructor=" + classOrValue);
 					}
 				else if (classOrValue instanceof Class) {
-					try {// 2nd use 0 parameter constructor
-						instance = BeanBoxUtils.createInstanceWithCtr0((Class<?>) classOrValue);
-					} catch (Exception e) {
-						BeanBoxException.eatException(e);
+					instance = BeanBoxUtils.createInstanceWithCtr0((Class<?>) classOrValue);
+					if (instance == null) { 
 						if (!context.getIgnoreAnnotation()) // 3rd find annotated constructor
 							instance = BeanBoxUtils.buildBeanBoxWithAnnotatedCtr((Class<?>) classOrValue, context);
 						else {
@@ -535,7 +534,7 @@ public class BeanBox {
 				context.signletonCache.put(beanID, instance);// save SingleTon in cache
 				if (!BeanBoxUtils.isEmptyStr(this.getPreDestory())) {// save PreDestory methods in cache
 					try {
-						Method predestoryMethod = ReflectionUtils.getDeclaredMethod(instance, getPreDestory(),
+						Method predestoryMethod = ReflectionUtils.findMethod(instance.getClass(), getPreDestory(),
 								new Class[] {});
 						this.context.preDestoryMethodCache.put(beanID, predestoryMethod);
 					} catch (Exception e) {
@@ -557,7 +556,8 @@ public class BeanBox {
 		injectInstancePropertyValues(instance);
 		if (!BeanBoxUtils.isEmptyStr(getPostConstructor()))
 			try {
-				Method postConstr = ReflectionUtils.getDeclaredMethod(instance, getPostConstructor(), new Class[] {});
+				Method postConstr = ReflectionUtils.findMethod(instance.getClass(), getPostConstructor(),
+						new Class[] {});
 				postConstr.invoke(instance, new Object[] {});
 			} catch (Exception e) {
 				decreaseCircularCounter();

@@ -1,5 +1,5 @@
 
-package com.github.drinkjava2.cglib3_2_0;
+package com.github.drinkjava2.cglib3_2_0;//NOSONAR
 
 /**
  * To avoid jar conflict if a project need use other version CGLIB, I included cglib3.2.0 source code in this project
@@ -9,5 +9,5 @@ package com.github.drinkjava2.cglib3_2_0;
  * @since 2.4.1
  *
  */
-class Readme {
+class Readme {// NOSONAR
 }
