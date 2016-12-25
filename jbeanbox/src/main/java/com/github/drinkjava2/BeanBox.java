@@ -244,14 +244,17 @@ public class BeanBox {
 				// PropertyType.STATIC_FACTORY, staticFactoryClass, methodName, args
 				Class<?> c = (Class<?>) args[1];
 				Object[] beanArgs = (Object[]) args[3];
-				Method m = c.getMethod((String) args[2], getObjectClassType(beanArgs));
+				Method m = ReflectionUtils.findMethod(c, (String) args[2], getObjectClassType(beanArgs));
 				Object beaninstance = m.invoke(c, BeanBoxUtils.getObjectRealValue(context, beanArgs));
 				method.invoke(bean, new Object[] { beaninstance });
 			} else if (((PropertyType) args[0]) == PropertyType.BEAN_FACTORY) {
 				// PropertyType.BEAN_FACTORY, beanBox, methodName, args
-				Object instance = ((BeanBox) args[1]).setContext(context).getBean();
+				BeanBox bx = (BeanBox) args[1];
+				bx.setContext(context);
+				Object instance = bx.getBean();
 				Object[] beanArgs = (Object[]) args[3];
-				Method m = instance.getClass().getMethod((String) args[2], getObjectClassType(beanArgs));
+				Method m = ReflectionUtils.findMethod(instance.getClass(), (String) args[2],
+						getObjectClassType(beanArgs));
 				Object beaninstance = m.invoke(instance, BeanBoxUtils.getObjectRealValue(context, beanArgs));
 				method.invoke(bean, new Object[] { beaninstance });
 			}
@@ -274,13 +277,14 @@ public class BeanBox {
 			else if (((PropertyType) args[0]) == PropertyType.STATIC_FACTORY) {
 				Class<?> c = (Class<?>) args[1];
 				Object[] beanArgs = (Object[]) args[3];
-				Method m = c.getMethod((String) args[2], getObjectClassType(beanArgs));
+				Method m = ReflectionUtils.findMethod(c, (String) args[2], getObjectClassType(beanArgs));
 				Object beaninstance = m.invoke(c, BeanBoxUtils.getObjectRealValue(context, beanArgs));
 				field.set(bean, beaninstance);
 			} else if (((PropertyType) args[0]) == PropertyType.BEAN_FACTORY) {
 				Object instance = ((BeanBox) args[1]).setContext(context).getBean();
 				Object[] beanArgs = (Object[]) args[3];
-				Method m = instance.getClass().getMethod((String) args[2], getObjectClassType(beanArgs));
+				Method m = ReflectionUtils.findMethod(instance.getClass(), (String) args[2],
+						getObjectClassType(beanArgs));
 				Object beaninstance = m.invoke(instance, BeanBoxUtils.getObjectRealValue(context, beanArgs));
 				field.set(bean, beaninstance);
 			}
@@ -301,6 +305,7 @@ public class BeanBox {
 			for (Method method : methods) {
 				String setter = "set" + property.substring(0, 1).toUpperCase() + property.substring(1);
 				if (method.getName().equals(setter)) {
+					ReflectionUtils.makeAccessible(method);
 					invokeMethodToSetValue(instance, method, properties.get(property));
 					found = true;
 				}
@@ -382,16 +387,13 @@ public class BeanBox {
 		for (int i = 0; i < classes.length; i++) {
 			ObjectType type = BeanBoxUtils.judgeType(beanArgs[i]);
 			switch (type) {
-			case BEANBOX_INSTANCE: {// NOSONAR
+			case BEANBOX_INSTANCE: {
 				BeanBox b = (BeanBox) beanArgs[i];
-				try {
-					Method method = ReflectionUtils.findMethod(b.getClass(), CREATE_BEAN);
-					if (method != null)// NOSONAR
-						classes[i] = method.getReturnType();
-				} catch (Exception e) {
-					BeanBoxException.eatException(e);
+				Method method = ReflectionUtils.findMethod(b.getClass(), CREATE_BEAN);
+				if (method == null)
 					classes[i] = (Class<?>) (b.getClassOrValue());
-				}
+				else
+					classes[i] = method.getReturnType();
 			}
 				break;
 			case BEANBOX_CLASS:
@@ -468,7 +470,7 @@ public class BeanBox {
 			decreaseCircularCounter();
 			log.error("BeanBox getBean circular dependency error found! classOrValue=" + classOrValue);
 			return null;
-			//BeanBoxException.throwEX(null, "BeanBox Circular dependency error found.");
+			// BeanBoxException.throwEX(null, "BeanBox Circular dependency error found.");
 		}
 		Method createBeanMethod = null;
 		synchronized (context.signletonCache) {
@@ -479,8 +481,8 @@ public class BeanBox {
 					return (T) instance;// found singleTon bean in cache, good luck
 				}
 			}
-			try {// Check if has create method in BeanBox 
-				createBeanMethod = ReflectionUtils.findMethod(getClass(), CREATE_BEAN); 
+			try {// Check if has create method in BeanBox
+				createBeanMethod = ReflectionUtils.findMethod(getClass(), CREATE_BEAN);
 				this.setClassOrValue(createBeanMethod.getReturnType());
 			} catch (Exception e) {
 				BeanBoxException.eatException(e);
@@ -509,7 +511,7 @@ public class BeanBox {
 					}
 				else if (classOrValue instanceof Class) {
 					instance = BeanBoxUtils.createInstanceWithCtr0((Class<?>) classOrValue);
-					if (instance == null) { 
+					if (instance == null) {
 						if (!context.getIgnoreAnnotation()) // 3rd find annotated constructor
 							instance = BeanBoxUtils.buildBeanBoxWithAnnotatedCtr((Class<?>) classOrValue, context);
 						else {

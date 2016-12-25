@@ -12,7 +12,7 @@ import com.github.drinkjava2.BeanBox;
 public class Tester {
 	@Test
 	public void doTest() {
-		Order order = BeanBox.getBean(Order.class);
+ 		Order order = BeanBox.getBean(Order.class);
 		order.printALlItems();
 		Order order1 = BeanBox.getBean(Order.class);
 		Order order2 = BeanBox.getPrototypeBean(Order.class);// force return a prototype bean

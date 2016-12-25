@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.drinkjava2.cglib3_2_0.proxy.Enhancer;
+import com.github.drinkjava2.springsrc.ReflectionUtils;
 
 /**
  * Put lots miscellaneous public static methods here, have no time to organize them
@@ -227,7 +228,7 @@ public abstract class BeanBoxUtils {
 			methodname = "c" + i;
 		if (methodname != null)
 			try {
-				return InjectBox.class.getMethod(methodname).invoke(a);
+				return ReflectionUtils.findMethod(InjectBox.class, methodname).invoke(a);
 			} catch (Exception e) {
 				BeanBoxException.throwEX(e, "BeanBox getInjectFieldValue error, method" + methodname + "in fieldClass="
 						+ fieldClass + " not exist");
@@ -238,7 +239,7 @@ public abstract class BeanBoxUtils {
 	/**
 	 * build BeanBox With Annotated Constructor
 	 */
-	public static Object buildBeanBoxWithAnnotatedCtr(Class<?> clazz, BeanBoxContext context) {//NOSONAR
+	public static Object buildBeanBoxWithAnnotatedCtr(Class<?> clazz, BeanBoxContext context) {// NOSONAR
 		Constructor<?>[] cons = clazz.getDeclaredConstructors();
 		for (Constructor<?> c : cons) {
 			if (c.isAnnotationPresent(InjectBox.class)) {
