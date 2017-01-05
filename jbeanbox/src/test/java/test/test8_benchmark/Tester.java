@@ -1,5 +1,6 @@
 package test.test8_benchmark;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.github.drinkjava2.BeanBoxContext;
@@ -8,14 +9,15 @@ import test.test8_benchmark.objects.A;
 import test.test8_benchmark.objects.B;
 
 /**
- * This example is similar like example5, but in "TesterBox" use Java type safe configurations to create bean instance.
- * <br/>
- * 
- * @author Yong Zhu
- * @since 2016-8-23
+ * A simple benchmark test
+ * @since 2.4
  */
 
 public class Tester {
+	@Before
+	public void beforeTest() {
+		System.out.println("=========  A simple benchmark test =========");
+	}
 
 	public static class AA {
 		AA(A a, B b) {

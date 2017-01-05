@@ -1,5 +1,6 @@
 package test.test4_PostConstructorAndPreDestory;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.github.drinkjava2.BeanBox;
@@ -8,8 +9,13 @@ import com.github.drinkjava2.BeanBox;
  * Test setPostConstructor() and setPreDestory() method for a Child class
  * 
  * @author Yong
+ * @since 2.4
  */
 public class Tester2 {
+	@Before
+	public void beforeTest() {
+		System.out.println("=========Test setPostConstructor() and setPreDestory() method for a Child class =========");
+	}
 
 	@Test
 	public void doTest() {

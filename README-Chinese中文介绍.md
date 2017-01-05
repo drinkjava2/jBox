@@ -4,23 +4,23 @@
 jBeanBox是一个微形但功能较齐全的IOC/AOP工具适用于JAVA7+，利用了Java的初始化块实现的Java配置代替XML。jBeanBox采用Apache License 2.0开源协议。  
 其他一些IOC/AOP框架的问题：  
 1）Spring，HiveMind及其他一些利用XML作为配置文件的IOC/AOP框架：XML不支持类名称拼写检查和IDE重构，很难在运行时更改配置。(从Spring3.0开始使用一种基于Java的配置来取代XML，但Java配置与与注解混用，复杂且不支持配置的继承重用、动态变更配置。我的看法是，作为一个IOC/AOP工具来说，Spring过于复杂了。)  
-2）Guice和其他依赖于注解的IOC/AOP项目：注解是一种拉式注入，入侵性强，不支持第三方库，IOC/AOP工具不应该完全依赖于更改Java源码，而且Guice只是一个DI工具，不具备Bean生命周期管理功能。  
+2）Guice和其他依赖于注解的IOC/AOP项目：注解是一种拉式注入，入侵性强，不支持第三方库，IOC/AOP工具不应该完全依赖于更改Java源码。 
 
 ###jBeanBox的特点：  
-1）简单，很少的源码(不到2000行)实现了所有的IOC/AOP功能，没有XML，只有1个注解(InjectBox)。学习曲线低、易维护、易扩充和移植。  
+1）简单，很少的源码(不到3000行)实现了所有的IOC/AOP功能，没有XML，只有2个注解(InjectBox和AopAround)。学习曲线低、易维护、易扩充和移植。  
 2）使用Java来代替XML，其实现比Spring或Guice的Java配置更简单实用，支持配置的继承重用、运行期动态创建和修改。  
 3) 与Spring内核的功能重叠面多，Spring配置可以很容易移植到jBeanBox上，Spring的一些服务如声明式事务可以抽取出来在jBeanBox上使用。  
 4) 是一个全功能的IOC/AOP工具，而不仅仅只是一个DI工具，旨在小项目中全部或部分取代Spring IoC/AOP内核，其主要功能有：  
 *以Java初始块为基础的纯Java配置类（第一种配置方式）来代替XML，简单易用。  
 *以Java方法回调为基础的Java配置类(第二种配置方式), 实现完全的Java类型安全和IDE重构支持。  
-*基于注解的配置(第三种配置方式)，整个项目只有一个@InjectBox注解，易于学习。 以上三种配置各有特点，甚至可以在同一个配置中混合使用。  
-*Bean实例延迟初始化（如Guice类似）  
+*基于注解的配置(第三种配置方式)，整个项目只有一个@InjectBox注解，易于学习。 以上三种配置各有特点，可以在同一个配置中混合使用。  
+*Bean实例延迟初始化（与Guice类似）  
 *单例/多例支持，默认情况下所有实例为单例（与Spring类似）; 单例缓存  
-*内置AOP和AspectJ支持,切点简化为正则表达式。  
+*内置AOP和AspectJ支持,切点简化为正则表达式，AOP环绕方法可以用@AopAround标记在方法上注明
 *多种注射机制：  
 推式注入:值注入，实例注入，构造方法注入，静态工厂注入，实例工厂注入 (与Spring传统XML注入类似)  
 拉式注入：利用@InjectBox注解 (与Guice和Spring的注解注入类似），支持域成员、构造函数参数和方法参数注入，可注入常量。  
-*以约定方式寻找配置，这是jBeanBOx的一个主要特点  
+*以约定方式寻找配置，这是jBeanBox的一个主要特点  
 *多上下文支持（除了默认全局范围上下文外，支持创建多个上下文，类似于Spring中创建多个ApplicationContext实例）  
 *Bean生命周期管理（postConstruction和preDestory方法回调）  
 
@@ -344,24 +344,24 @@ public class TesterBox extends BeanBox {
 
 ```
 示例8 演示用注解来注入属性、构造函数参数和方法参数  
-目前jBeanBox有三种配置方式，初始块、Java方法、注解，这三种方式各有特点，初始块最灵活，可完全替代XML，但不支持方法名重构;Java方法回调是类型安全但灵活性差，对配置的继承和动态修改有问题;注解最简洁但仅适用于有源码的场合。这三种配置方法可以同时混合使用，互相补充。 参数用代号加数字指定，从0开始，如s0表示第一个String参数, i1表示第二个Integer参数,box2表示第三个BeanBox参数 (备注： 从下个版本v2.4.2起参数代号将改成从1开始，更符合通常习惯, s0将不再使用,而使用s)
+目前jBeanBox有三种配置方式，初始块、Java方法、注解，这三种方式各有特点，初始块最灵活，可完全替代XML，但不支持方法名重构;Java方法回调是类型安全但灵活性差，对配置的继承和动态修改有问题;注解最简洁但仅适用于有源码的场合。这三种配置方法可以同时混合使用，互相补充。 参数用代号加数字指定，从1开始，如s1表示第一个String参数, i2表示第二个Integer参数,box3表示第三个BeanBox参数 (注： 从v2.4.2起下标改成从1开始而不是从0开始，更符合通常习惯)
 ```
 public class Tester {
   String name1;
   String name2;
 
-  @InjectBox(s0 = "name3")
+  @InjectBox(s = "name3")
   String name3;
 
   AA a4, a5;
 
-  @InjectBox(s0 = "name1")
+  @InjectBox(s1 = "name1")
   public Tester(String name1, AA a4) {//a4将自动找到配置类AABox
     this.name1 = name1;
     this.a4 = a4;
   }
 
-  @InjectBox(s0 = "name2", box1 = A5Box.class)
+  @InjectBox(s1 = "name2", box2 = A5Box.class)
   public void injectBymethod(String name2, AA a5) {
     this.name2 = name2;
     this.a5 = a5;
@@ -441,4 +441,18 @@ Runtime benchmark, fetch bean for 100000 times:
                       SpringJavaConfiguration|    94ms
                       SpringAnnotationScanned|    78ms
 ```
-作为一个源码不到3000行的小项目， 以上即为jBeanBox全部文档，如有疑问，请下载示例运行或查看源码。
+
+示例10 新添加了一个@AopAround注解，在需要AOP环绕回调的方法上加上这个注解即可，例如标记Spring的声明式事务，可以简化为如下方式：
+```
+	@AopAround(TxInterceptorBox.class)
+	public void insertUser() {
+		insertUser1();
+		int count = dao.queryForObject("select count(*) from users", Integer.class);
+		System.out.println(count + " record inserted");
+		Assert.assertEquals(1, count);
+		System.out.println(1 / 0);// Throw a runtime Exception to roll back transaction
+		insertUser2();
+	}
+```
+
+以上即为jBeanBox全部文档，如有疑问，请下载示例运行或查看源码。

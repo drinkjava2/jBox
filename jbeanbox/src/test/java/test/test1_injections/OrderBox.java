@@ -4,7 +4,7 @@ import com.github.drinkjava2.BeanBox;
 
 /**
  * @author Yong Zhu
- * @since Mar 1, 2016
+ * @since 2.4
  */
 public class OrderBox extends BeanBox {// Java Configuration class, play the same role like XML in Spring
 	{ // setClassOrValue(Order.class); //if called by getBean(), no need set class

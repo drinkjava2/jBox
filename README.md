@@ -4,7 +4,7 @@
 jBeanBox is a micro scale IOC & AOP tool for JAVA7+, uses java classes as configuration to replace XML.  
 
 ###Advantage of jBeanBox:  
-1) Simple, very few source code(core sourcecode less than 3000 lines), No XML, only 1 Annotation, easy to learn and use.  
+1) Simple, very few source code(core sourcecode less than 3000 lines), No XML, only 2 Annotations, easy to learn and use.  
 2) The Java-Based configuration is simpler and easier to use than Spring or Guice's Java configuration.  
 3) jBeanBox is a full function IOC/AOP tool supports bean life cycle, multiple contexts.  
 
@@ -339,18 +339,18 @@ public class Tester {
   String name1;
   String name2;
 
-  @InjectBox(s0 = "name3")
+  @InjectBox(s = "name3")
   String name3;
 
   AA a4, a5;
 
-  @InjectBox(s0 = "name1")
+  @InjectBox(s1 = "name1")
   public Tester(String name1, AA a4) {// a4 automatically find AABox
     this.name1 = name1;
     this.a4 = a4;
   }
 
-  @InjectBox(s0 = "name2", box1 = A5Box.class)
+  @InjectBox(s1 = "name2", box2 = A5Box.class)
   public void injectBymethod(String name2, AA a5) {
     this.name2 = name2;
     this.a5 = a5;
@@ -426,4 +426,17 @@ Runtime benchmark, fetch bean for 100000 times (Singleton):
                            jBeanBoxAnnotation|    78ms
                       SpringJavaConfiguration|    94ms
                       SpringAnnotationScanned|    78ms
+```
+
+Example 10 - A new @AopAround annotation be used to mark a method which need AOP around Interceptor：
+```
+	@AopAround(TxInterceptorBox.class)
+	public void insertUser() {
+		insertUser1();
+		int count = dao.queryForObject("select count(*) from users", Integer.class);
+		System.out.println(count + " record inserted");
+		Assert.assertEquals(1, count);
+		System.out.println(1 / 0);// Throw a runtime Exception to roll back transaction
+		insertUser2();
+	}
 ```

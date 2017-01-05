@@ -60,12 +60,6 @@
     <version>4.11</version>
     <scope>test</scope>
   </dependency>
-  <dependency>
-    <groupId>c3p0</groupId>
-    <artifactId>c3p0</artifactId>
-    <version>0.9.1.2</version>
-    <scope>test</scope>
-  </dependency>
   
   <dependency>
     <groupId>commons-logging</groupId>
@@ -81,13 +75,20 @@
     <scope>test</scope> 
   </dependency>  
 
-  <!-- Database driver in this example --> 
   <dependency>
-    <groupId>mysql</groupId>
-    <artifactId>mysql-connector-java</artifactId>
-    <version>5.1.5</version>
+    <groupId>c3p0</groupId>
+    <artifactId>c3p0</artifactId>
+    <version>0.9.1.2</version>
     <scope>test</scope>
   </dependency>
+  
+    <!-- H2Database memory database for transaction unit test -->
+   <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>1.4.193</version>
+      <scope>test</scope>
+   </dependency>
 
   <dependency>
     <groupId>org.springframework</groupId>

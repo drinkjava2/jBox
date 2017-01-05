@@ -1,5 +1,6 @@
 package test.test7_annotation2;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.github.drinkjava2.BeanBox;
@@ -10,26 +11,31 @@ import com.github.drinkjava2.InjectBox;
  * 
  * 
  * @author Yong Zhu
- * @since 2.4.1
+ * @since 2.4
  */
 public class TesterA {
+	@Before
+	public void beforeTest() {
+		System.out.println("========= Constructor & method parameters injection test =========");
+	}
+
 	public static class Tester {
 		String name1;
 
 		String name2;
 
-		@InjectBox(s0 = "name3")
+		@InjectBox(s = "name3")
 		String name3;
 
 		AA a4, a5;
 
-		@InjectBox(s0 = "name1")
+		@InjectBox(s1 = "name1")
 		public Tester(String name1, AA a4) {// a4 automatically find AABox
 			this.name1 = name1;
 			this.a4 = a4;
 		}
 
-		@InjectBox(s0 = "name2", box1 = A5Box.class)
+		@InjectBox(s1 = "name2", box2 = A5Box.class)
 		public void injectBymethod(String name2, AA a5) {
 			this.name2 = name2;
 			this.a5 = a5;

@@ -1,5 +1,12 @@
 package test.test1_injections;
 
+/**
+ *
+ *
+ * @author Yong Zhu
+ *
+ * @since 2.4
+ */
 public class Order {
 	private String orderNO;
 	private OrderItem orderItem1, orderItem2, orderItem3;

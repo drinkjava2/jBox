@@ -8,8 +8,7 @@ import org.aopalliance.intercept.MethodInvocation;
  * An example of AOP alliance Advice
  * 
  * @author Yong Zhu
- * @since 2016-2-29
- * @update 2016-6-18
+ * @since 2.4
  */
 public class AOPLogAdvice {
 	private String name;
@@ -23,7 +22,8 @@ public class AOPLogAdvice {
 	}
 
 	public Object doAround(MethodInvocation caller) throws Throwable {
-		System.out.println("=====logger " + name + ", doAround method begin: " + caller.getMethod().getName() + "=====");
+		System.out
+				.println("=====logger " + name + ", doAround method begin: " + caller.getMethod().getName() + "=====");
 		Object o = caller.proceed();
 		System.out.println("=====logger " + name + ", doAround method end: " + caller.getMethod().getName() + "=====");
 		return o;

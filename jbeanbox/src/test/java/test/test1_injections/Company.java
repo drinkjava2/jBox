@@ -1,5 +1,11 @@
 package test.test1_injections;
 
+/**
+ *
+ *
+ * @author Yong Zhu
+ * @since 2.4
+ */
 public class Company {
 	private String name;
 

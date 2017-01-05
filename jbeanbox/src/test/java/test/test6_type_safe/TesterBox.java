@@ -16,8 +16,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
  * inject values. <br/>
  * 
  * @author Yong Zhu
- * @since 2016-8-23
- * @update 2016-8-23
+ * @since 2.4
  */
 public class TesterBox extends BeanBox {
 	static {
@@ -28,20 +27,20 @@ public class TesterBox extends BeanBox {
 	static class DSPoolBeanBox extends BeanBox {// Type-unsafe and type-safe configurations can mixed use.
 		public ComboPooledDataSource create() {
 			ComboPooledDataSource ds = new ComboPooledDataSource();
-			ds.setUser("root");
+			ds.setUser("sa");
 			return ds;
 		}
 
 		public void config(ComboPooledDataSource ds) {
-			ds.setJdbcUrl("jdbc:mysql://127.0.0.1:3306/test");
-			ds.setPassword("root888");// change to your PWD
+			ds.setJdbcUrl("jdbc:h2:~/test");
+			ds.setPassword("");// change to your PWD
 			ds.setCheckoutTimeout(2000);
 		}
 
 		{
-			setProperty("driverClass", "com.mysql.jdbc.Driver");
+			setProperty("driverClass", "org.h2.Driver");
+			setProperty("maxPoolSize", 10);
 		}
-
 	}
 
 	static class TxManagerBox extends BeanBox {

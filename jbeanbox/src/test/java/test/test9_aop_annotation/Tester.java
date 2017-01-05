@@ -1,12 +1,15 @@
-package test.test5_transaction;
+package test.test9_aop_annotation;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import com.github.drinkjava2.AopAround;
 import com.github.drinkjava2.BeanBox;
 import com.github.drinkjava2.InjectBox;
+
+import test.test9_aop_annotation.TesterBox.TxInterceptorBox;
 
 /**
  * This example shows how to use jBeanBox to replace Spring's core to achieve "Declarative Transaction". <br/>
@@ -20,7 +23,7 @@ import com.github.drinkjava2.InjectBox;
 public class Tester {
 	@Before
 	public void beforeTest() {
-		System.out.println("========= Declarative Transaction Test =========");
+		System.out.println("========= AopAround Annotation of Declarative Transaction Test =========");
 	}
 
 	@InjectBox
@@ -34,6 +37,7 @@ public class Tester {
 		dao.execute("insert into users (username) values ('User2')");
 	}
 
+	@AopAround(TxInterceptorBox.class)
 	public void insertUser() {
 		insertUser1();
 		int count = dao.queryForObject("select count(*) from users", Integer.class);

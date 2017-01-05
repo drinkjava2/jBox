@@ -32,7 +32,7 @@ import com.github.drinkjava2.cglib3_2_0.proxy.MethodProxy;
 class ProxyBean implements MethodInterceptor {
 	protected CopyOnWriteArrayList<Advisor> myAdvisors = new CopyOnWriteArrayList<>();
 
-	protected ProxyBean(Class<?> clazz, List<Advisor> globalAdvicors) {
+	protected ProxyBean(Class<?> clazz, List<Advisor> globalAdvicors, BeanBoxContext context) {
 		String beanClassName = clazz.getName();
 		int i = beanClassName.indexOf("$$");// If created by CGLib, use the original class name as bean ID
 		if (i > 0)
@@ -44,6 +44,27 @@ class ProxyBean implements MethodInterceptor {
 					myAdvisors.add(advisor);
 					break;
 				}
+		}
+		dealAopAroundAnnotation(clazz, context);
+	}
+
+	private void dealAopAroundAnnotation(Class<?> clazz, BeanBoxContext context) {
+		Method[] methods = clazz.getMethods();
+		for (Method method : methods) {// check if have AopAround annotation
+			if (method.isAnnotationPresent(AopAround.class)) {
+				AopAround aop = method.getAnnotation(AopAround.class);
+				if (!Object.class.equals(aop.value())) {
+					BeanBox box = null;
+					try {// NOSONAR
+						box = (BeanBox) aop.value().newInstance();
+						box.setContext(context);
+					} catch (Exception e) {
+						BeanBoxException.throwEX(e, "BeanBox ProxyBean create AopAround box error");
+					}
+					Advisor adv = new Advisor(clazz.getName(), method.getName(), box, "invoke", "AROUND", true);
+					myAdvisors.add(adv);
+				}
+			}
 		}
 	}
 

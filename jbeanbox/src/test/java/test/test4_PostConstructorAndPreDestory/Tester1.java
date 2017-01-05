@@ -1,13 +1,20 @@
 package test.test4_PostConstructorAndPreDestory;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.github.drinkjava2.BeanBox;
 
 /**
  * @author Yong
+ * @since 2.4
  */
 public class Tester1 {
+	@Before
+	public void beforeTest() {
+		System.out.println("========= PostConstructor & PreDestory method test =========");
+	}
+
 	private String name;
 
 	public void init() {

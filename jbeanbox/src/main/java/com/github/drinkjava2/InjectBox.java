@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  * @InjectBox(value=FieldBox.class, required=true) <br/>
  * Field someField;
  * 
- * On field can also use s0, i0, bl0... to inject constant value<br/>
+ * On field can also use s1, i1, bl2... to inject constant value<br/>
  * @InjectBox(s0="Hello") <br/>
  * Field someField;
  * 
@@ -51,19 +51,25 @@ import java.lang.annotation.Target;
 @Target({ ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.TYPE, ElementType.METHOD })
 public @interface InjectBox {
 
-	// For field
+	/**
+	 * Inject a box to a field
+	 */
 	public Class<?> value() default Object.class;// Note: equal to box0
 
-	// default if inject failed, will throw an exception, set to false to keep silence
+	/**
+	 * Default if inject failed, will throw an exception, set to false to keep silence
+	 */
 	public boolean required() default true;
 
-	// Default type is singleton, if set prototype=true will build new instance each time
+	/**
+	 * Used for a class, default type is singleton, if set prototype=true will build new instance each time
+	 */
 	public boolean prototype() default false;
 
 	// Below are for constructor parameters, only support maximum 6 parameters, if need more add by yourself
-	public Class<?> box0() default Object.class;// BeanBox
+	public Class<?> box() default Object.class;// BeanBox
 
-	public Class<?> box1() default Object.class;
+	public Class<?> box1() default Object.class;// BeanBox
 
 	public Class<?> box2() default Object.class;
 
@@ -73,9 +79,11 @@ public @interface InjectBox {
 
 	public Class<?> box5() default Object.class;
 
-	public Class<?> pox0() default Object.class;// force inject a prototype BeanBox
+	public Class<?> box6() default Object.class;
 
-	public Class<?> pox1() default Object.class;
+	public Class<?> pox() default Object.class;
+
+	public Class<?> pox1() default Object.class;// force inject a prototype BeanBox
 
 	public Class<?> pox2() default Object.class;
 
@@ -85,9 +93,11 @@ public @interface InjectBox {
 
 	public Class<?> pox5() default Object.class;
 
-	public Class<?> sox0() default Object.class;// force inject a singleton BeanBox
+	public Class<?> pox6() default Object.class;
 
-	public Class<?> sox1() default Object.class;
+	public Class<?> sox() default Object.class;
+
+	public Class<?> sox1() default Object.class;// force inject a singleton BeanBox
 
 	public Class<?> sox2() default Object.class;
 
@@ -97,7 +107,9 @@ public @interface InjectBox {
 
 	public Class<?> sox5() default Object.class;
 
-	public String s0() default "";
+	public Class<?> sox6() default Object.class;
+
+	public String s() default "";
 
 	public String s1() default "";
 
@@ -109,7 +121,7 @@ public @interface InjectBox {
 
 	public String s5() default "";
 
-	public int i0() default 0;
+	public String s6() default "";
 
 	public int i1() default 0;
 
@@ -120,6 +132,8 @@ public @interface InjectBox {
 	public int i4() default 0;
 
 	public int i5() default 0;
+
+	public int i6() default 0;
 
 	public boolean b0() default false;
 
@@ -133,7 +147,7 @@ public @interface InjectBox {
 
 	public boolean b5() default false;
 
-	public byte bt0() default 0;
+	public boolean b6() default false;
 
 	public byte bt1() default 0;
 
@@ -145,7 +159,7 @@ public @interface InjectBox {
 
 	public byte bt5() default 0;
 
-	public long l0() default 0;
+	public byte bt6() default 0;
 
 	public long l1() default 0;
 
@@ -157,7 +171,7 @@ public @interface InjectBox {
 
 	public long l5() default 0;
 
-	public short st0() default 0;
+	public long l6() default 0;
 
 	public short st1() default 0;
 
@@ -169,7 +183,7 @@ public @interface InjectBox {
 
 	public short st5() default 0;
 
-	public float f0() default 0;
+	public short st6() default 0;
 
 	public float f1() default 0;
 
@@ -181,7 +195,7 @@ public @interface InjectBox {
 
 	public float f5() default 0;
 
-	public double d0() default 0;
+	public float f6() default 0;
 
 	public double d1() default 0;
 
@@ -193,7 +207,7 @@ public @interface InjectBox {
 
 	public double d5() default 0;
 
-	public char c0() default '\u0000';
+	public double d6() default 0;
 
 	public char c1() default '\u0000';
 
@@ -204,5 +218,7 @@ public @interface InjectBox {
 	public char c4() default '\u0000';
 
 	public char c5() default '\u0000';
+
+	public char c6() default '\u0000';
 
 }

@@ -156,10 +156,10 @@ public abstract class BeanBoxUtils {
 	public static Object getInjectFieldValue(Class<?> ownerClass, InjectBox a, Class<?> fieldClass, // NOSONAR
 			String fieldname, int i, BeanBoxContext context) {
 		Class<?> box = null;
-		if (i == 0 && !Object.class.equals(a.value()))
+		if (i == 1 && !Object.class.equals(a.value()))
 			box = a.value();
-		else if (i == 0 && !Object.class.equals(a.box0()))
-			box = a.box0();
+		else if (i == 1 && !Object.class.equals(a.box()))
+			box = a.box();
 		else if (i == 1 && !Object.class.equals(a.box1()))
 			box = a.box1();
 		else if (i == 2 && !Object.class.equals(a.box2()))
@@ -170,11 +170,13 @@ public abstract class BeanBoxUtils {
 			box = a.box4();
 		else if (i == 5 && !Object.class.equals(a.box5()))
 			box = a.box5();
+		else if (i == 6 && !Object.class.equals(a.box6()))
+			box = a.box6();
 		if (box != null)
 			return getBeanBox(ownerClass, fieldClass, box, fieldname, context, true);
 
-		if (i == 0 && !Object.class.equals(a.pox0()))
-			box = a.pox0();
+		if (i == 1 && !Object.class.equals(a.pox()))
+			box = a.pox();
 		else if (i == 1 && !Object.class.equals(a.pox1()))
 			box = a.pox1();
 		else if (i == 2 && !Object.class.equals(a.pox2()))
@@ -185,11 +187,13 @@ public abstract class BeanBoxUtils {
 			box = a.pox4();
 		else if (i == 5 && !Object.class.equals(a.pox5()))
 			box = a.pox5();
+		else if (i == 6 && !Object.class.equals(a.pox6()))
+			box = a.pox6();
 		if (box != null)
 			return getBeanBox(ownerClass, fieldClass, box, fieldname, context, true).setPrototype(true);
 
-		if (i == 0 && !Object.class.equals(a.sox0()))
-			box = a.sox0();
+		if (i == 1 && !Object.class.equals(a.sox()))
+			box = a.sox();
 		else if (i == 1 && !Object.class.equals(a.sox1()))
 			box = a.sox1();
 		else if (i == 2 && !Object.class.equals(a.sox2()))
@@ -200,12 +204,17 @@ public abstract class BeanBoxUtils {
 			box = a.sox4();
 		else if (i == 5 && !Object.class.equals(a.sox5()))
 			box = a.sox5();
+		else if (i == 6 && !Object.class.equals(a.sox6()))
+			box = a.sox6();
 		if (box != null)
 			return getBeanBox(ownerClass, fieldClass, box, fieldname, context, true).setPrototype(false);
 
 		BeanBox bx = getBeanBox(ownerClass, fieldClass, null, fieldname, context, true);
 		if (bx != null)
 			return bx;
+
+		if ((i == 1) && !"".equals(a.s()))
+			return a.s();
 
 		String methodname = null;
 		if (String.class.isAssignableFrom(fieldClass))
@@ -243,7 +252,7 @@ public abstract class BeanBoxUtils {
 		Constructor<?>[] cons = clazz.getDeclaredConstructors();
 		for (Constructor<?> c : cons) {
 			if (c.isAnnotationPresent(InjectBox.class)) {
-				InjectBox a = c.getAnnotation(InjectBox.class);
+				InjectBox anno = c.getAnnotation(InjectBox.class);
 				Class<?>[] parameterTypes = c.getParameterTypes();
 				if (parameterTypes == null)
 					return null;
@@ -254,7 +263,7 @@ public abstract class BeanBoxUtils {
 									+ clazz);
 				Object[] args = new Object[parameterCount];
 				for (int i = 0; i < parameterCount; i++)
-					args[i] = getInjectFieldValue(clazz, a, parameterTypes[i], null, i, context);
+					args[i] = getInjectFieldValue(clazz, anno, parameterTypes[i], null, i + 1, context);
 
 				Object instance;
 				try {
@@ -271,10 +280,10 @@ public abstract class BeanBoxUtils {
 	/**
 	 * Use CGLib create proxy bean, if advice set for this class
 	 */
-	public static Object getProxyBean(Class<?> clazz, List<Advisor> advisorList) {
+	public static Object getProxyBean(Class<?> clazz, List<Advisor> advisorList, BeanBoxContext context) {
 		Enhancer enhancer = new Enhancer();
 		enhancer.setSuperclass(clazz);
-		enhancer.setCallback(new ProxyBean(clazz, advisorList));
+		enhancer.setCallback(new ProxyBean(clazz, advisorList, context));
 		return enhancer.create();
 	}
 
@@ -286,10 +295,14 @@ public abstract class BeanBoxUtils {
 		if (classOrValue == null || !(classOrValue instanceof Class))
 			return false;
 		Method[] methods = ((Class<?>) classOrValue).getMethods();
-		for (Method method : methods)
+		for (Method m : methods) {
+			if (m.isAnnotationPresent(AopAround.class))// if have AopAround annotation
+				return true;
+
 			for (Advisor adv : advisors)
-				if (adv.match(((Class<?>) classOrValue).getName(), method.getName()))
+				if (adv.match(((Class<?>) classOrValue).getName(), m.getName()))
 					return true;
+		}
 		return false;
 	}
 

@@ -1,5 +1,6 @@
 package test.test3_annotation;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.github.drinkjava2.BeanBox;
@@ -15,6 +16,11 @@ import com.github.drinkjava2.InjectBox;
  * @author Yong
  */
 public class Tester {
+	@Before
+	public void beforeTest() {
+		System.out.println("========= Annotation inject test=========");
+	}
+
 	@InjectBox(A.StrBox.class)
 	String s1;// Use StrBox.class, recommend
 

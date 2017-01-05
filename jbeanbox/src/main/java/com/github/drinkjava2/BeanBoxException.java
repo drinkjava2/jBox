@@ -62,7 +62,7 @@ public class BeanBoxException extends RuntimeException {
 	/**
 	 * Eat exception to avoid SONAR warning
 	 */
-	public static Object eatException(Exception e) {
+	public static Object eatException(Exception e) {// NOSONAR
 		return null;
 	}
 

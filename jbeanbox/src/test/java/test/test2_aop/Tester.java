@@ -1,5 +1,6 @@
 package test.test2_aop;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.github.drinkjava2.BeanBox;
@@ -9,9 +10,14 @@ import test.test2_aop.advices.AspectjLogAdvice;
 
 /**
  * @author Yong Zhu
- * @since Mar 1, 2016
+ * @since 2.4
  */
 public class Tester {
+	@Before
+	public void beforeTest() {
+		System.out.println("========= AOP & AspectJ Test =========");
+	}
+
 	private Iitem item;
 
 	public void setItem(Iitem item) {

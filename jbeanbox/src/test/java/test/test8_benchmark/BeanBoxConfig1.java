@@ -10,6 +10,12 @@ import test.test8_benchmark.objects.D1;
 import test.test8_benchmark.objects.D2;
 import test.test8_benchmark.objects.E;
 
+/**
+ *
+ *
+ * @author Yong Zhu
+ * @since 2.4
+ */
 public class BeanBoxConfig1 {
 	public static class PrototypeBox extends BeanBox {
 		{

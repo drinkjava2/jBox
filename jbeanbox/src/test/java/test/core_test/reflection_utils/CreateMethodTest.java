@@ -3,6 +3,13 @@ package test.core_test.reflection_utils;
 
 import com.github.drinkjava2.BeanBox;
 
+/**
+ *
+ *
+ * @author Yong Zhu
+ *
+ * @since 2.4
+ */
 public class CreateMethodTest {
 
 	public static class BaseClassBox extends BeanBox {

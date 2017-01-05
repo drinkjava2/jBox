@@ -48,7 +48,8 @@ import com.github.drinkjava2.springsrc.ReflectionUtils;
  * @author Yong Zhu (Yong9981@gmail.com)
  * @version 2.4.2-SNAPSHOT
  * @since 1.0
- * @update 2016-12-11
+ * @update 2017-01-05
+ * 
  */
 @SuppressWarnings("unchecked")
 public class BeanBox {
@@ -332,7 +333,7 @@ public class BeanBox {
 			InjectBox anno = field.getAnnotation(InjectBox.class);
 			try {
 				if (anno != null) {
-					Object obj = BeanBoxUtils.getInjectFieldValue(beanClass, anno, field.getType(), field.getName(), 0,
+					Object obj = BeanBoxUtils.getInjectFieldValue(beanClass, anno, field.getType(), field.getName(), 1,
 							context);
 					if (obj == null)// NOSONAR
 						continue;
@@ -363,11 +364,11 @@ public class BeanBox {
 				int parameterCount = parameterTypes.length;
 				if (parameterCount == 0 || parameterCount > 6)
 					BeanBoxException.throwEX(null,
-							"BeanBox buildBeanBoxWithAnotatedCtr error, only support at most 6 method parameters,class="
+							"BeanBox buildBeanBoxWithAnotatedCtr error, only support at 1~6 method parameters,class="
 									+ beanClass);
 				Object[] args = new Object[parameterCount];
 				for (int i = 0; i < parameterCount; i++)
-					args[i] = BeanBoxUtils.getInjectFieldValue(beanClass, a, parameterTypes[i], null, i, context);
+					args[i] = BeanBoxUtils.getInjectFieldValue(beanClass, a, parameterTypes[i], null, i + 1, context);
 				try {
 					m.setAccessible(true);
 					m.invoke(beanInstance, BeanBoxUtils.getObjectRealValue(context, args));
@@ -387,7 +388,7 @@ public class BeanBox {
 		for (int i = 0; i < classes.length; i++) {
 			ObjectType type = BeanBoxUtils.judgeType(beanArgs[i]);
 			switch (type) {
-			case BEANBOX_INSTANCE: {
+			case BEANBOX_INSTANCE: {// NOSONAR
 				BeanBox b = (BeanBox) beanArgs[i];
 				Method method = ReflectionUtils.findMethod(b.getClass(), CREATE_BEAN);
 				if (method == null)
@@ -470,7 +471,6 @@ public class BeanBox {
 			decreaseCircularCounter();
 			log.error("BeanBox getBean circular dependency error found! classOrValue=" + classOrValue);
 			return null;
-			// BeanBoxException.throwEX(null, "BeanBox Circular dependency error found.");
 		}
 		Method createBeanMethod = null;
 		synchronized (context.signletonCache) {
@@ -496,9 +496,9 @@ public class BeanBox {
 					BeanBoxException.throwEX(e, "BeanBox getBean error! init method invoke error, class=" + this);
 				}
 			} else {
-				if (BeanBoxUtils.ifHaveAdvice(context.advisorList, classOrValue))
-					instance = BeanBoxUtils.getProxyBean((Class<?>) classOrValue, context.advisorList);
-				else if (constructorArgs != null) // first use given constructor to create instance
+				if (BeanBoxUtils.ifHaveAdvice(context.advisorList, classOrValue)) {
+					instance = BeanBoxUtils.getProxyBean((Class<?>) classOrValue, context.advisorList, context);
+				} else if (constructorArgs != null) // first use given constructor to create instance
 					try {
 						instance = createBeanByGivenConstructor();
 						if (instance == null)// NOSONAR
@@ -512,7 +512,7 @@ public class BeanBox {
 				else if (classOrValue instanceof Class) {
 					instance = BeanBoxUtils.createInstanceWithCtr0((Class<?>) classOrValue);
 					if (instance == null) {
-						if (!context.getIgnoreAnnotation()) // 3rd find annotated constructor
+						if (!context.getIgnoreAnnotation()) // NOSONAR 3rd find annotated constructor
 							instance = BeanBoxUtils.buildBeanBoxWithAnnotatedCtr((Class<?>) classOrValue, context);
 						else {
 							BeanBox bx = BeanBoxUtils.getBeanBox(null, (Class<?>) classOrValue, null, null, context,
@@ -520,7 +520,7 @@ public class BeanBox {
 							if (bx != null)// NOSONAR
 								instance = bx.getBean();
 						}
-						if (instance == null) {
+						if (instance == null) {// NOSONAR
 							decreaseCircularCounter();
 							BeanBoxException.throwEX(null, "BeanBox create bean error! class=" + classOrValue
 									+ " no available constructor found.");
@@ -536,7 +536,7 @@ public class BeanBox {
 				context.signletonCache.put(beanID, instance);// save SingleTon in cache
 				if (!BeanBoxUtils.isEmptyStr(this.getPreDestory())) {// save PreDestory methods in cache
 					try {
-						Method predestoryMethod = ReflectionUtils.findMethod(instance.getClass(), getPreDestory(),
+						Method predestoryMethod = ReflectionUtils.findMethod(instance.getClass(), getPreDestory(), // NOSONAR
 								new Class[] {});
 						this.context.preDestoryMethodCache.put(beanID, predestoryMethod);
 					} catch (Exception e) {

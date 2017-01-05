@@ -2,6 +2,7 @@ package test.test4_PostConstructorAndPreDestory;
 
 /**
  * @author Yong
+ * @since 2.4
  */
 public class Parent {
 	private String name;

@@ -1,4 +1,4 @@
-package test.test5_transaction;
+package test.test9_aop_annotation;
 
 import java.util.Properties;
 
@@ -16,11 +16,6 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
  * @since 2.4
  */
 public class TesterBox extends BeanBox {
-	static {
-		BeanBox.defaultContext.setAOPAround("test.test5_transaction.Test\\w*", "insert\\w*", new TxInterceptorBox(),
-				"invoke");
-	}
-
 	// H2Database memory database c3p0 DataSource pool setting
 	public static class DSPoolBeanBox extends BeanBox {
 		{
@@ -40,7 +35,7 @@ public class TesterBox extends BeanBox {
 		}
 	}
 
-	static class TxInterceptorBox extends BeanBox {// Advice
+	public static class TxInterceptorBox extends BeanBox {// Advice
 		{
 			Properties props = new Properties();
 			props.put("insert*", "PROPAGATION_REQUIRED");

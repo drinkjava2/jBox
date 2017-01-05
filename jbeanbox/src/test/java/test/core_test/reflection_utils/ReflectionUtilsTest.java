@@ -5,13 +5,18 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.github.drinkjava2.BeanBox;
 import com.github.drinkjava2.springsrc.ReflectionUtils;
 
 public class ReflectionUtilsTest {
-
+	@Before
+	public void beforeTest() {
+		System.out.println("========= ReflectionUtilsTest =========");
+	}
+	
 	@Test
 	public void testGetDeclaredMethod() {
 		Object obj = new Son();
