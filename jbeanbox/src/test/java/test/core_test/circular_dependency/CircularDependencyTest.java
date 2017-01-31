@@ -3,8 +3,8 @@ package test.core_test.circular_dependency;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.drinkjava2.BeanBox;
-import com.github.drinkjava2.InjectBox;
+import com.github.drinkjava2.jbeanbox.BeanBox;
+import com.github.drinkjava2.jbeanbox.InjectBox;
 
 /**
  * Circular Dependency internal Test

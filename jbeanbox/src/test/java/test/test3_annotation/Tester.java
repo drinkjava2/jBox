@@ -3,10 +3,10 @@ package test.test3_annotation;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.drinkjava2.BeanBox;
-import com.github.drinkjava2.BeanBoxContext;
-import com.github.drinkjava2.BeanBoxUtils;
-import com.github.drinkjava2.InjectBox;
+import com.github.drinkjava2.jbeanbox.BeanBox;
+import com.github.drinkjava2.jbeanbox.BeanBoxContext;
+import com.github.drinkjava2.jbeanbox.BeanBoxUtils;
+import com.github.drinkjava2.jbeanbox.InjectBox;
 
 /**
  * 

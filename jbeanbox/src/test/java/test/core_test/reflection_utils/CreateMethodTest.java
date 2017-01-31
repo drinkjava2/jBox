@@ -1,7 +1,7 @@
 
 package test.core_test.reflection_utils;
 
-import com.github.drinkjava2.BeanBox;
+import com.github.drinkjava2.jbeanbox.BeanBox;
 
 /**
  *

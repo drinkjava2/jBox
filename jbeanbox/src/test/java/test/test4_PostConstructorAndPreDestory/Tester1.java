@@ -3,7 +3,7 @@ package test.test4_PostConstructorAndPreDestory;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.drinkjava2.BeanBox;
+import com.github.drinkjava2.jbeanbox.BeanBox;
 
 /**
  * @author Yong

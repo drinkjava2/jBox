@@ -8,8 +8,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.drinkjava2.BeanBox;
-import com.github.drinkjava2.springsrc.ReflectionUtils;
+import com.github.drinkjava2.jbeanbox.BeanBox;
+import com.github.drinkjava2.jbeanbox.springsrc.ReflectionUtils;
 
 public class ReflectionUtilsTest {
 	@Before

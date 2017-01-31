@@ -5,8 +5,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.github.drinkjava2.BeanBox;
-import com.github.drinkjava2.InjectBox;
+import com.github.drinkjava2.jbeanbox.BeanBox;
+import com.github.drinkjava2.jbeanbox.InjectBox;
 
 /**
  * This example shows how to use jBeanBox to replace Spring's core to achieve "Declarative Transaction". <br/>

@@ -6,7 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 
-import com.github.drinkjava2.BeanBox;
+import com.github.drinkjava2.jbeanbox.BeanBox;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 /**

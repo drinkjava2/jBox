@@ -1,6 +1,6 @@
 package test.test3_annotation;
 
-import com.github.drinkjava2.BeanBox;
+import com.github.drinkjava2.jbeanbox.BeanBox;
 
 public class Config2 {
 	public static class DBox2 extends BeanBox {

@@ -1,6 +1,6 @@
 package test.test1_injections;
 
-import com.github.drinkjava2.BeanBox;
+import com.github.drinkjava2.jbeanbox.BeanBox;
 
 /**
  * @author Yong Zhu

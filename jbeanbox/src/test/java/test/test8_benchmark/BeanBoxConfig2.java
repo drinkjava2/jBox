@@ -1,7 +1,7 @@
 package test.test8_benchmark;
 
-import com.github.drinkjava2.BeanBox;
-import com.github.drinkjava2.BeanBoxContext;
+import com.github.drinkjava2.jbeanbox.BeanBox;
+import com.github.drinkjava2.jbeanbox.BeanBoxContext;
 
 import test.test8_benchmark.objects.A;
 import test.test8_benchmark.objects.B;

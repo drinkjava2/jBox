@@ -1,6 +1,6 @@
 package test.test4_PostConstructorAndPreDestory;
 
-import com.github.drinkjava2.BeanBox;
+import com.github.drinkjava2.jbeanbox.BeanBox;
 
 /**
  * @author Yong

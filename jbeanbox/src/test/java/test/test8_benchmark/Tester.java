@@ -3,7 +3,7 @@ package test.test8_benchmark;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.drinkjava2.BeanBoxContext;
+import com.github.drinkjava2.jbeanbox.BeanBoxContext;
 
 import test.test8_benchmark.objects.A;
 import test.test8_benchmark.objects.B;

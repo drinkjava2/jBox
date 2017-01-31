@@ -3,8 +3,8 @@ package test.test7_annotation2;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.drinkjava2.BeanBox;
-import com.github.drinkjava2.InjectBox;
+import com.github.drinkjava2.jbeanbox.BeanBox;
+import com.github.drinkjava2.jbeanbox.InjectBox;
 
 /**
  * This example shows constructor & method parameters injection:<br/>
