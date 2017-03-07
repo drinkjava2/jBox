@@ -28,17 +28,10 @@ jBeanBox is released in central repository, add below lines in your project pom.
 <dependency>
     <groupId>com.github.drinkjava2</groupId>
     <artifactId>jbeanbox</artifactId>
-    <version>2.4.1</version>
+    <version>2.4.2</version>
 </dependency>
 ```
-or 
-```
-<dependency>
-    <groupId>com.github.drinkjava2</groupId>
-    <artifactId>jbeanbox</artifactId>
-    <version>2.4.2-SNAPSHOT</version>
-</dependency>
-```
+
 jBeanBox only has dependency to "aopalliance-1.0" and "aspectjrt-1.8.9", if use Maven will automatically download these 2 jars. In side of jBeanBox it depends on CGLIB and ASM, but to avoid jar conflict, jBeanBox already included these 2 libs and changed namesapce.  
 jBeanBox does not require common log or Log4j, but if it found them in class path, will use them as logger output.
 
