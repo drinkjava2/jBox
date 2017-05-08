@@ -1,22 +1,22 @@
-﻿#jBeanBox 
+## jBeanBox 
 **License:** [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 jBeanBox是一个微形但功能较齐全的IOC/AOP工具适用于JAVA7+，利用了Java的初始化块实现的Java配置代替XML。jBeanBox采用Apache License 2.0开源协议。  
 其他一些IOC/AOP框架的问题：  
-1）Spring，HiveMind及其他一些利用XML作为配置文件的IOC/AOP框架：XML不支持类名称拼写检查和IDE重构，很难在运行时更改配置。(从Spring3.0开始使用一种基于Java的配置来取代XML，但Java配置与与注解混用，复杂且不支持配置的继承重用、动态变更配置。我的看法是，作为一个IOC/AOP工具来说，Spring过于复杂了。)  
+1）Spring，HiveMind及其他一些利用XML作为配置文件的IOC/AOP框架：XML不支持类名称拼写检查和IDE重构，很难在运行时更改配置。(从Spring3.0开始使用一种基于Java的配置来取代XML，但Java配置与与注解混用，复杂且不支持配置的继承重用、动态变更配置。我个人对Spirng的看法，从单纯作为一个IOC/AOP工具角度来说，Spring过于复杂了。)  
 2）Guice和其他依赖于注解的IOC/AOP项目：注解是一种拉式注入，入侵性强，不支持第三方库，IOC/AOP工具不应该完全依赖于更改Java源码。 
 
-###jBeanBox的特点：  
+### jBeanBox的特点：  
 1）简单，很少的源码(不到3000行)实现了所有的IOC/AOP功能，没有XML，只有2个注解(InjectBox和AopAround)。学习曲线低、易维护、易扩充和移植。  
 2）使用Java来代替XML，其实现比Spring或Guice的Java配置更简单实用，支持配置的继承重用、运行期动态创建和修改。  
-3) 与Spring内核的功能重叠面多，Spring配置可以很容易移植到jBeanBox上，Spring的一些服务如声明式事务可以抽取出来在jBeanBox上使用。  
-4) 是一个全功能的IOC/AOP工具，而不仅仅只是一个DI工具，旨在小项目中全部或部分取代Spring IoC/AOP内核，其主要功能有：  
+3）与Spring内核的功能重叠面多，Spring配置可以很容易移植到jBeanBox上，Spring的一些服务如声明式事务可以抽取出来在jBeanBox上使用。  
+4）是一个全功能的IOC/AOP工具，而不仅仅只是一个DI工具，旨在小项目中全部或部分取代Spring IoC/AOP内核，其主要功能有：  
 *以Java初始块为基础的纯Java配置类（第一种配置方式）来代替XML，简单易用。  
 *以Java方法回调为基础的Java配置类(第二种配置方式), 实现完全的Java类型安全和IDE重构支持。  
-*基于注解的配置(第三种配置方式)，整个项目只有一个@InjectBox注解，易于学习。 以上三种配置各有特点，可以在同一个配置中混合使用。  
+*基于注解的配置(第三种配置方式)，整个项目只有一个@InjectBox注解用于变量注入，易于学习。 以上三种配置各有特点，可以在同一个配置中混合使用。  
 *Bean实例延迟初始化（与Guice类似）  
 *单例/多例支持，默认情况下所有实例为单例（与Spring类似）; 单例缓存  
-*内置AOP和AspectJ支持,切点简化为正则表达式，AOP环绕方法可以用@AopAround标记在方法上注明
+*内置AOP和AspectJ支持,切点简化为正则表达式，AOP环绕方法用@AopAround标记在方法上注明  
 *多种注射机制：  
 推式注入:值注入，实例注入，构造方法注入，静态工厂注入，实例工厂注入 (与Spring传统XML注入类似)  
 拉式注入：利用@InjectBox注解 (与Guice和Spring的注解注入类似），支持域成员、构造函数参数和方法参数注入，可注入常量。  
@@ -24,38 +24,28 @@ jBeanBox是一个微形但功能较齐全的IOC/AOP工具适用于JAVA7+，利�
 *多上下文支持（除了默认全局范围上下文外，支持创建多个上下文，类似于Spring中创建多个ApplicationContext实例）  
 *Bean生命周期管理（postConstruction和preDestory方法回调）  
 
-###jBeanBox的缺点：  
+### jBeanBox的缺点：  
 比较新，缺少足够的测试。设置AOP时，目标类不能是final类(因采用了CGLIB代理)。  
  
-###如何在项目中使用jBeanBox?  
+### 如何在项目中使用jBeanBox?  
 jBeanBox已发布到Maven中央库，在pom.xml加入以下配置即可：  
 ```
 <dependency>
     <groupId>com.github.drinkjava2</groupId>
     <artifactId>jbeanbox</artifactId>
-    <version>2.4.1</version>
+    <version>2.4.2</version>
 </dependency>
-```
-或SNAPSHOT版:
-```
-<dependency>
-    <groupId>com.github.drinkjava2</groupId>
-    <artifactId>jbeanbox</artifactId>
-    <version>2.4.2-SNAPSHOT</version>
-</dependency>
-```
-jBeanBox仅仅依赖于"aopalliance-1.0"和"aspectjrt-1.8.9"两个包（因为这两个是标准AOP接口)，如果使用Maven将自动下载这两个jar包，jBeanBox内部使用了CGLIB及ASM库，为了防止可能发生的与其它CGLIB版本冲突，已将这两个包打包到jBeanBox内部命名空间。
-jBeanBox不依赖于common log或Log4j,但是如果在类路径中找到它们的配置，将自动采用它们作为日志输出。  
+``` 
+jBeanBox仅仅依赖于"aopalliance-1.0"和"aspectjrt-1.8.9"两个包（因为这两个是标准AOP接口)，如果使用Maven将自动下载这两个jar包，jBeanBox内部使用了CGLIB及ASM库，为了防止可能发生的与其它CGLIB版本冲突，已将这两个包打包到jBeanBox内部命名空间。 jBeanBox不依赖于common-log或Log4j,但是如果在类路径中找到它们的配置，将自动采用它们作为日志输出。  
 
-###如何将jBeanBox项目导入Eclipse?  
+### 如何将jBeanBox项目导入Eclipse?  
 1)安装JDK6以上版本、 Git bash、 Maven, 在命令行下运行：  
 2)git clone https://github.com/drinkjava2/jBeanBox  
 3)cd jBeanBox  
 4)mvn eclipse:eclipse  
 5)打开Eclipse, 按"import"->"Existing Projects into Workspace", 选中jBeanBox目录, 即可将项目导入，注意导入时不要勾选“Copy to project folder”
-6)对于开发者，应工作在develp分支，请使用"git checkout develop"命令检出develop分支。
 
-###jBeanBox使用示例：  
+### jBeanBox使用示例：  
 示例1 - HelloWorld 第一个IOC注入演示  
   下面这个简单程序演示了jBeanBox最基本的两个特点:  
   1)配置写在Java类初始块中。
