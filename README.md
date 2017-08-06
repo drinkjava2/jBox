@@ -27,7 +27,7 @@ jBeanBox是一个微形但功能较齐全的IOC/AOP工具，利用Java的初始�
 *Bean生命周期管理（postConstruction和preDestory方法回调）  
 
 ### jBeanBox的缺点：  
-比较新，缺少足够的测试和用户反馈。设计简单，只有CGLIB代理一种代理方式，切定定义只有正则表达式和@AopAround注解两种方式。 
+比较新，缺少足够的测试和用户反馈。设计简单，只有CGLIB代理一种代理方式，切点定义只有正则表达式和@AopAround注解两种方式。 
 
 ### 如何在项目中使用jBeanBox?  
 手工下载jbeanbox-2.4.3.jar放到项目的类目录，或在pom.xml中加入以下配置：  
