@@ -68,7 +68,7 @@ public class BeanBox {
 	private Object[] constructorArgs;// for constructor injection use
 	private String postConstructor;
 	private String preDestory;
-	private ConcurrentHashMap<String, Object[]> properties = new ConcurrentHashMap<>();// properties
+	private ConcurrentHashMap<String, Object[]> properties = new ConcurrentHashMap<String, Object[]>();// properties
 	public static final BeanBoxContext defaultContext = new BeanBoxContext();// this is a global default context
 	private BeanBoxContext context = defaultContext;
 

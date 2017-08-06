@@ -39,16 +39,16 @@ public class BeanBoxContext {
 	Boolean ignoreAnnotation = false; // if set true, will ignore @injectBox annotation
 
 	// Advisors cache
-	protected CopyOnWriteArrayList<Advisor> advisorList = new CopyOnWriteArrayList<>();
+	protected CopyOnWriteArrayList<Advisor> advisorList = new CopyOnWriteArrayList<Advisor>();
 
 	// Singleton instance cache
-	protected HashMap<String, Object> signletonCache = new HashMap<>();
+	protected HashMap<String, Object> signletonCache = new HashMap<String, Object>();
 
 	// Configuration file class cache
-	private List<Class<?>> configClassList = new CopyOnWriteArrayList<>();
+	private List<Class<?>> configClassList = new CopyOnWriteArrayList<Class<?>>();
 
 	// preDestory method cache
-	protected ConcurrentHashMap<String, Method> preDestoryMethodCache = new ConcurrentHashMap<>();
+	protected ConcurrentHashMap<String, Method> preDestoryMethodCache = new ConcurrentHashMap<String, Method>();
 
 	public BeanBoxContext(Class<?>... configClasses) {
 		for (Class<?> configClass : configClasses) {
@@ -155,10 +155,10 @@ public class BeanBoxContext {
 			}
 		}
 		boxIdentity = "Box";
-		advisorList = new CopyOnWriteArrayList<>();
-		signletonCache = new HashMap<>();
-		configClassList = new CopyOnWriteArrayList<>();
-		preDestoryMethodCache = new ConcurrentHashMap<>();
+		advisorList = new CopyOnWriteArrayList<Advisor>();
+		signletonCache = new HashMap<String, Object>();
+		configClassList = new CopyOnWriteArrayList<Class<?>>();
+		preDestoryMethodCache = new ConcurrentHashMap<String, Method>();
 	}
 
 	/**
@@ -168,6 +168,14 @@ public class BeanBoxContext {
 			String adviceAroundMethodName) {
 		advisorList
 				.add(new Advisor(classNameReg, methodNameReg, adviceBeanBox, adviceAroundMethodName, "AROUND", true));
+	}
+	
+	/**
+	 * Set AOPAround, ClassNameReg and methodNameReg use java Regex, adviceAroundMethodName is "invoke"
+	 */
+	public void setAOPAround(String classNameReg, String methodNameReg, BeanBox adviceBeanBox) {
+		advisorList
+				.add(new Advisor(classNameReg, methodNameReg, adviceBeanBox, "invoke", "AROUND", true));
 	}
 
 	/**
@@ -197,40 +205,6 @@ public class BeanBoxContext {
 				new Advisor(classNameReg, methodNameReg, adviceBeanBox, adviceAroundMethodName, "AFTERTHROWING", true));
 	}
 
-	/**
-	 * Set AspectjAround, ClassNameReg and methodNameReg use java Regex
-	 */
-	public void setAspectjAround(String classNameReg, String methodNameReg, BeanBox adviceBeanBox,
-			String adviceAroundMethodName) {
-		advisorList
-				.add(new Advisor(classNameReg, methodNameReg, adviceBeanBox, adviceAroundMethodName, "AROUND", false));
-	}
-
-	/**
-	 * Set AspectjBefore, ClassNameReg and methodNameReg use java Regex
-	 */
-	public void setAspectjBefore(String classNameReg, String methodNameReg, BeanBox adviceBeanBox,
-			String adviceAroundMethodName) {
-		advisorList
-				.add(new Advisor(classNameReg, methodNameReg, adviceBeanBox, adviceAroundMethodName, "BEFORE", false));
-	}
-
-	/**
-	 * Set AspectjAfterReturning, ClassNameReg and methodNameReg use java Regex
-	 */
-	public void setAspectjAfterReturning(String classNameReg, String methodNameReg, BeanBox adviceBeanBox,
-			String adviceAroundMethodName) {
-		advisorList.add(new Advisor(classNameReg, methodNameReg, adviceBeanBox, adviceAroundMethodName,
-				"AFTERRETURNING", false));
-	}
-
-	/**
-	 * Set AspectjAfterThrowing, ClassNameReg and methodNameReg use java Regex
-	 */
-	public void setAspectjAfterThrowing(String classNameReg, String methodNameReg, BeanBox adviceBeanBox,
-			String adviceAroundMethodName) {
-		advisorList.add(new Advisor(classNameReg, methodNameReg, adviceBeanBox, adviceAroundMethodName, "AFTERTHROWING",
-				false));
-	}
+ 
 
 }

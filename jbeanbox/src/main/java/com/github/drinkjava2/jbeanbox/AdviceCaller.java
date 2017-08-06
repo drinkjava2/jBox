@@ -19,10 +19,8 @@ import java.lang.reflect.Method;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.aopalliance.intercept.MethodInvocation;
-import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.ProceedingJoinPoint;
 
-import com.github.drinkjava2.jbeanbox.cglib3_2_0.proxy.MethodProxy;
+import com.github.drinkjava2.cglib3_2_0.proxy.MethodProxy;
 
 /**
  * Advice Caller
@@ -100,35 +98,9 @@ class AdviceCaller {
 						throw ex;
 					}
 				}
-			} else {// else is AspectJ advice, you can add your customized methods at here
-				if ("AROUND".equals(advisor.adviceType)) {
-					// public Object methodName(ProceedingJoinPoint caller) throws Throwable
-					Method m = advice.getClass().getMethod(advisor.adviceMethodName,
-							new Class[] { ProceedingJoinPoint.class });
-					return m.invoke(advice, new AspectjProceedingJoinPoint(proxy, target, method, args, this));
-				} else if ("BEFORE".equals(advisor.adviceType)) {
-					// public void before(JoinPoint caller) throws Throwable
-					Method m = advice.getClass().getMethod(advisor.adviceMethodName, new Class[] { JoinPoint.class });
-					m.invoke(advice, new Object[] { new AspectjJoinPoint(proxy, target, method, args, this) });
-					return callNextAdvisor();
-				} else if ("AFTERRETURNING".equals(advisor.adviceType)) {
-					// public void afterReturning(JoinPoint caller, Object result) throws Throwable
-					Object result = callNextAdvisor();
-					Method m = advice.getClass().getMethod(advisor.adviceMethodName,
-							new Class[] { JoinPoint.class, Object.class });
-					m.invoke(advice, new Object[] { new AspectjJoinPoint(proxy, target, method, args, this), result });
-					return result;
-				} else if ("AFTERTHROWING".equals(advisor.adviceType)) {
-					// public void afterThrowing(JoinPoint caller, Exception ex) throws Throwable
-					try {// NOSONAR
-						return callNextAdvisor();
-					} catch (Exception ex) {
-						Method m = advice.getClass().getMethod(advisor.adviceMethodName,
-								new Class[] { JoinPoint.class, Exception.class });
-						m.invoke(advice, new Object[] { new AspectjJoinPoint(proxy, target, method, args, this), ex });
-						throw ex;
-					}
-				}
+			} else{
+				//from 2.4.3 deleted uncommon used AspectJ support to avoid the 3rd party dependency
+				throw new AssertionError("BeanBox only support AOPAlliance Advice");
 			}
 			throw new AssertionError("BeanBox AdviceType not support error: " + advisor.adviceType);
 		} else

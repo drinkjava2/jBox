@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.github.drinkjava2.jbeanbox.cglib3_2_0.proxy.Enhancer;
+import com.github.drinkjava2.cglib3_2_0.proxy.Enhancer;
 import com.github.drinkjava2.jbeanbox.springsrc.ReflectionUtils;
 
 /**
@@ -33,7 +33,7 @@ import com.github.drinkjava2.jbeanbox.springsrc.ReflectionUtils;
 public abstract class BeanBoxUtils {
 	private static final BeanBoxLogger log = BeanBoxLogger.getLog(BeanBoxUtils.class);
 
-	private static ConcurrentHashMap<String, Integer> classExistCache = new ConcurrentHashMap<>();
+	private static ConcurrentHashMap<String, Integer> classExistCache = new ConcurrentHashMap<String, Integer>();
 
 	/**
 	 * Return true if empty or null

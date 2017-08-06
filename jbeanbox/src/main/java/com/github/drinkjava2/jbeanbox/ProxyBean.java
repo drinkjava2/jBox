@@ -19,8 +19,8 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import com.github.drinkjava2.jbeanbox.cglib3_2_0.proxy.MethodInterceptor;
-import com.github.drinkjava2.jbeanbox.cglib3_2_0.proxy.MethodProxy;
+import com.github.drinkjava2.cglib3_2_0.proxy.MethodInterceptor;
+import com.github.drinkjava2.cglib3_2_0.proxy.MethodProxy;
 
 /**
  * ProxyBean created by CGLib
@@ -30,7 +30,7 @@ import com.github.drinkjava2.jbeanbox.cglib3_2_0.proxy.MethodProxy;
  *
  */
 class ProxyBean implements MethodInterceptor {
-	protected CopyOnWriteArrayList<Advisor> myAdvisors = new CopyOnWriteArrayList<>();
+	protected CopyOnWriteArrayList<Advisor> myAdvisors = new CopyOnWriteArrayList<Advisor>();
 
 	protected ProxyBean(Class<?> clazz, List<Advisor> globalAdvicors, BeanBoxContext context) {
 		String beanClassName = clazz.getName();
