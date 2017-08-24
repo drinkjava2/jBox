@@ -24,12 +24,12 @@ Key Feature of jBeanBox:
 Pretty new, need do more test, only support CGLib proxy, for point-cut definition only support Java Regex or @AopAround annotation.
  
 ### How to use jBeanBox?  
-Download jbeanbox-2.4.3.jar put into lib folder, or add below lines in pom.xml file:  
+Download jbeanbox-2.4.4.jar put into lib folder, or add below lines in pom.xml file:  
 ```
 <dependency>
     <groupId>com.github.drinkjava2</groupId>
     <artifactId>jbeanbox</artifactId>
-    <version>2.4.3</version>
+    <version>2.4.4</version>
 </dependency>
 ```
 jBeanBox only has no any other 3rd party dependency. 

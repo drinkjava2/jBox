@@ -30,15 +30,15 @@ jBeanBox是一个微形但功能较齐全的IOC/AOP工具，利用Java的初始�
 比较新，缺少足够的测试和用户反馈。设计简单，只有CGLIB代理一种代理方式，切点定义只有正则表达式和@AopAround注解两种方式。 
 
 ### 如何在项目中使用jBeanBox?  
-手工下载jbeanbox-2.4.3.jar放到项目的类目录，或在pom.xml中加入以下配置：  
+手工下载jbeanbox-2.4.4.jar放到项目的类目录，或在pom.xml中加入以下配置：  
 ```
 <dependency>
     <groupId>com.github.drinkjava2</groupId>
     <artifactId>jbeanbox</artifactId>
-    <version>2.4.3</version>
+    <version>2.4.4</version>
 </dependency>
 ``` 
-jBeanBox不依赖于任何第三方库，为避免包冲突，它已将用到的CGLIB、ASM、AopAlliance三个库以源码变换包名方式包含在项目内。  
+jBeanBox不依赖于任何第三方库，为避免包冲突，它已将用到的CGLIB、ASM、AopAlliance三个库以源码方式(前两个更改了包名)包含在项目内。  
 
 ### jBeanBox使用示例：  
 示例1 - HelloWorld 第一个IOC注入演示  
@@ -432,7 +432,7 @@ Runtime benchmark, fetch bean for 100000 times:
                       SpringAnnotationScanned|    78ms
 ```
 
-示例10 新添加了一个@AopAround注解，在需要AOP环绕回调的方法上加上这个注解即可，例如标记Spring的声明式事务，可以简化为如下方式：
+示例10 新添加了一个@AopAround注解，在需要AOP环绕回调的方法上加上这个注解即可，参数为Advice类或BeanBox类，例如标记Spring的声明式事务，可以简化为如下方式：
 ```
 	@AopAround(TxInterceptorBox.class)
 	public void insertUser() {
@@ -444,5 +444,6 @@ Runtime benchmark, fetch bean for 100000 times:
 		insertUser2();
 	}
 ```
+AopAround注解的使用详见目录test.test9_aop_annotation，  
 
 以上即为jBeanBox全部文档，如有疑问，请下载示例运行或查看源码。

@@ -1,17 +1,17 @@
 /**
  * Copyright (C) 2016 Yong Zhu.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 package com.github.drinkjava2.jbeanbox;
 
@@ -56,7 +56,15 @@ class ProxyBean implements MethodInterceptor {
 				if (!Object.class.equals(aop.value())) {
 					BeanBox box = null;
 					try {// NOSONAR
-						box = (BeanBox) aop.value().newInstance();
+
+						box = BeanBoxUtils.getBeanBox(null, aop.value(), null, null, context, true);
+
+						// if (BeanBox.class.isAssignableFrom(aop.value())) {
+						// box = (BeanBox) aop.value().newInstance();
+						// } else {
+						// box = new BeanBox();
+						// box.setClassOrValue(aop.value());
+						// }
 						box.setContext(context);
 					} catch (Exception e) {
 						BeanBoxException.throwEX(e, "BeanBox ProxyBean create AopAround box error");
@@ -70,8 +78,9 @@ class ProxyBean implements MethodInterceptor {
 
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy cgLibMethodProxy) throws Throwable {
-		if (!myAdvisors.isEmpty() && myAdvisors.get(0).match(obj.getClass().getName(), method.getName()))
-			// Start a advice chain call
+		// if (!myAdvisors.isEmpty() &&
+		// myAdvisors.get(0).match(obj.getClass().getName(), method.getName()))
+		if (!myAdvisors.isEmpty())// Start a advice chain call
 			return new AdviceCaller(this, obj, method, args, cgLibMethodProxy, myAdvisors).callNextAdvisor();
 		else
 			return cgLibMethodProxy.invokeSuper(obj, args);
