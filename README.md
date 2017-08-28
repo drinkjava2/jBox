@@ -101,9 +101,12 @@ public class Tester {
   }
 } 
 ```
-为节省篇幅，一些java类以及静态工厂、实例工厂演示未在此示例中列出，请自行翻看项目演示源码，下同。
+为节省篇幅，一些java类以及静态工厂、实例工厂演示未在此示例中列出，请自行翻看项目演示源码，下同。  
+另外关于构造器注入，方式为:  
+new BeanBox().setConstructor(SomeClass.class, new B()).setConstructorTypes(A.class).getBean()  
+其中setConstructorTypes()方法可选，用于需要明确指定构造函数的参数类型时。
 
- 示例3： AOP演示，此项目已内嵌了AOP联盟接口支持，但是切点只支持Java正则表达式一种方式。
+示例3： AOP演示，此项目已内嵌了AOP联盟接口支持，但是切点只支持Java正则表达式一种方式。
 ("AOPLogAdvice源码略,详见测试目录）
 ```
 public class Tester {

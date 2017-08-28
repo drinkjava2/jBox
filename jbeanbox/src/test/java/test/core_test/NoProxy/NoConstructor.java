@@ -1,15 +1,12 @@
-package test.core_test.AopProxy;
+package test.core_test.NoProxy;
 
-import com.github.drinkjava2.jbeanbox.AopAround;
 import com.github.drinkjava2.jbeanbox.BeanBox;
 
-import test.test9_aop_annotation.AopInvokeAdvice;
-
 /**
- * @author Yong 
+ * @author Yong
  * @since 2.4.5
  */
-public class NoConstructorTarget { 
+public class NoConstructor {
 	private String name;
 	private Integer age;
 
@@ -29,15 +26,14 @@ public class NoConstructorTarget {
 		this.age = age;
 	}
 
-	@AopAround(AopInvokeAdvice.class)
 	public String getNameAndAge() {
 		System.out.println("name=" + name + ", age=" + age);
 		return "name=" + name + ", age=" + age;
 	}
 
-	public static class NoConstructorTargetBox extends BeanBox {
+	public static class NoConstructorBox extends BeanBox {
 		{
-			this.setClassOrValue(NoConstructorTarget.class);
+			this.setClassOrValue(NoConstructor.class);
 			this.setProperty("name", "Jerry");
 			this.setProperty("age", 4);
 		}

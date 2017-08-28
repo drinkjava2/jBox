@@ -1,25 +1,25 @@
 /**
  * Copyright (C) 2016 Yong Zhu.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 /**
- * For developers: this project is set to each line 120 characters.  
+ * For developers: this project is set to each line 120 characters.
  * 
- * Compare to last version 2.3, this version 2.4 fixed some bugs and put some new functions like Java 
- * configuration and allow use @injectBox annotation on constructor to allow build an object tree with out
- * use configuration class  
+ * Compare to last version 2.3, this version 2.4 fixed some bugs and put some
+ * new functions like Java configuration and allow use @injectBox annotation on
+ * constructor to allow build an object tree with out use configuration class
  */
 
 package com.github.drinkjava2.jbeanbox;
@@ -39,12 +39,14 @@ import com.github.drinkjava2.jbeanbox.springsrc.ReflectionUtils;
  * jBeanBox is a macro scale IOC & AOP framework for Java 7 and above.
  * 
  * In version2.4.2 make make below changes:<br/>
- * 1)Fixed the bug can not find Parent class's method, this cause setPostConstructor() and setPreDestory() doesn't work
- * on child class <br/>
+ * 1)Fixed the bug can not find Parent class's method, this cause
+ * setPostConstructor() and setPreDestory() doesn't work on child class <br/>
  * 2)Use logger to replace System.out.print <br/>
  * 3)Do some clean up within SONAR source code check<br/>
- * 4)Delete jbeanBox-samples Maven module, move unit test inside of jbeanbox module<br/>
- * 5)Will direct use Spring's ReflectionUtils in this project, current ReflectionUtils has some problems<br/>
+ * 4)Delete jbeanBox-samples Maven module, move unit test inside of jbeanbox
+ * module<br/>
+ * 5)Will direct use Spring's ReflectionUtils in this project, current
+ * ReflectionUtils has some problems<br/>
  * 6)Allow add injectBox Annotation on method to indicate a AOP point-cut.
  * 
  * @author Yong Zhu (Yong9981@gmail.com)
@@ -68,6 +70,7 @@ public class BeanBox {
 	private boolean isValueType = false; // if true means it's a value type, no need create instance
 	private boolean prototype = false;// Default is singleTon, set prototype=true will each time return a new instance
 	private Object[] constructorArgs;// for constructor injection use
+	private Class<?>[] constructorTypes;// from 2.4.5 added, give constructor types
 	private String postConstructor;
 	private String preDestory;
 	private ConcurrentHashMap<String, Object[]> properties = new ConcurrentHashMap<String, Object[]>();// properties
@@ -114,6 +117,15 @@ public class BeanBox {
 	}
 
 	/**
+	 * Set constructor parameter types, this method is useful when sometimes if only
+	 * give constructorParameters but not enough to determine use which constructor
+	 */
+	public BeanBox setConstructorTypes(Class<?>... constructorTypes) {
+		this.constructorTypes = constructorTypes;
+		return this;
+	}
+
+	/**
 	 * Set classOrValue for a BeanBox instance
 	 */
 	public BeanBox setClassOrValue(Object classOrValue) {
@@ -124,7 +136,8 @@ public class BeanBox {
 	}
 
 	/**
-	 * Set isValueType, if set true will not create class instance when getBean() method be called
+	 * Set isValueType, if set true will not create class instance when getBean()
+	 * method be called
 	 */
 	public BeanBox setValueType(boolean isValueType) {
 		this.isValueType = isValueType;
@@ -149,7 +162,8 @@ public class BeanBox {
 	}
 
 	/**
-	 * Default is singleTon, if set true, each time will create a new instance when getBean() method be called
+	 * Default is singleTon, if set true, each time will create a new instance when
+	 * getBean() method be called
 	 */
 	public BeanBox setPrototype(boolean prototype) {
 		this.prototype = prototype;
@@ -189,7 +203,8 @@ public class BeanBox {
 	}
 
 	/**
-	 * Set property, can be BeanBox class or normal class or value, for normal class will be wrapped as a BeanBox
+	 * Set property, can be BeanBox class or normal class or value, for normal class
+	 * will be wrapped as a BeanBox
 	 */
 	public BeanBox setProperty(String property, Object classOrValue) {
 		ObjectType type = BeanBoxUtils.judgeType(classOrValue);
@@ -237,19 +252,22 @@ public class BeanBox {
 	/**
 	 * Use CGLib create proxy bean, if advice set for this class
 	 */
-	public  Object getProxyBean(Class<?> clazz, List<Advisor> advisorList, BeanBoxContext context,Object[] constructorArgs) {
+	public Object getProxyBean(Class<?> clazz, List<Advisor> advisorList) {
 		Enhancer enhancer = new Enhancer();
 		enhancer.setSuperclass(clazz);
 		enhancer.setCallback(new ProxyBean(clazz, advisorList, context));
 		if (constructorArgs != null) {
-			Class<?>[] argsTypes = getObjectClassType(constructorArgs);
-			return	enhancer.create(argsTypes, constructorArgs);
-			}
-			else return	enhancer.create();
+			Class<?>[] argsTypes = constructorTypes;
+			if (constructorTypes == null)
+				argsTypes = guessObjectClassType(constructorArgs);
+			return enhancer.create(argsTypes, constructorArgs);
+		} else
+			return enhancer.create();
 	}
-	
+
 	/**
-	 * Inject values into bean, use standard JDK reflection, bean setter methods are necessary
+	 * Inject values into bean, use standard JDK reflection, bean setter methods are
+	 * necessary
 	 */
 	private void invokeMethodToSetValue(Object bean, Method method, Object... args) {
 		try {
@@ -261,7 +279,7 @@ public class BeanBox {
 				// PropertyType.STATIC_FACTORY, staticFactoryClass, methodName, args
 				Class<?> c = (Class<?>) args[1];
 				Object[] beanArgs = (Object[]) args[3];
-				Method m = ReflectionUtils.findMethod(c, (String) args[2], getObjectClassType(beanArgs));
+				Method m = ReflectionUtils.findMethod(c, (String) args[2], guessObjectClassType(beanArgs));
 				Object beaninstance = m.invoke(c, BeanBoxUtils.getObjectRealValue(context, beanArgs));
 				method.invoke(bean, new Object[] { beaninstance });
 			} else if (((PropertyType) args[0]) == PropertyType.BEAN_FACTORY) {
@@ -271,7 +289,7 @@ public class BeanBox {
 				Object instance = bx.getBean();
 				Object[] beanArgs = (Object[]) args[3];
 				Method m = ReflectionUtils.findMethod(instance.getClass(), (String) args[2],
-						getObjectClassType(beanArgs));
+						guessObjectClassType(beanArgs));
 				Object beaninstance = m.invoke(instance, BeanBoxUtils.getObjectRealValue(context, beanArgs));
 				method.invoke(bean, new Object[] { beaninstance });
 			}
@@ -282,7 +300,8 @@ public class BeanBox {
 	}
 
 	/**
-	 * Inject values into bean, use field.set method, not recommend because it can inject into private field
+	 * Inject values into bean, use field.set method, not recommend because it can
+	 * inject into private field
 	 */
 	private void forceInjectFieldValue(Object bean, Field field, Object... args) {
 		try {
@@ -294,14 +313,14 @@ public class BeanBox {
 			else if (((PropertyType) args[0]) == PropertyType.STATIC_FACTORY) {
 				Class<?> c = (Class<?>) args[1];
 				Object[] beanArgs = (Object[]) args[3];
-				Method m = ReflectionUtils.findMethod(c, (String) args[2], getObjectClassType(beanArgs));
+				Method m = ReflectionUtils.findMethod(c, (String) args[2], guessObjectClassType(beanArgs));
 				Object beaninstance = m.invoke(c, BeanBoxUtils.getObjectRealValue(context, beanArgs));
 				field.set(bean, beaninstance);
 			} else if (((PropertyType) args[0]) == PropertyType.BEAN_FACTORY) {
 				Object instance = ((BeanBox) args[1]).setContext(context).getBean();
 				Object[] beanArgs = (Object[]) args[3];
 				Method m = ReflectionUtils.findMethod(instance.getClass(), (String) args[2],
-						getObjectClassType(beanArgs));
+						guessObjectClassType(beanArgs));
 				Object beaninstance = m.invoke(instance, BeanBoxUtils.getObjectRealValue(context, beanArgs));
 				field.set(bean, beaninstance);
 			}
@@ -341,7 +360,8 @@ public class BeanBox {
 	}
 
 	/**
-	 * For a field with @Inject annotation, find BeanBox or value, then inject into field
+	 * For a field with @Inject annotation, find BeanBox or value, then inject into
+	 * field
 	 */
 	private void injectAnnotationFields(Class<?> beanClass, Object beanInstance) {
 		Field[] fields = beanClass.getDeclaredFields();
@@ -367,7 +387,8 @@ public class BeanBox {
 	}
 
 	/**
-	 * For a method with @Inject annotation, find BeanBox or value, then inject and call method
+	 * For a method with @Inject annotation, find BeanBox or value, then inject and
+	 * call method
 	 */
 	private void injectAnnotationMethods(Class<?> beanClass, Object beanInstance) {
 		Method[] methods = beanClass.getDeclaredMethods();
@@ -399,7 +420,7 @@ public class BeanBox {
 	/**
 	 * Translate object[] to Class[], for invoke use
 	 */
-	private Class<?>[] getObjectClassType(Object... beanArgs) {// Translate object[] to Class[], for invoke use
+	private Class<?>[] guessObjectClassType(Object... beanArgs) {// Translate object[] to Class[], for invoke use
 		Class<?>[] classes = new Class[beanArgs.length];
 		for (int i = 0; i < classes.length; i++) {
 			ObjectType type = BeanBoxUtils.judgeType(beanArgs[i]);
@@ -431,7 +452,8 @@ public class BeanBox {
 	}
 
 	/**
-	 * Call config method in a BeanBox class, usually used to set bean instance properties
+	 * Call config method in a BeanBox class, usually used to set bean instance
+	 * properties
 	 */
 	private void callConfigBeanMethod(Object instance) throws AssertionError {
 		Method setPropertiesMethod = null;
@@ -513,7 +535,7 @@ public class BeanBox {
 				}
 			} else {
 				if (BeanBoxUtils.ifHaveAdvice(context.advisorList, classOrValue)) {
-					instance = getProxyBean((Class<?>) classOrValue, context.advisorList, context, constructorArgs);
+					instance = getProxyBean((Class<?>) classOrValue, context.advisorList);
 				} else if (constructorArgs != null) // first use given constructor to create instance
 					try {
 						instance = createBeanByGivenConstructor();
@@ -589,7 +611,9 @@ public class BeanBox {
 	 * Create Bean instance by given constructor
 	 */
 	public Object createBeanByGivenConstructor() {
-		Class<?>[] argsTypes = getObjectClassType(constructorArgs);
+		Class<?>[] argsTypes = constructorTypes;
+		if (constructorTypes == null)
+			argsTypes = guessObjectClassType(constructorArgs);
 		outer: for (Constructor<?> c : ((Class<?>) classOrValue).getConstructors()) {// NOSONAR
 			Class<?>[] cType = c.getParameterTypes();
 			if (cType.length != argsTypes.length)

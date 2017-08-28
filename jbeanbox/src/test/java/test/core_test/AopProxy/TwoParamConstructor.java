@@ -8,13 +8,19 @@ import test.test9_aop_annotation.AopInvokeAdvice;
  * @author Yong
  * @since 2.4.5
  */
-public class WithConstructorTarget3 {
+public class TwoParamConstructor {
 	private String name;
 	private Integer age;
 
-	public WithConstructorTarget3() {
-		System.out.println("In WithConstructorTarget3 constructor");
+	public TwoParamConstructor() {
+		System.out.println("In TwoParamConstructor constructor1");
 	};
+
+	public TwoParamConstructor(String name, Integer age) {
+		System.out.println("In WithConstructorTarget2 constructor2");
+		this.name = name;
+		this.age = age;
+	}
 
 	@AopAround(AopInvokeAdvice.class)
 	public String getNameAndAge() {

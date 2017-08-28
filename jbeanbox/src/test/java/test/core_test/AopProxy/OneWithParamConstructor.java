@@ -1,23 +1,20 @@
 package test.core_test.AopProxy;
 
 import com.github.drinkjava2.jbeanbox.AopAround;
+import com.github.drinkjava2.jbeanbox.BeanBox;
 
 import test.test9_aop_annotation.AopInvokeAdvice;
 
 /**
- * @author Yong
+ * @author Yong 
  * @since 2.4.5
  */
-public class WithConstructorTarget2 { 
+public class OneWithParamConstructor { 
 	private String name;
 	private Integer age;
 
-	public WithConstructorTarget2() {
-		System.out.println("In WithConstructorTarget2 constructor1");
-	};
-
-	public WithConstructorTarget2(String name, Integer age) {
-		System.out.println("In WithConstructorTarget2 constructor2");
+	public OneWithParamConstructor(String name, Integer age) {
+		System.out.println("In OneWithParamConstructor constructor");
 		this.name = name;
 		this.age = age;
 	}
@@ -28,4 +25,9 @@ public class WithConstructorTarget2 {
 		return "name=" + name + ", age=" + age;
 	}
 
+	public static class OneWithParamConstructorBox extends BeanBox {
+		{
+			this.setConstructor(OneWithParamConstructor.class, "Tom", 3);
+		}
+	}
 }
