@@ -1,17 +1,17 @@
 /**
  * Copyright (C) 2016 Yong Zhu.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 package com.github.drinkjava2.jbeanbox;
 
@@ -32,7 +32,8 @@ public class BeanBoxContext {
 
 	private static final BeanBoxLogger log = BeanBoxLogger.getLog(BeanBoxContext.class);
 
-	// The default BoxIdentity is "Box", BoxIdentity will be use for looking for BeanBox class
+	// The default BoxIdentity is "Box", BoxIdentity will be use for looking for
+	// BeanBox class
 	String boxIdentity = "Box";
 	private static final String BEAN_BOX_CLASS_NAME = BeanBox.class.getName();
 
@@ -141,7 +142,8 @@ public class BeanBoxContext {
 	}
 
 	/**
-	 * When close() method be called, call preDestory() methods for all cached singleTon Beans.
+	 * When close() method be called, call preDestory() methods for all cached
+	 * singleTon Beans.
 	 */
 	public void close() {
 		for (Entry<String, Method> entry : preDestoryMethodCache.entrySet()) {
@@ -169,13 +171,13 @@ public class BeanBoxContext {
 		advisorList
 				.add(new Advisor(classNameReg, methodNameReg, adviceBeanBox, adviceAroundMethodName, "AROUND", true));
 	}
-	
+
 	/**
-	 * Set AOPAround, ClassNameReg and methodNameReg use java Regex, adviceAroundMethodName is "invoke"
+	 * Set AOPAround, ClassNameReg and methodNameReg use java Regex,
+	 * adviceAroundMethodName is "invoke"
 	 */
 	public void setAOPAround(String classNameReg, String methodNameReg, BeanBox adviceBeanBox) {
-		advisorList
-				.add(new Advisor(classNameReg, methodNameReg, adviceBeanBox, "invoke", "AROUND", true));
+		advisorList.add(new Advisor(classNameReg, methodNameReg, adviceBeanBox, "invoke", "AROUND", true));
 	}
 
 	/**
@@ -205,6 +207,51 @@ public class BeanBoxContext {
 				new Advisor(classNameReg, methodNameReg, adviceBeanBox, adviceAroundMethodName, "AFTERTHROWING", true));
 	}
 
- 
+	public CopyOnWriteArrayList<Advisor> getAdvisorList() {
+		return advisorList;
+	}
+
+	// getter & setter====
+	/**
+	 * Set Advisor List, usually no need use this method except experts
+	 */
+	public void setAdvisorList(CopyOnWriteArrayList<Advisor> advisorList) {// NOSONAR
+		this.advisorList = advisorList;
+	}
+
+	/**
+	 * Get singleton cache, usually no need use this method except experts
+	 */
+	public HashMap<String, Object> getSignletonCache() {// NOSONAR
+		return signletonCache;
+	}
+
+	/**
+	 * Set singleton cache, usually no need use this method except experts
+	 */
+	public void setSignletonCache(HashMap<String, Object> signletonCache) {// NOSONAR
+		this.signletonCache = signletonCache;
+	}
+
+	/**
+	 * Get PreDestory Method Cache, usually no need use this method except experts
+	 */
+	public ConcurrentHashMap<String, Method> getPreDestoryMethodCache() {// NOSONAR
+		return preDestoryMethodCache;
+	}
+
+	/**
+	 * Set PreDestory Method Cache, usually no need use this method except experts
+	 */
+	public void setPreDestoryMethodCache(ConcurrentHashMap<String, Method> preDestoryMethodCache) {// NOSONAR
+		this.preDestoryMethodCache = preDestoryMethodCache;
+	}
+
+	/**
+	 * Set config class list, usually no need use this method except experts
+	 */
+	public void setConfigClassList(List<Class<?>> configClassList) {
+		this.configClassList = configClassList;
+	}
 
 }
