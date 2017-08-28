@@ -5,7 +5,8 @@ import org.junit.Test;
 import com.github.drinkjava2.jbeanbox.AopAround;
 import com.github.drinkjava2.jbeanbox.BeanBox;
 
-import test.test9_aop_annotation.AopInvokeAdvice.AopInvokeAdviceBox;
+import test.logger_advice.AopInvokeAdvice;
+import test.logger_advice.AopInvokeAdvice.AopInvokeAdviceBox;
 
 /**
  * An example of AOP alliance Advice

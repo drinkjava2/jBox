@@ -495,15 +495,8 @@ public class BeanBox {
 		if (isValueType)
 			return (T) classOrValue;
 		Object instance = null;
-		String beanID = getClass().getName();
 		String beanBoxName = BeanBox.class.getName();
-		if (beanID.equals(beanBoxName)) {
-			if (this.getClassOrValue() instanceof Class)// use real bean class name & args as beanID
-				beanID = ((Class<?>) this.getClassOrValue()).getName()
-						+ (constructorArgs == null ? "" : constructorArgs);
-			else
-				BeanBoxException.throwEX(null, "BeanBox createOrGetFromCache error! BeanBox ID can not be determined!");
-		}
+		String beanID = createBeanID(beanBoxName);
 
 		if (plusCircularCounter() > 100) {// throw exception before out of stack memory
 			decreaseCircularCounter();
@@ -528,7 +521,7 @@ public class BeanBox {
 			if (createBeanMethod != null) {
 				try {
 					ReflectionUtils.makeAccessible(createBeanMethod);
-					instance = createBeanMethod.invoke(this, new Object[] {});
+					instance = createBeanMethod.invoke(this);//MayProblem
 				} catch (Exception e) {
 					decreaseCircularCounter();
 					BeanBoxException.throwEX(e, "BeanBox getBean error! init method invoke error, class=" + this);
@@ -596,15 +589,26 @@ public class BeanBox {
 		injectInstancePropertyValues(instance);
 		if (!BeanBoxUtils.isEmptyStr(getPostConstructor()))
 			try {
-				Method postConstr = ReflectionUtils.findMethod(instance.getClass(), getPostConstructor(),
-						new Class[] {});
-				postConstr.invoke(instance, new Object[] {});
+				Method postConstr = ReflectionUtils.findMethod(instance.getClass(), getPostConstructor());//MayProblem
+				postConstr.invoke(instance);//MayProblem
 			} catch (Exception e) {
 				decreaseCircularCounter();
 				BeanBoxException.throwEX(e, "BeanBox create bean error! postConstructor=" + getPostConstructor());
 			}
 		decreaseCircularCounter();
 		return (T) instance;
+	}
+
+	private String createBeanID(String beanBoxName) {
+		String beanID = getClass().getName();
+		if (beanID.equals(beanBoxName)) {
+			if (this.getClassOrValue() instanceof Class)// use real bean class name & args as beanID
+				beanID = ((Class<?>) this.getClassOrValue()).getName()
+						+ (constructorArgs == null ? "" : constructorArgs);
+			else
+				BeanBoxException.throwEX(null, "BeanBox createOrGetFromCache error! BeanBox ID can not be determined!");
+		}
+		return beanID;
 	}
 
 	/**

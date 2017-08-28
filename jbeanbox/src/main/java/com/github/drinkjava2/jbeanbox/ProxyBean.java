@@ -36,7 +36,7 @@ class ProxyBean implements MethodInterceptor {
 		String beanClassName = clazz.getName();
 		int i = beanClassName.indexOf("$$");// If created by CGLib, use the original class name as bean ID
 		if (i > 0)
-			beanClassName = beanClassName.substring(0, i);
+			beanClassName = beanClassName.substring(0, i); 
 		for (Advisor advisor : globalAdvicors) {// Make a copy from global advisors which only belong to this Bean
 			Method[] methods = clazz.getMethods();
 			for (Method method : methods)
@@ -55,21 +55,13 @@ class ProxyBean implements MethodInterceptor {
 				AopAround aop = method.getAnnotation(AopAround.class);
 				if (!Object.class.equals(aop.value())) {
 					BeanBox box = null;
-					try {// NOSONAR
-
+					try {
 						box = BeanBoxUtils.getBeanBox(null, aop.value(), null, null, context, true);
-
-						// if (BeanBox.class.isAssignableFrom(aop.value())) {
-						// box = (BeanBox) aop.value().newInstance();
-						// } else {
-						// box = new BeanBox();
-						// box.setClassOrValue(aop.value());
-						// }
-						box.setContext(context);
+ 						box.setContext(context);
 					} catch (Exception e) {
 						BeanBoxException.throwEX(e, "BeanBox ProxyBean create AopAround box error");
 					}
-					Advisor adv = new Advisor(clazz.getName(), method.getName(), box, "invoke", "AROUND", true);
+					Advisor adv = new Advisor(clazz.getName(), method.getName(), box, "invoke", "AROUND", true); 
 					myAdvisors.add(adv);
 				}
 			}
@@ -78,8 +70,6 @@ class ProxyBean implements MethodInterceptor {
 
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy cgLibMethodProxy) throws Throwable {
-		// if (!myAdvisors.isEmpty() &&
-		// myAdvisors.get(0).match(obj.getClass().getName(), method.getName()))
 		if (!myAdvisors.isEmpty())// Start a advice chain call
 			return new AdviceCaller(this, obj, method, args, cgLibMethodProxy, myAdvisors).callNextAdvisor();
 		else

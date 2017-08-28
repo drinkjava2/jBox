@@ -64,7 +64,7 @@ class AdviceCaller {
 	public Object callNextAdvisor() throws Throwable {// NOSONAR
 		if (this.currentAdvisorIndex >= this.myAdvisors.size() - 1)
 			return cgLibMethodProxy.invokeSuper(target, args);
-		Advisor advisor = myAdvisors.get(++this.currentAdvisorIndex);
+		Advisor advisor = myAdvisors.get(++this.currentAdvisorIndex); 
 		if (advisor.match(target.getClass().getName(), method.getName())) {
 			Object advice = advisor.adviceBeanBox.getBean();
 			if (advisor.isAOPAlliance) {// AOP alliance type advice

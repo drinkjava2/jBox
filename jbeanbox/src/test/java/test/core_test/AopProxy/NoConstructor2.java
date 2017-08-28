@@ -2,7 +2,7 @@ package test.core_test.AopProxy;
 
 import com.github.drinkjava2.jbeanbox.AopAround;
 
-import test.test9_aop_annotation.AopInvokeAdvice;
+import test.logger_advice.AopInvokeAdvice;
 
 /**
  * @author Yong

@@ -1,4 +1,4 @@
-package test.test9_aop_annotation;
+package test.logger_advice;
 
 import org.aopalliance.intercept.MethodInvocation;
 
