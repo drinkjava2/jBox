@@ -27,9 +27,11 @@ package com.github.drinkjava2.jbeanbox;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.github.drinkjava2.cglib3_2_0.proxy.Enhancer;
 import com.github.drinkjava2.jbeanbox.BeanBoxUtils.ObjectType;
 import com.github.drinkjava2.jbeanbox.springsrc.ReflectionUtils;
 
@@ -232,6 +234,20 @@ public class BeanBox {
 		return this;
 	}
 
+	/**
+	 * Use CGLib create proxy bean, if advice set for this class
+	 */
+	public  Object getProxyBean(Class<?> clazz, List<Advisor> advisorList, BeanBoxContext context,Object[] constructorArgs) {
+		Enhancer enhancer = new Enhancer();
+		enhancer.setSuperclass(clazz);
+		enhancer.setCallback(new ProxyBean(clazz, advisorList, context));
+		if (constructorArgs != null) {
+			Class<?>[] argsTypes = getObjectClassType(constructorArgs);
+			return	enhancer.create(argsTypes, constructorArgs);
+			}
+			else return	enhancer.create();
+	}
+	
 	/**
 	 * Inject values into bean, use standard JDK reflection, bean setter methods are necessary
 	 */
@@ -497,7 +513,7 @@ public class BeanBox {
 				}
 			} else {
 				if (BeanBoxUtils.ifHaveAdvice(context.advisorList, classOrValue)) {
-					instance = BeanBoxUtils.getProxyBean((Class<?>) classOrValue, context.advisorList, context);
+					instance = getProxyBean((Class<?>) classOrValue, context.advisorList, context, constructorArgs);
 				} else if (constructorArgs != null) // first use given constructor to create instance
 					try {
 						instance = createBeanByGivenConstructor();

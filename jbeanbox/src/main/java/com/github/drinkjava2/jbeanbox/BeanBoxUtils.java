@@ -1,17 +1,17 @@
 /**
  * Copyright (C) 2016 Yong Zhu.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 package com.github.drinkjava2.jbeanbox;
 
@@ -20,11 +20,11 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.github.drinkjava2.cglib3_2_0.proxy.Enhancer;
 import com.github.drinkjava2.jbeanbox.springsrc.ReflectionUtils;
 
 /**
- * Put lots miscellaneous public static methods here, have no time to organize them
+ * Put lots miscellaneous public static methods here, have no time to organize
+ * them
  * 
  * @author Yong Zhu
  * @since 2.4
@@ -90,7 +90,8 @@ public abstract class BeanBoxUtils {
 	}
 
 	/**
-	 * Translate object[] to Object[] but replace BeanBox to bean instance, for invoke use
+	 * Translate object[] to Object[] but replace BeanBox to bean instance, for
+	 * invoke use
 	 */
 	public static Object[] getObjectRealValue(BeanBoxContext context, Object... beanArgs) {
 		Object[] objects = new Object[beanArgs.length];
@@ -277,19 +278,11 @@ public abstract class BeanBoxUtils {
 		return null;
 	}
 
-	/**
-	 * Use CGLib create proxy bean, if advice set for this class
-	 */
-	public static Object getProxyBean(Class<?> clazz, List<Advisor> advisorList, BeanBoxContext context) {
-		Enhancer enhancer = new Enhancer();
-		enhancer.setSuperclass(clazz);
-		enhancer.setCallback(new ProxyBean(clazz, advisorList, context));
-		return enhancer.create();
-	}
+ 
 
 	/**
-	 * If found advice for this class, use CGLib to create proxy bean, CGLIB is the only way to create proxy to make
-	 * source code simple.
+	 * If found advice for this class, use CGLib to create proxy bean, CGLIB is the
+	 * only way to create proxy to make source code simple.
 	 */
 	public static boolean ifHaveAdvice(List<Advisor> advisors, Object classOrValue) {
 		if (classOrValue == null || !(classOrValue instanceof Class))
@@ -314,7 +307,8 @@ public abstract class BeanBoxUtils {
 	}
 
 	/**
-	 * Find BeanBox class and create BeanBox instance, for field with @InjectBox annotation, follow below order: <br/>
+	 * Find BeanBox class and create BeanBox instance, for field with @InjectBox
+	 * annotation, follow below order: <br/>
 	 * Format: A.class{ @Inject(B.class) C fieldname;} <br/>
 	 * 1) B.class (if is BeanBox)<br/>
 	 * 2) B$CBox.class in B.class <br/>
@@ -331,8 +325,10 @@ public abstract class BeanBoxUtils {
 	 * 
 	 * for a context.getBean(C.class) call, follow above #4, #5, #6, #9 order <br/>
 	 * 
-	 * If no BeanBox class found, if A.class has 0 parameter constructor or annotated constructor, wrap to BeanBox.<br/>
-	 * if no BeanBox created at final, throw a error unless "required=false" set in @injectBox annotation
+	 * If no BeanBox class found, if A.class has 0 parameter constructor or
+	 * annotated constructor, wrap to BeanBox.<br/>
+	 * if no BeanBox created at final, throw a error unless "required=false" set
+	 * in @injectBox annotation
 	 */
 	@SuppressWarnings("unchecked")
 	public static BeanBox getBeanBox(Class<?> ownerClass, Class<?> fieldClass, Class<?> annotatinClass, // NOSONAR
