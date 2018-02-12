@@ -15,9 +15,6 @@
  */
 package com.github.drinkjava2.jbeanbox;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 /**
  * BeanBox Exception, transfer Exception to runtime type "BeanBoxException"
  * 
@@ -25,7 +22,6 @@ import java.io.StringWriter;
  * @since 2.4.2
  */
 public class BeanBoxException extends RuntimeException {
-	private static final BeanBoxLogger log = BeanBoxLogger.getLog(BeanBoxException.class);
 
 	private static final long serialVersionUID = 1L;
 
@@ -37,26 +33,24 @@ public class BeanBoxException extends RuntimeException {
 		super(message);
 	}
 
-	/**
-	 * Transfer all Exceptions to RuntimeException SqlBoxException. The only place throw Exception in this project
-	 */
-	public static Object throwEX(Exception e, String errorMsg) {
-		if (e != null) {
-			StringWriter sw = new StringWriter();
-			e.printStackTrace(new PrintWriter(sw, true));
-			String stackTrace = sw.toString();
-			if (!errorMsg.startsWith("BeanBox Circular dependency"))
-				log.error(stackTrace);
-		} else if (!errorMsg.startsWith("BeanBox Circular dependency"))
-			log.error(errorMsg);
-		throw new BeanBoxException(errorMsg);
+	public BeanBoxException(Throwable e) {
+		super(e);
+	}
+
+	public BeanBoxException(String message, Throwable e) {
+		super(message, e);
+	}
+
+	public static Object throwEX(String errorMsg, Exception e) {
+		throw new BeanBoxException(errorMsg, e);
 	}
 
 	/**
-	 * Transfer all Exceptions to RuntimeException SqlBoxException. The only place throw Exception in this project
+	 * Transfer all Exceptions to RuntimeException SqlBoxException. The only place
+	 * throw Exception in this project
 	 */
 	public static Object throwEX(String errorMsg) {
-		return throwEX(null, errorMsg);
+		return throwEX(errorMsg);
 	}
 
 	/**

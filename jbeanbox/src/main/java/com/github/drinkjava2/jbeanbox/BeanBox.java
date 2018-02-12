@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016 Yong Zhu.
+ * Copyright (C) 2016 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,20 +14,13 @@
  * the License.
  */
 
-/**
- * For developers: this project is set to each line 120 characters.
- * 
- * Compare to last version 2.3, this version 2.4 fixed some bugs and put some
- * new functions like Java configuration and allow use @injectBox annotation on
- * constructor to allow build an object tree with out use configuration class
- */
-
 package com.github.drinkjava2.jbeanbox;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,28 +29,14 @@ import com.github.drinkjava2.jbeanbox.BeanBoxUtils.ObjectType;
 import com.github.drinkjava2.jbeanbox.springsrc.ReflectionUtils;
 
 /**
- * jBeanBox is a macro scale IOC & AOP framework for Java 7 and above.
+ * jBeanBox is a macro scale IOC & AOP framework for Java 6 and above.
  * 
- * In version2.4.2 make make below changes:<br/>
- * 1)Fixed the bug can not find Parent class's method, this cause
- * setPostConstructor() and setPreDestory() doesn't work on child class <br/>
- * 2)Use logger to replace System.out.print <br/>
- * 3)Do some clean up within SONAR source code check<br/>
- * 4)Delete jbeanBox-samples Maven module, move unit test inside of jbeanbox
- * module<br/>
- * 5)Will direct use Spring's ReflectionUtils in this project, current
- * ReflectionUtils has some problems<br/>
- * 6)Allow add injectBox Annotation on method to indicate a AOP point-cut.
- * 
- * @author Yong Zhu (Yong9981@gmail.com)
- * @version 2.4.2-SNAPSHOT
+ * @author Yong Zhu
  * @since 1.0
- * @update 2017-01-05
  * 
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings("all")
 public class BeanBox {
-	private static final BeanBoxLogger log = BeanBoxLogger.getLog(BeanBox.class);
 
 	private enum PropertyType {
 		BEAN, VALUE, STATIC_FACTORY, BEAN_FACTORY
@@ -76,6 +55,12 @@ public class BeanBox {
 	private ConcurrentHashMap<String, Object[]> properties = new ConcurrentHashMap<String, Object[]>();// properties
 	public static final BeanBoxContext defaultContext = new BeanBoxContext();// this is a global default context
 	private BeanBoxContext context = defaultContext;
+
+	/**
+	 * AOP around annotations setting, setAopAroundValue() method can set a default
+	 * value to an AopAround type annotation
+	 */
+	protected static Map<Class<?>, Class<?>> aopAroundAnnotationsMap = new ConcurrentHashMap<Class<?>, Class<?>>();
 
 	// Use a thread local counter to check circular dependency
 	private static final ThreadLocal<Integer> circularCounter = new ThreadLocal<Integer>() {
@@ -217,8 +202,8 @@ public class BeanBox {
 				properties.put(property, new Object[] { PropertyType.BEAN,
 						BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) classOrValue, context) });
 			} catch (Exception e) {
-				BeanBoxException.throwEX(e,
-						"BeanBox setProperty error! property=" + property + " classOrValue=" + classOrValue);
+				BeanBoxException.throwEX(
+						"BeanBox setProperty error! property=" + property + " classOrValue=" + classOrValue, e);
 			}
 			break;
 		case CLASS:
@@ -228,7 +213,7 @@ public class BeanBox {
 			properties.put(property, new Object[] { PropertyType.VALUE, classOrValue });
 			break;
 		default:
-			BeanBoxException.throwEX(null, "BeanBox setProperty default case error");
+			BeanBoxException.throwEX("BeanBox setProperty default case error");
 		}
 		return this;
 	}
@@ -294,8 +279,8 @@ public class BeanBox {
 				method.invoke(bean, new Object[] { beaninstance });
 			}
 		} catch (Exception e) {
-			BeanBoxException.throwEX(e,
-					"BeanBox invokeMethodToSetValue error! bean=" + bean + " method=" + method + " args=" + args);
+			BeanBoxException.throwEX(
+					"BeanBox invokeMethodToSetValue error! bean=" + bean + " method=" + method + " args=" + args, e);
 		}
 	}
 
@@ -325,8 +310,8 @@ public class BeanBox {
 				field.set(bean, beaninstance);
 			}
 		} catch (Exception e) {
-			BeanBoxException.throwEX(e,
-					"BeanBox invokeMethodToSetValue error! bean=" + bean + " field=" + field + " args=" + args);
+			BeanBoxException.throwEX(
+					"BeanBox invokeMethodToSetValue error! bean=" + bean + " field=" + field + " args=" + args, e);
 		}
 	}
 
@@ -351,9 +336,11 @@ public class BeanBox {
 					Field field = instance.getClass().getDeclaredField(property);
 					forceInjectFieldValue(instance, field, properties.get(property));
 				} catch (Exception e) {
-					BeanBoxException.throwEX(e, "BeanBox setInstancePropertyValues error! class="
-							+ this.getClassOrValue() + ", property ='" + property
-							+ "', this may caused by inject value into Proxy bean, it's not supported by CGLib");
+					BeanBoxException.throwEX(
+							"BeanBox setInstancePropertyValues error! class=" + this.getClassOrValue() + ", property ='"
+									+ property
+									+ "', this may caused by inject value into Proxy bean, it's not supported by CGLib",
+							e);
 				}
 			}
 		}
@@ -380,8 +367,9 @@ public class BeanBox {
 					}
 				}
 			} catch (Exception e) {
-				BeanBoxException.throwEX(e,
-						"BeanBox injectAnnotationFields error! beanClass=" + beanClass + " field=" + field.getName());
+				BeanBoxException.throwEX(
+						"BeanBox injectAnnotationFields error! beanClass=" + beanClass + " field=" + field.getName(),
+						e);
 			}
 		}
 	}
@@ -400,7 +388,7 @@ public class BeanBox {
 					return;
 				int parameterCount = parameterTypes.length;
 				if (parameterCount == 0 || parameterCount > 6)
-					BeanBoxException.throwEX(null,
+					BeanBoxException.throwEX(
 							"BeanBox buildBeanBoxWithAnotatedCtr error, only support at 1~6 method parameters,class="
 									+ beanClass);
 				Object[] args = new Object[parameterCount];
@@ -410,8 +398,9 @@ public class BeanBox {
 					m.setAccessible(true);
 					m.invoke(beanInstance, BeanBoxUtils.getObjectRealValue(context, args));
 				} catch (Exception e) {
-					BeanBoxException.throwEX(e,
-							"BeanBox buildBeanBoxWithAnotatedCtr error,class=" + beanClass + " method=" + m.getName());
+					BeanBoxException.throwEX(
+							"BeanBox buildBeanBoxWithAnotatedCtr error,class=" + beanClass + " method=" + m.getName(),
+							e);
 				}
 			}
 		}
@@ -445,7 +434,7 @@ public class BeanBox {
 				classes[i] = beanArgs[i].getClass();
 				break;
 			default:
-				BeanBoxException.throwEX(null, "BeanBox getObjectClassType default case error");
+				BeanBoxException.throwEX("BeanBox getObjectClassType default case error");
 			}
 		}
 		return classes;
@@ -472,7 +461,7 @@ public class BeanBox {
 			try {
 				setPropertiesMethod.invoke(this, new Object[] { instance });
 			} catch (Exception e) {
-				BeanBoxException.throwEX(e, "BeanBox  create bean error!  setPropertiesMethod=" + setPropertiesMethod);
+				BeanBoxException.throwEX("BeanBox  create bean error!  setPropertiesMethod=" + setPropertiesMethod, e);
 			}
 		}
 	}
@@ -500,7 +489,7 @@ public class BeanBox {
 
 		if (plusCircularCounter() > 100) {// throw exception before out of stack memory
 			decreaseCircularCounter();
-			log.error("BeanBox getBean circular dependency error found! classOrValue=" + classOrValue);
+			System.err.println("BeanBox getBean circular dependency error found! classOrValue=" + classOrValue);
 			return null;
 		}
 		Method createBeanMethod = null;
@@ -521,10 +510,10 @@ public class BeanBox {
 			if (createBeanMethod != null) {
 				try {
 					ReflectionUtils.makeAccessible(createBeanMethod);
-					instance = createBeanMethod.invoke(this);//MayProblem
+					instance = createBeanMethod.invoke(this);// MayProblem
 				} catch (Exception e) {
 					decreaseCircularCounter();
-					BeanBoxException.throwEX(e, "BeanBox getBean error! init method invoke error, class=" + this);
+					BeanBoxException.throwEX("BeanBox getBean error! init method invoke error, class=" + this, e);
 				}
 			} else {
 				if (BeanBoxUtils.ifHaveAdvice(context.advisorList, classOrValue)) {
@@ -533,12 +522,12 @@ public class BeanBox {
 					try {
 						instance = createBeanByGivenConstructor();
 						if (instance == null)// NOSONAR
-							BeanBoxException.throwEX(null,
-									"BeanBox getBean error! not found given public constructor for class "
+							BeanBoxException
+									.throwEX("BeanBox getBean error! not found given public constructor for class "
 											+ classOrValue);
 					} catch (Exception e) {
 						decreaseCircularCounter();
-						BeanBoxException.throwEX(e, "BeanBox create constructor error! constructor=" + classOrValue);
+						BeanBoxException.throwEX("BeanBox create constructor error! constructor=" + classOrValue, e);
 					}
 				else if (classOrValue instanceof Class) {
 					instance = BeanBoxUtils.createInstanceWithCtr0((Class<?>) classOrValue);
@@ -553,13 +542,13 @@ public class BeanBox {
 						}
 						if (instance == null) {// NOSONAR
 							decreaseCircularCounter();
-							BeanBoxException.throwEX(null, "BeanBox create bean error! class=" + classOrValue
+							BeanBoxException.throwEX("BeanBox create bean error! class=" + classOrValue
 									+ " no available constructor found.");
 						}
 					}
 				} else {
 					decreaseCircularCounter();
-					BeanBoxException.throwEX(null, "BeanBox create bean undefined! classOrValue=" + classOrValue);
+					BeanBoxException.throwEX("BeanBox create bean undefined! classOrValue=" + classOrValue);
 				}
 			}
 
@@ -572,7 +561,7 @@ public class BeanBox {
 						this.context.preDestoryMethodCache.put(beanID, predestoryMethod);
 					} catch (Exception e) {
 						decreaseCircularCounter();
-						BeanBoxException.throwEX(e, "BeanBox  create bean error!  PreDestory=" + getPreDestory());
+						BeanBoxException.throwEX("BeanBox  create bean error!  PreDestory=" + getPreDestory(), e);
 					}
 				}
 			}
@@ -589,11 +578,11 @@ public class BeanBox {
 		injectInstancePropertyValues(instance);
 		if (!BeanBoxUtils.isEmptyStr(getPostConstructor()))
 			try {
-				Method postConstr = ReflectionUtils.findMethod(instance.getClass(), getPostConstructor());//MayProblem
-				postConstr.invoke(instance);//MayProblem
+				Method postConstr = ReflectionUtils.findMethod(instance.getClass(), getPostConstructor());// MayProblem
+				postConstr.invoke(instance);// MayProblem
 			} catch (Exception e) {
 				decreaseCircularCounter();
-				BeanBoxException.throwEX(e, "BeanBox create bean error! postConstructor=" + getPostConstructor());
+				BeanBoxException.throwEX("BeanBox create bean error! postConstructor=" + getPostConstructor(), e);
 			}
 		decreaseCircularCounter();
 		return (T) instance;
@@ -606,7 +595,7 @@ public class BeanBox {
 				beanID = ((Class<?>) this.getClassOrValue()).getName()
 						+ (constructorArgs == null ? "" : constructorArgs);
 			else
-				BeanBoxException.throwEX(null, "BeanBox createOrGetFromCache error! BeanBox ID can not be determined!");
+				BeanBoxException.throwEX("BeanBox createOrGetFromCache error! BeanBox ID can not be determined!");
 		}
 		return beanID;
 	}
@@ -630,8 +619,8 @@ public class BeanBox {
 			try {
 				instance = c.newInstance(BeanBoxUtils.getObjectRealValue(context, constructorArgs));
 			} catch (Exception e) {
-				return BeanBoxException.throwEX(e,
-						"BeanBox createBeanByGivenConstructor error for constructorArgs: " + constructorArgs);
+				return BeanBoxException.throwEX(
+						"BeanBox createBeanByGivenConstructor error for constructorArgs: " + constructorArgs, e);
 			}
 			return instance;
 		}
@@ -657,6 +646,27 @@ public class BeanBox {
 	 */
 	public static <T> T getSingletonBean(Class<?> clazz) {
 		return defaultContext.getSingletonBean(clazz);
+	}
+
+	/** Return current Aop Around Annotations Map */
+	public static Map<Class<?>, Class<?>> getAopAroundAnnotationsMap() {
+		return aopAroundAnnotationsMap;
+	}
+
+	/**
+	 * Register an AOP Around annotation, usage:
+	 * beanBoxContext.setAopAroundValue(Tx.class, FooBarBox.class);
+	 */
+	public static void regAopAroundAnnotation(Class<?> annotationClass, Class<?> defaultBoxClass) {
+		aopAroundAnnotationsMap.put(annotationClass, defaultBoxClass);
+	}
+
+	/**
+	 * Register an AOP Around annotation, usage:
+	 * beanBoxContext.setAopAroundValue(Tx.class, FooBarBox.class);
+	 */
+	public static void regAopAroundAnnotation(Class<?> annotationClass) {
+		aopAroundAnnotationsMap.put(annotationClass, Object.class);
 	}
 
 }

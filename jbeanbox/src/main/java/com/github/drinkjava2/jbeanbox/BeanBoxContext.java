@@ -30,25 +30,25 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class BeanBoxContext {
 
-	private static final BeanBoxLogger log = BeanBoxLogger.getLog(BeanBoxContext.class);
-
-	// The default BoxIdentity is "Box", BoxIdentity will be use for looking for
-	// BeanBox class
+	/**
+	 * The default BoxIdentity is "Box", BoxIdentity will be use for looking for
+	 * BeanBox class
+	 */
 	String boxIdentity = "Box";
 	private static final String BEAN_BOX_CLASS_NAME = BeanBox.class.getName();
 
 	Boolean ignoreAnnotation = false; // if set true, will ignore @injectBox annotation
 
-	// Advisors cache
+	/** Advisors cache */
 	protected CopyOnWriteArrayList<Advisor> advisorList = new CopyOnWriteArrayList<Advisor>();
 
-	// Singleton instance cache
+	/** Singleton instance cache */
 	protected HashMap<String, Object> signletonCache = new HashMap<String, Object>();
 
-	// Configuration file class cache
+	/** Configuration file class cache */
 	private List<Class<?>> configClassList = new CopyOnWriteArrayList<Class<?>>();
 
-	// preDestory method cache
+	/** preDestory method cache */
 	protected ConcurrentHashMap<String, Method> preDestoryMethodCache = new ConcurrentHashMap<String, Method>();
 
 	public BeanBoxContext(Class<?>... configClasses) {
@@ -151,9 +151,9 @@ public class BeanBoxContext {
 			Object bean = signletonCache.get(beanID);
 			Method method = entry.getValue();
 			try {
-				method.invoke(bean, new Object[] {});
+				method.invoke(bean, new Object[] {});// NOSONAR
 			} catch (Exception e) {
-				log.error(e);
+				throw new BeanBoxException("BeanBox Context closing exception found. ", e);
 			}
 		}
 		boxIdentity = "Box";
@@ -207,7 +207,7 @@ public class BeanBoxContext {
 				new Advisor(classNameReg, methodNameReg, adviceBeanBox, adviceAroundMethodName, "AFTERTHROWING", true));
 	}
 
-	public CopyOnWriteArrayList<Advisor> getAdvisorList() {
+	public List<Advisor> getAdvisorList() {
 		return advisorList;
 	}
 

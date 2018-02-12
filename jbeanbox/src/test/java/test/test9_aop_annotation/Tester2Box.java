@@ -15,7 +15,8 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
  * @author Yong Zhu
  * @since 2.4
  */
-public class TesterBox extends BeanBox {
+public class Tester2Box extends BeanBox {
+ 
 	// H2Database memory database c3p0 DataSource pool setting
 	public static class DSPoolBeanBox extends BeanBox {
 		{
@@ -34,11 +35,11 @@ public class TesterBox extends BeanBox {
 			setProperty("dataSource", DSPoolBeanBox.class);
 		}
 	}
- 
+
 	public static class TxInterceptorBox extends BeanBox {// Advice
 		{
 			Properties props = new Properties();
-			props.put("*", "PROPAGATION_REQUIRED");
+			props.put("insert*", "PROPAGATION_REQUIRED");
 			setConstructor(TransactionInterceptor.class, TxManagerBox.class, props);
 		}
 	}
@@ -48,4 +49,5 @@ public class TesterBox extends BeanBox {
 			setConstructor(JdbcTemplate.class, DSPoolBeanBox.class);
 		}
 	}
+ 
 }

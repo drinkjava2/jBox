@@ -40,7 +40,7 @@ public class Tester {
 	}
 
 	public static void main(String[] args) {
-		long repeattimes = 1000;
+		long repeattimes = 100;
 		System.out.printf("BenchMark Test, build Object tree %s times\r\n", repeattimes);
 		A aold = null, a = null;
 

@@ -58,13 +58,23 @@ class AdviceCaller {
 		this.cgLibMethodProxy = cgLibMethodProxy;
 	}
 
+	public static Object invoke(String methodType, Method method, Object advice, Object... args) {
+		try {
+			return method.invoke(advice, args);
+		} catch (Exception e) {
+			throw new BeanBoxException("Exception happen in AOP " + methodType + " method '" + method.getName() + "'",
+					e);
+		}
+	}
+
 	/**
-	 * Check and run the next advisor, first one no need check because already checked
+	 * Check and run the next advisor, first one no need check because already
+	 * checked
 	 */
 	public Object callNextAdvisor() throws Throwable {// NOSONAR
 		if (this.currentAdvisorIndex >= this.myAdvisors.size() - 1)
 			return cgLibMethodProxy.invokeSuper(target, args);
-		Advisor advisor = myAdvisors.get(++this.currentAdvisorIndex); 
+		Advisor advisor = myAdvisors.get(++this.currentAdvisorIndex);
 		if (advisor.match(target.getClass().getName(), method.getName())) {
 			Object advice = advisor.adviceBeanBox.getBean();
 			if (advisor.isAOPAlliance) {// AOP alliance type advice
@@ -72,37 +82,43 @@ class AdviceCaller {
 					// public Object doAround(MethodInvocation caller) throws Throwable
 					Method m = advice.getClass().getMethod(advisor.adviceMethodName,
 							new Class[] { MethodInvocation.class });
-					return m.invoke(advice, new AopAllianceInvocation(target, method, args, this));
+					Object result = invoke("AROUND", m, advice, new AopAllianceInvocation(target, method, args, this));
+					return result;
 				} else if ("BEFORE".equals(advisor.adviceType)) {
-					// public void before(Method method, Object[] args, Object target) throws Throwable
+					// public void before(Method method, Object[] args, Object target) throws
+					// Throwable
 					Method m = advice.getClass().getMethod(advisor.adviceMethodName,
 							new Class[] { Method.class, Object[].class, Object.class });
-					m.invoke(advice, new Object[] { method, args, target });
+					invoke("BEFORE", m, advice, new Object[] { method, args, target });
 					return callNextAdvisor();
 				} else if ("AFTERRETURNING".equals(advisor.adviceType)) {
-					// public void afterReturning(Object result, Method method, Object[] args, Object target)
+					// public void afterReturning(Object result, Method method, Object[] args,
+					// Object target)
 					Object result = callNextAdvisor();
 					Method m = advice.getClass().getMethod(advisor.adviceMethodName,
 							new Class[] { Object.class, Method.class, Object[].class, Object.class });
-					m.invoke(advice, new Object[] { result, method, args, target });
+					invoke("AFTERRETURNING", m, advice, new Object[] { result, method, args, target });
 					return result;
 				} else if ("AFTERTHROWING".equals(advisor.adviceType)) {
-					// public void afterThrowing(Method method, Object[] args, Object target, Exception ex)
-					// Detai see org.springframework.aop.ThrowsAdvice, here only implemented 4 arguments
+					// public void afterThrowing(Method method, Object[] args, Object target,
+					// Exception ex)
+					// Detai see org.springframework.aop.ThrowsAdvice, here only implemented 4
+					// arguments
 					try {// NOSONAR
 						return callNextAdvisor();
 					} catch (Exception ex) {
 						Method m = advice.getClass().getMethod(advisor.adviceMethodName,
 								new Class[] { Method.class, Object[].class, Object.class, Exception.class });
-						m.invoke(advice, new Object[] { method, args, target, ex });
+						invoke("AFTERTHROWING", m, advice, new Object[] { method, args, target, ex });
 						throw ex;
 					}
 				}
-			} else{
-				//from 2.4.3 deleted uncommon used AspectJ support to avoid the 3rd party dependency
-				throw new AssertionError("BeanBox only support AOPAlliance Advice");
+			} else {
+				// from 2.4.3 deleted uncommon used AspectJ support to avoid the 3rd party
+				// dependency
+				throw new BeanBoxException("BeanBox only support AOPAlliance Advice");
 			}
-			throw new AssertionError("BeanBox AdviceType not support error: " + advisor.adviceType);
+			throw new BeanBoxException("BeanBox AdviceType not support error: " + advisor.adviceType);
 		} else
 			return callNextAdvisor();
 	}

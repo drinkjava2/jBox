@@ -15,6 +15,7 @@
  */
 package com.github.drinkjava2.jbeanbox;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -29,6 +30,7 @@ import com.github.drinkjava2.cglib3_2_0.proxy.MethodProxy;
  * @since 2.4
  *
  */
+@SuppressWarnings("all")
 class ProxyBean implements MethodInterceptor {
 	protected CopyOnWriteArrayList<Advisor> myAdvisors = new CopyOnWriteArrayList<Advisor>();
 
@@ -36,7 +38,7 @@ class ProxyBean implements MethodInterceptor {
 		String beanClassName = clazz.getName();
 		int i = beanClassName.indexOf("$$");// If created by CGLib, use the original class name as bean ID
 		if (i > 0)
-			beanClassName = beanClassName.substring(0, i); 
+			beanClassName = beanClassName.substring(0, i);
 		for (Advisor advisor : globalAdvicors) {// Make a copy from global advisors which only belong to this Bean
 			Method[] methods = clazz.getMethods();
 			for (Method method : methods)
@@ -52,20 +54,44 @@ class ProxyBean implements MethodInterceptor {
 		Method[] methods = clazz.getMethods();
 		for (Method method : methods) {// check if have AopAround annotation
 			if (method.isAnnotationPresent(AopAround.class)) {
-				AopAround aop = method.getAnnotation(AopAround.class);
-				if (!Object.class.equals(aop.value())) {
-					BeanBox box = null;
-					try {
-						box = BeanBoxUtils.getBeanBox(null, aop.value(), null, null, context, true);
- 						box.setContext(context);
-					} catch (Exception e) {
-						BeanBoxException.throwEX(e, "BeanBox ProxyBean create AopAround box error");
+				buildTheProxyBean(clazz, context, method, AopAround.class);
+			}
+			if (!BeanBox.aopAroundAnnotationsMap.isEmpty()) {// if have AopAround annotation
+				for (Class<?> annoClass : BeanBox.aopAroundAnnotationsMap.keySet()) {					 
+					Class<Annotation> anno = (Class<Annotation>) annoClass;
+					if (method.isAnnotationPresent(anno)) {
+						buildTheProxyBean(clazz, context, method, anno);
 					}
-					Advisor adv = new Advisor(clazz.getName(), method.getName(), box, "invoke", "AROUND", true); 
-					myAdvisors.add(adv);
 				}
 			}
 		}
+	}
+
+	private void buildTheProxyBean(Class<?> clazz, BeanBoxContext context, Method method,
+			Class<? extends Annotation> aopClass) {
+		Annotation annotation = method.getAnnotation(aopClass);
+		Class<?> value = null;
+		try {
+			Method mtd = aopClass.getDeclaredMethod("value", null);
+			value = (Class<?>) mtd.invoke(annotation, null);
+		} catch (Exception e1) {
+			throw new BeanBoxException(e1);
+		}
+
+		if (value == null || Object.class.equals(value))
+			value = BeanBox.aopAroundAnnotationsMap.get(aopClass);
+		if (value == null)
+			throw new BeanBoxException("No value set for annotation '" + aopClass
+					+ "', suggest use setAopAroundValue(anno.class, targetBox.class) method to set a default value.");
+		BeanBox box = null;
+		try {
+			box = BeanBoxUtils.getBeanBox(null, value, null, null, context, true);
+			box.setContext(context);
+		} catch (Exception e) {
+			BeanBoxException.throwEX("BeanBox ProxyBean create AopAround box error", e);
+		}
+		Advisor adv = new Advisor(clazz.getName(), method.getName(), box, "invoke", "AROUND", true);
+		myAdvisors.add(adv);
 	}
 
 	@Override
