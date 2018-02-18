@@ -18,7 +18,9 @@ package com.github.drinkjava2.jbeanbox;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.drinkjava2.jbeanbox.springsrc.ReflectionUtils;
@@ -283,31 +285,44 @@ public abstract class BeanBoxUtils {
 	 * If found advice for this class, use CGLib to create proxy bean, CGLIB is the
 	 * only way to create proxy to make source code simple.
 	 */
-	public static boolean ifHaveAdvice(List<Advisor> advisors, Object classOrValue) {
-
-		if (classOrValue == null || !(classOrValue instanceof Class))
-			return false; 
+	public static boolean ifHaveAdvice(BeanBox box, List<Advisor> advisors, Object classOrValue) {
+		if (box.needCreateProxy != null) {
+			if (box.needCreateProxy)
+				return true;
+			else
+				return false;
+		}
+		if (classOrValue == null || !(classOrValue instanceof Class)) {
+			box.needCreateProxy = false;
+			return false;
+		}
 		Method[] methods = ((Class<?>) classOrValue).getMethods();
 		for (Method m : methods) {
-			if (m.isAnnotationPresent(AopAround.class)) {// if have AopAround annotation 
+			if (m.isAnnotationPresent(AopAround.class)) {// if have AopAround annotation
+				box.needCreateProxy = true;
 				return true;
 			}
- 
-			//If have @TX, @Trans format self customised annotation
-			if ( !BeanBox.aopAroundAnnotationsMap.isEmpty()) { 
-				Annotation[] annos = m.getDeclaredAnnotations();  
+
+			// If have @TX, @Trans format self customised annotation
+			if (!BeanBox.aopAroundAnnotationsMap.isEmpty()) {
+				Annotation[] annos = m.getDeclaredAnnotations();
 				if (annos != null)
-					for (Annotation ano : annos) { 
-						for (Class<?> key : BeanBox.aopAroundAnnotationsMap.keySet())  
-								if (key.equals(ano.annotationType()))  
-									return true;   
+					for (Annotation ano : annos) {
+						for (Class<?> key : BeanBox.aopAroundAnnotationsMap.keySet())
+							if (key.equals(ano.annotationType())) {
+								box.needCreateProxy = true;
+								return true;
+							}
 					}
 			}
 
 			for (Advisor adv : advisors)
-				if (adv.match(((Class<?>) classOrValue).getName(), m.getName()))  
-					return true; 
-		} 
+				if (adv.match(((Class<?>) classOrValue).getName(), m.getName())) {
+					box.needCreateProxy = true;
+					return true;
+				}
+		}
+		box.needCreateProxy = false;
 		return false;
 	}
 
@@ -326,7 +341,7 @@ public abstract class BeanBoxUtils {
 	 * 2) B$CBox.class in B.class <br/>
 	 * 3) B$FieldnameBox.class in B.class <br/>
 	 * 
-	 * Format: A.class{ @Inject C field; ...} <br/>
+	 * Format: A.class{ @Inject C fieldname; ...} <br/>
 	 * 4) C.class (if is BeanBox)<br/>
 	 * 5) CBox.class in same package of C <br/>
 	 * 6) C$CBox.class in C.class <br/>
@@ -341,10 +356,28 @@ public abstract class BeanBoxUtils {
 	 * annotated constructor, wrap to BeanBox.<br/>
 	 * if no BeanBox created at final, throw a error unless "required=false" set
 	 * in @injectBox annotation
+	 * 
+	 * @param ownerClass
+	 *            Optional, the owner class which have a field
+	 * @param fieldClass
+	 *            The target class or a field type where have an Inject annotation
+	 *            marked on the field
+	 * @param annotatinClass
+	 *            Optional, the Inject annotation value marked on a field
+	 * @param fieldName
+	 *            Optional, the fieldName which have an Inject annotation marked on
+	 *            it
+	 * @param context
+	 *            The BeanBoxContext instance
+	 * @param required
+	 *            If set true and no BeanBox found, throw an Exception, if set false
+	 *            will not throw Exception
+	 * @return The BeanBox instance
 	 */
 	@SuppressWarnings("unchecked")
-	public static BeanBox getBeanBox(Class<?> ownerClass, Class<?> fieldClass, Class<?> annotatinClass, // NOSONAR
+	protected static BeanBox getBeanBox(Class<?> ownerClass, Class<?> fieldClass, Class<?> annotatinClass, // NOSONAR
 			String fieldName, BeanBoxContext context, boolean required) {
+		BeanBox beanbox = null;
 		Class<?> annoClass = annotatinClass;
 		if (Object.class.equals(annoClass))
 			annoClass = null;
@@ -393,7 +426,6 @@ public abstract class BeanBoxUtils {
 				}
 			}
 		}
-		BeanBox beanbox;
 		if ((box == null) && BeanBoxUtils.isPrimitiveType(fieldClass))
 			return null;
 		if (box == null) {
@@ -410,5 +442,51 @@ public abstract class BeanBoxUtils {
 		if (beanbox != null && beanbox.getClassOrValue() == null)
 			beanbox.setClassOrValue(fieldClass);
 		return beanbox;
+	}
+	
+	private static Map<Class<?>, Object[]> createMethodCache = new HashMap<Class<?>, Object[]>();
+
+	protected static Method checkAndReturnCreateMethod(Class<?> clazz) {
+		Object[] methods = createMethodCache.get(clazz);
+		if (methods == null) {
+			Method mtd = null;
+			try {
+				mtd = ReflectionUtils.findMethod(clazz, BeanBox.CREATE_METHOD);
+			} catch (Exception e) {
+			}
+			if (mtd != null)
+				createMethodCache.put(clazz, new Object[] { mtd });
+			else
+				createMethodCache.put(clazz, new Object[] {});
+			return mtd;
+		} else {
+			if (methods.length == 1)
+				return (Method) methods[0];
+			else
+				return null;
+		}
+	}
+	
+	private static Map<Class<?>, Object[]> cconfigMethodCache = new HashMap<Class<?>, Object[]>();
+
+	protected static Method checkAndReturnConfigMethod(Class<?> clazz) {
+		Object[] methods = cconfigMethodCache.get(clazz);
+		if (methods == null) {
+			Method mtd = null;
+			try {
+				mtd = ReflectionUtils.findMethod(clazz, BeanBox.CONFIG_METHOD);
+			} catch (Exception e) {
+			}
+			if (mtd != null)
+				cconfigMethodCache.put(clazz, new Object[] { mtd });
+			else
+				cconfigMethodCache.put(clazz, new Object[] {});
+			return mtd;
+		} else {
+			if (methods.length == 1)
+				return (Method) methods[0];
+			else
+				return null;
+		}
 	}
 }

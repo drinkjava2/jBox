@@ -19,6 +19,7 @@ package com.github.drinkjava2.jbeanbox;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,8 +43,8 @@ public class BeanBox {
 		BEAN, VALUE, STATIC_FACTORY, BEAN_FACTORY
 	}
 
-	private static final String CREATE_BEAN = "create"; // Used to create bean instance manually(Java type safe)
-	private static final String CONFIG_BEAN = "config"; // Used to set instance properties(Java type safe)
+	protected static final String CREATE_METHOD = "create"; // Used to create bean instance manually(Java type safe)
+	protected static final String CONFIG_METHOD = "config"; // Used to set instance properties(Java type safe)
 
 	private Object classOrValue;// Class or an Object
 	private boolean isValueType = false; // if true means it's a value type, no need create instance
@@ -52,6 +53,10 @@ public class BeanBox {
 	private Class<?>[] constructorTypes;// from 2.4.5 added, give constructor types
 	private String postConstructor;
 	private String preDestory;
+	protected Boolean needCreateProxy; // Null:unknow true:Need Create Proxy false:Already checked no need create
+	// protected Boolean hasCreateMethod; // Null:unknow true:Yes false:NO proxy
+	// protected Boolean hasConfigMethod; // Null:unknow true:Yes false:NO proxy
+
 	private ConcurrentHashMap<String, Object[]> properties = new ConcurrentHashMap<String, Object[]>();// properties
 	public static final BeanBoxContext defaultContext = new BeanBoxContext();// this is a global default context
 	private BeanBoxContext context = defaultContext;
@@ -416,7 +421,7 @@ public class BeanBox {
 			switch (type) {
 			case BEANBOX_INSTANCE: {// NOSONAR
 				BeanBox b = (BeanBox) beanArgs[i];
-				Method method = ReflectionUtils.findMethod(b.getClass(), CREATE_BEAN);
+				Method method = ReflectionUtils.findMethod(b.getClass(), CREATE_METHOD);
 				if (method == null)
 					classes[i] = (Class<?>) (b.getClassOrValue());
 				else
@@ -445,23 +450,23 @@ public class BeanBox {
 	 * properties
 	 */
 	private void callConfigBeanMethod(Object instance) throws AssertionError {
-		Method setPropertiesMethod = null;
+		Method configMethod = BeanBoxUtils.checkAndReturnConfigMethod(getClass());
 		try {
 			Method[] methods = getClass().getDeclaredMethods();
 			for (Method method : methods)
-				if (CONFIG_BEAN.equals(method.getName())) {
-					setPropertiesMethod = method;
+				if (CONFIG_METHOD.equals(method.getName())) {
+					configMethod = method;
 					break;
 				}
 		} catch (Exception e) {
 			BeanBoxException.eatException(e);
 		}
-		if (setPropertiesMethod != null) {
-			ReflectionUtils.makeAccessible(setPropertiesMethod);
+		if (configMethod != null) {
+			ReflectionUtils.makeAccessible(configMethod);
 			try {
-				setPropertiesMethod.invoke(this, new Object[] { instance });
+				configMethod.invoke(this, new Object[] { instance });
 			} catch (Exception e) {
-				BeanBoxException.throwEX("BeanBox  create bean error!  setPropertiesMethod=" + setPropertiesMethod, e);
+				BeanBoxException.throwEX("BeanBox  create bean error!  setPropertiesMethod=" + configMethod, e);
 			}
 		}
 	}
@@ -480,7 +485,7 @@ public class BeanBox {
 	/**
 	 * Create new bean instance or get singleTon bean instance in cache (if cached)
 	 */
-	public <T> T getBean() {// NOSONAR
+	public <T> T getBean() {// NOSONAR 
 		if (isValueType)
 			return (T) classOrValue;
 		Object instance = null;
@@ -491,8 +496,7 @@ public class BeanBox {
 			decreaseCircularCounter();
 			System.err.println("BeanBox getBean circular dependency error found! classOrValue=" + classOrValue);
 			return null;
-		}
-		Method createBeanMethod = null;
+		}  
 		synchronized (context.signletonCache) {
 			if (!prototype) {
 				instance = context.signletonCache.get(beanID);
@@ -500,14 +504,11 @@ public class BeanBox {
 					decreaseCircularCounter();
 					return (T) instance;// found singleTon bean in cache, good luck
 				}
-			}
-			try {// Check if has create method in BeanBox
-				createBeanMethod = ReflectionUtils.findMethod(getClass(), CREATE_BEAN);
-				this.setClassOrValue(createBeanMethod.getReturnType());
-			} catch (Exception e) {
-				BeanBoxException.eatException(e);
-			}
+			} 
+			// Check if has create method in BeanBox
+			Method createBeanMethod = BeanBoxUtils.checkAndReturnCreateMethod(getClass()); 
 			if (createBeanMethod != null) {
+				this.setClassOrValue(createBeanMethod.getReturnType()); 
 				try {
 					ReflectionUtils.makeAccessible(createBeanMethod);
 					instance = createBeanMethod.invoke(this);// MayProblem
@@ -515,11 +516,11 @@ public class BeanBox {
 					decreaseCircularCounter();
 					BeanBoxException.throwEX("BeanBox getBean error! init method invoke error, class=" + this, e);
 				}
-			} else {
-				if (BeanBoxUtils.ifHaveAdvice(context.advisorList, classOrValue)) {
+			} else { 
+				if (BeanBoxUtils.ifHaveAdvice(this, context.advisorList, classOrValue)) {
 					instance = getProxyBean((Class<?>) classOrValue, context.advisorList);
 				} else if (constructorArgs != null) // first use given constructor to create instance
-					try {
+					try { 
 						instance = createBeanByGivenConstructor();
 						if (instance == null)// NOSONAR
 							BeanBoxException
@@ -529,7 +530,7 @@ public class BeanBox {
 						decreaseCircularCounter();
 						BeanBoxException.throwEX("BeanBox create constructor error! constructor=" + classOrValue, e);
 					}
-				else if (classOrValue instanceof Class) {
+				else if (classOrValue instanceof Class) { 
 					instance = BeanBoxUtils.createInstanceWithCtr0((Class<?>) classOrValue);
 					if (instance == null) {
 						if (!context.getIgnoreAnnotation()) // NOSONAR 3rd find annotated constructor
@@ -545,13 +546,12 @@ public class BeanBox {
 							BeanBoxException.throwEX("BeanBox create bean error! class=" + classOrValue
 									+ " no available constructor found.");
 						}
-					}
+					} 
 				} else {
 					decreaseCircularCounter();
 					BeanBoxException.throwEX("BeanBox create bean undefined! classOrValue=" + classOrValue);
 				}
-			}
-
+			} 
 			if (!prototype) {
 				context.signletonCache.put(beanID, instance);// save SingleTon in cache
 				if (!BeanBoxUtils.isEmptyStr(this.getPreDestory())) {// save PreDestory methods in cache
@@ -565,16 +565,16 @@ public class BeanBox {
 					}
 				}
 			}
-		}
+		} 
 		if (instance == null) {
 			decreaseCircularCounter();
 			return null;
-		}
+		} 
 		if (!context.getIgnoreAnnotation()) {
 			injectAnnotationFields((Class<?>) classOrValue, instance);
 			injectAnnotationMethods((Class<?>) classOrValue, instance);
-		}
-		callConfigBeanMethod(instance);// Check if have config method in BeanBox class
+		} 
+		callConfigBeanMethod(instance);// Check if have config method in BeanBox class 
 		injectInstancePropertyValues(instance);
 		if (!BeanBoxUtils.isEmptyStr(getPostConstructor()))
 			try {
@@ -584,7 +584,7 @@ public class BeanBox {
 				decreaseCircularCounter();
 				BeanBoxException.throwEX("BeanBox create bean error! postConstructor=" + getPostConstructor(), e);
 			}
-		decreaseCircularCounter();
+		decreaseCircularCounter(); 
 		return (T) instance;
 	}
 

@@ -49,8 +49,8 @@ public class BeanBoxContext {
 	private List<Class<?>> configClassList = new CopyOnWriteArrayList<Class<?>>();
 
 	/** preDestory method cache */
-	protected ConcurrentHashMap<String, Method> preDestoryMethodCache = new ConcurrentHashMap<String, Method>();
-
+	protected ConcurrentHashMap<String, Method> preDestoryMethodCache = new ConcurrentHashMap<String, Method>(); 
+	
 	public BeanBoxContext(Class<?>... configClasses) {
 		for (Class<?> configClass : configClasses) {
 			configClassList.add(configClass);

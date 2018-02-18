@@ -40,7 +40,7 @@ public class Tester {
 	}
 
 	public static void main(String[] args) {
-		long repeattimes = 100;
+		long repeattimes = 1000;
 		System.out.printf("BenchMark Test, build Object tree %s times\r\n", repeattimes);
 		A aold = null, a = null;
 
@@ -48,9 +48,9 @@ public class Tester {
 		BeanBoxContext ctx = new BeanBoxContext(BeanBoxConfig1.class).setIgnoreAnnotation(true);
 		aold = ctx.getBean(A.class);
 		long start = System.currentTimeMillis();
-		for (int i = 0; i < repeattimes; i++) {
-			a = ctx.getBean(A.class);
-		}
+		for (int i = 0; i < repeattimes; i++) { 
+			a = ctx.getBean(A.class); 
+		} 
 		long end = System.currentTimeMillis();
 		String type = (aold == a) ? "(Singlton)" : "(Prototype)";
 		System.out.println(String.format("%45s|%6sms", "BeanBox Normal Configuration" + type, end - start));

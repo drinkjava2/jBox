@@ -5,7 +5,6 @@ import org.junit.Test;
 
 import com.github.drinkjava2.jbeanbox.BeanBox;
 import com.github.drinkjava2.jbeanbox.BeanBoxContext;
-import com.github.drinkjava2.jbeanbox.BeanBoxUtils;
 import com.github.drinkjava2.jbeanbox.InjectBox;
 
 /**
@@ -62,16 +61,6 @@ public class Tester {
 		System.out.println(s9);
 	}
 
-	public void setValueManually(BeanBoxContext ctx) {// internal test
-		s1 = ctx.getBean(A.StrBox.class);
-		s2 = BeanBoxUtils.getBeanBox(null, String.class, A.class, null, ctx, false).getBean();
-		s3 = BeanBoxUtils.getBeanBox(null, String.class, B.class, "s3", ctx, false).getBean();
-		c4 = ctx.getBean(C.class);
-		s5 = BeanBoxUtils.getBeanBox(this.getClass(), String.class, null, null, ctx, false).getBean();
-		d6 = ctx.getBean(D.class);
-		e7 = BeanBoxUtils.getBeanBox(null, E.class, null, "e7", ctx, false).getBean();
-	}
-
 	@Test
 	public void doTest() {
 		// This one is test defaultContext
@@ -93,19 +82,6 @@ public class Tester {
 		Tester t3 = ctx.getBean(Tester.class);
 		t3.print();
 		System.out.println(t3 == new TesterBox2().setContext(ctx).getBean());// true
-		BeanBox.defaultContext.close();
-
-		// This one is test setValue Manually with config file
-		System.out.println("\r\n==4==");
-		Tester t4 = new Tester();
-		t4.setValueManually(BeanBox.defaultContext.addConfig(Config.class));
-		t4.print();
-		BeanBox.defaultContext.close();
-
-		// This one is test setValue Manually with Config2 file and Box2 identity
-		System.out.println("\r\n==5==");
-		t4.setValueManually(BeanBox.defaultContext.addConfig(Config2.class).setBoxIdentity("Box2"));
-		t4.print();
-		BeanBox.defaultContext.close();
+		BeanBox.defaultContext.close(); 
 	}
 }
