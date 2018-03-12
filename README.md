@@ -27,15 +27,15 @@ jBeanBox是一个微形但功能较齐全的IOC/AOP工具，利用Java的初始�
 *Bean生命周期管理（postConstruction和preDestory方法回调）  
 
 ### jBeanBox的缺点：  
-比较新，缺少足够的测试和用户反馈。设计简单，只有CGLIB代理一种代理方式，切点定义只有正则表达式和@AopAround注解两种方式。 
+比较新，缺少足够的测试和用户反馈。设计简单，只有CGLIB代理一种代理方式，切点定义只有正则表达式和注解两种方式。 
 
 ### 如何在项目中使用jBeanBox?  
-手工下载jbeanbox-2.4.4.jar放到项目的类目录，或在pom.xml中加入以下配置：  
+手工下载jbeanbox-2.4.6.jar放到项目的类目录，或在pom.xml中加入以下配置：  
 ```
 <dependency>
     <groupId>com.github.drinkjava2</groupId>
     <artifactId>jbeanbox</artifactId>
-    <version>2.4.4</version>
+    <version>2.4.6</version> <!--或Maven最新版-->
 </dependency>
 ``` 
 jBeanBox不依赖于任何第三方库，为避免包冲突，它已将用到的CGLIB、ASM、AopAlliance三个库以源码方式(前两个更改了包名)包含在项目内。  
@@ -447,6 +447,7 @@ Runtime benchmark, fetch bean for 100000 times:
 		insertUser2();
 	}
 ```
-AopAround注解的使用详见目录test.test9_aop_annotation，  
+AopAround注解的使用详见目录test.test9_aop_annotation。  
+另外从v2.4.6开始，jBeanBox支持自定义AOP环绕注解，只要用BeanBox.regAopAroundAnnotation(自定义注解.class, xxxBox.class);方法登记一下即可，后一个参数为AOP环绕回调的切面处理类。
 
 以上即为jBeanBox全部文档，如有疑问，请下载示例运行或查看源码。
