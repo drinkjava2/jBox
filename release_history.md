@@ -6,6 +6,7 @@
 2.4.5 改正AOP不支持构数函数带参数的Bug
       添加setConstructorTypes方法，用于明确指定构造器参数类型,消除岐义，通常用于实参为子类的情况。
       改正内部类Advice失效Bug 	  
+2.4.6 添加自定义AOPAROUND注解功能
 
 Release History
 2.4.1 First version, support Java7 only  
@@ -17,4 +18,4 @@ Release History
 2.4.5 Fix AOP proxy do not support constructor parameters bug  
       Add beanBox.setConstructorTypes() method, otherwise if constructor parameter is a subClass will have a Exception "Can not find constructor"  
 	  Fix inner class advice bug
-	  
+2.4.6 Add customize AOPAROUND Annotation feature 
