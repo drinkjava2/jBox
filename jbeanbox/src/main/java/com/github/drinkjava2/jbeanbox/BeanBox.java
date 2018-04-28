@@ -479,6 +479,7 @@ public class BeanBox {
 
 	private static void decreaseCircularCounter() {
 		Integer check = circularCounter.get() - 1;
+		if(check<0)check=0;
 		circularCounter.set(check);
 	}
 

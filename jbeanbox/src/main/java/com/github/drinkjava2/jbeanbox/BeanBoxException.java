@@ -50,7 +50,7 @@ public class BeanBoxException extends RuntimeException {
 	 * throw Exception in this project
 	 */
 	public static Object throwEX(String errorMsg) {
-		return throwEX(errorMsg);
+		return new BeanBoxException(errorMsg);
 	}
 
 	/**
