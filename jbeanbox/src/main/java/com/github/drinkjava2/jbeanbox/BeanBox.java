@@ -19,7 +19,6 @@ package com.github.drinkjava2.jbeanbox;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,11 +60,6 @@ public class BeanBox {
 	public static final BeanBoxContext defaultContext = new BeanBoxContext();// this is a global default context
 	private BeanBoxContext context = defaultContext;
 
-	/**
-	 * AOP around annotations setting, setAopAroundValue() method can set a default
-	 * value to an AopAround type annotation
-	 */
-	protected static Map<Class<?>, Class<?>> aopAroundAnnotationsMap = new ConcurrentHashMap<Class<?>, Class<?>>();
 
 	// Use a thread local counter to check circular dependency
 	private static final ThreadLocal<Integer> circularCounter = new ThreadLocal<Integer>() {
@@ -651,7 +645,7 @@ public class BeanBox {
 
 	/** Return current Aop Around Annotations Map */
 	public static Map<Class<?>, Class<?>> getAopAroundAnnotationsMap() {
-		return aopAroundAnnotationsMap;
+		return defaultContext.aopAroundAnnotationsMap;
 	}
 
 	/**
@@ -659,15 +653,8 @@ public class BeanBox {
 	 * beanBoxContext.setAopAroundValue(Tx.class, FooBarBox.class);
 	 */
 	public static void regAopAroundAnnotation(Class<?> annotationClass, Class<?> defaultBoxClass) {
-		aopAroundAnnotationsMap.put(annotationClass, defaultBoxClass);
+		defaultContext.aopAroundAnnotationsMap.put(annotationClass, defaultBoxClass);
 	}
-
-	/**
-	 * Register an AOP Around annotation, usage:
-	 * beanBoxContext.setAopAroundValue(Tx.class, FooBarBox.class);
-	 */
-	public static void regAopAroundAnnotation(Class<?> annotationClass) {
-		aopAroundAnnotationsMap.put(annotationClass, Object.class);
-	}
+ 
 
 }

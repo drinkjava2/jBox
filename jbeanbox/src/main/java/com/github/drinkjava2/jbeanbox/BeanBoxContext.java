@@ -18,6 +18,7 @@ package com.github.drinkjava2.jbeanbox;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -49,8 +50,14 @@ public class BeanBoxContext {
 	private List<Class<?>> configClassList = new CopyOnWriteArrayList<Class<?>>();
 
 	/** preDestory method cache */
-	protected ConcurrentHashMap<String, Method> preDestoryMethodCache = new ConcurrentHashMap<String, Method>(); 
-	
+	protected ConcurrentHashMap<String, Method> preDestoryMethodCache = new ConcurrentHashMap<String, Method>();
+
+	/**
+	 * AOP around annotations setting, setAopAroundValue() method can set a default
+	 * value to an AopAround type annotation
+	 */
+	protected Map<Class<?>, Class<?>> aopAroundAnnotationsMap = new ConcurrentHashMap<Class<?>, Class<?>>();
+
 	public BeanBoxContext(Class<?>... configClasses) {
 		for (Class<?> configClass : configClasses) {
 			configClassList.add(configClass);
@@ -254,4 +261,24 @@ public class BeanBoxContext {
 		this.configClassList = configClassList;
 	}
 
+	/** Return current Aop Around Annotations Map */
+	public Map<Class<?>, Class<?>> getAopAroundAnnotationsMap() {
+		return aopAroundAnnotationsMap;
+	}
+
+	/**
+	 * Register an AOP Around annotation, usage:
+	 * beanBoxContext.setAopAroundValue(Tx.class, FooBarBox.class);
+	 */
+	public void regAopAroundAnnotation(Class<?> annotationClass, Class<?> defaultBoxClass) {
+		aopAroundAnnotationsMap.put(annotationClass, defaultBoxClass);
+	}
+
+	/**
+	 * Register an AOP Around annotation, usage:
+	 * beanBoxContext.setAopAroundValue(Tx.class, FooBarBox.class);
+	 */
+	public void regAopAroundAnnotation(Class<?> annotationClass) {
+		aopAroundAnnotationsMap.put(annotationClass, Object.class);
+	}
 }

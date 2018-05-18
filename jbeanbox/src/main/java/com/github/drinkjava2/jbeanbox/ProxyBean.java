@@ -56,8 +56,8 @@ class ProxyBean implements MethodInterceptor {
 			if (method.isAnnotationPresent(AopAround.class)) {
 				buildTheProxyBean(clazz, context, method, AopAround.class);
 			}
-			if (!BeanBox.aopAroundAnnotationsMap.isEmpty()) {// if have AopAround annotation
-				for (Class<?> annoClass : BeanBox.aopAroundAnnotationsMap.keySet()) {					 
+			if (!context.aopAroundAnnotationsMap.isEmpty()) {// if have AopAround annotation
+				for (Class<?> annoClass : context.aopAroundAnnotationsMap.keySet()) {					 
 					Class<Annotation> anno = (Class<Annotation>) annoClass;
 					if (method.isAnnotationPresent(anno)) {
 						buildTheProxyBean(clazz, context, method, anno);
@@ -79,7 +79,7 @@ class ProxyBean implements MethodInterceptor {
 		}
 
 		if (value == null || Object.class.equals(value))
-			value = BeanBox.aopAroundAnnotationsMap.get(aopClass);
+			value = context.aopAroundAnnotationsMap.get(aopClass);
 		if (value == null)
 			throw new BeanBoxException("No value set for annotation '" + aopClass
 					+ "', suggest use setAopAroundValue(anno.class, targetBox.class) method to set a default value.");

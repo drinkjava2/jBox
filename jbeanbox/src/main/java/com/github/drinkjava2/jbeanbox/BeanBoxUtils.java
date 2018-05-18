@@ -283,7 +283,7 @@ public abstract class BeanBoxUtils {
 
 	/**
 	 * If found advice for this class, use CGLib to create proxy bean, CGLIB is the
-	 * only way to create proxy to make source code simple.
+	 * only way to create proxy in jBeanBox
 	 */
 	public static boolean ifHaveAdvice(BeanBox box, List<Advisor> advisors, Object classOrValue) {
 		if (box.needCreateProxy != null) {
@@ -304,11 +304,11 @@ public abstract class BeanBoxUtils {
 			}
 
 			// If have @TX, @Trans format self customised annotation
-			if (!BeanBox.aopAroundAnnotationsMap.isEmpty()) {
+			if (!box.getContext().aopAroundAnnotationsMap.isEmpty()) {
 				Annotation[] annos = m.getDeclaredAnnotations();
 				if (annos != null)
 					for (Annotation ano : annos) {
-						for (Class<?> key : BeanBox.aopAroundAnnotationsMap.keySet())
+						for (Class<?> key : box.getContext().aopAroundAnnotationsMap.keySet())
 							if (key.equals(ano.annotationType())) {
 								box.needCreateProxy = true;
 								return true;
