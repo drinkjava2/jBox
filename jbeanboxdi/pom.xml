@@ -3,12 +3,12 @@
  <modelVersion>4.0.0</modelVersion>
  
  <groupId>com.github.drinkjava2</groupId>
- <artifactId>jbeanbox</artifactId>
+ <artifactId>jbeanboxdi</artifactId>
  <version>2.4.8</version>
  <packaging>jar</packaging> 
  
- <name>jBeanBox</name>
- <description>jBeanBox is a macro scale IOC(DI)/AOP tool</description>
+ <name>jBeanBoxDI</name>
+ <description>jBeanBoxDI is a macro scale dependency inject tool</description>
  <url>https://github.com/drinkjava2/jbeanbox</url>
   
  <issueManagement>
@@ -38,7 +38,7 @@
  </scm>
   
  <dependencies>
-	<!-- jbeanbox has no any 3rd party dependency -->
+	<!-- jbeanboxdi has no any 3rd party dependency -->
   
    <!-- junit for test scope only -->	
    <dependency>

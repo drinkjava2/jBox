@@ -1,492 +1,356 @@
-/**
- * Copyright (C) 2016 Yong Zhu.
- *
+/*
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by
+ * applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * OF ANY KIND, either express or implied. See the License for the specific
+ * language governing permissions and limitations under the License.
  */
 package com.github.drinkjava2.jbeanbox;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map.Entry;
 
-import com.github.drinkjava2.jbeanbox.springsrc.ReflectionUtils;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.inject.Inject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.github.drinkjava2.jbeanbox.annotation.INJECT;
+import com.github.drinkjava2.jbeanbox.annotation.CONS;
+import com.github.drinkjava2.jbeanbox.annotation.POSTCONSTRUCT;
+import com.github.drinkjava2.jbeanbox.annotation.PREDESTROY;
+import com.github.drinkjava2.jbeanbox.annotation.PROTOTYPE;
 
 /**
- * Put lots miscellaneous public static methods here, have no time to organize
- * them
+ * BeanBoxUtils translate class to BeanBox instance and cache them
  * 
  * @author Yong Zhu
- * @since 2.4
- * 
+ * @since 2.4.7
  */
-@SuppressWarnings("all")
-public abstract class BeanBoxUtils {
-
-	private static ConcurrentHashMap<String, Integer> classExistCache = new ConcurrentHashMap<String, Integer>();
+public class BeanBoxUtils {// NOSONAR
 
 	/**
-	 * Return true if empty or null
+	 * Translate a BeanBox class or normal class to a readOnly BeanBox instance
 	 */
-	public static boolean isEmptyStr(String str) {
-		return str == null || "".equals(str);
-	}
-
-	/**
-	 * Check if class exist by search class name
-	 */
-	public static Class<?> checkIfExist(String className) {
-		Integer i = classExistCache.get(className);
-		if (i == null)
-			try {
-				Class<?> clazz = Class.forName(className);
-				if (BeanBox.class.isAssignableFrom((Class<?>) clazz)) {
-					classExistCache.put(className, 1);
-					return clazz;
-				}
-				classExistCache.put(className, 0);
-				return null;
-			} catch (Exception e) {
-				BeanBoxException.eatException(e);
-				classExistCache.put(className, 0);
-				return null;
-			}
-		if (1 == i) {
-			try {
-				return Class.forName(className);
-			} catch (Exception e) {
-				throw new BeanBoxException("Class '" + className + "' does not exist.");
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Create an instance by its 0 parameter constructor
-	 */
-	public static Object createInstanceWithCtr0(Class<?> clazz) {
-		try {
-			Constructor<?> c0 = clazz.getDeclaredConstructor();
-			c0.setAccessible(true);
-			Object o = c0.newInstance();
-			if (o instanceof BeanBox)
-				BeanBoxException
-						.throwEX("BeanBox createInstanceWithCtr0 error:  clazz=" + clazz + " should not be a BeanBox");
-			return o;
-		} catch (Exception e) {
-			BeanBoxException.eatException(e);
-			return null;
-		}
-	}
-
-	/**
-	 * Translate object[] to Object[] but replace BeanBox to bean instance, for
-	 * invoke use
-	 */
-	public static Object[] getObjectRealValue(BeanBoxContext context, Object... beanArgs) {
-		Object[] objects = new Object[beanArgs.length];
-		for (int i = 0; i < objects.length; i++)
-			objects[i] = BeanBoxUtils.getRealValue(beanArgs[i], context);
-		return objects;
-	}
-
-	/**
-	 * Create a BeanBox instance by its 0 parameter constructor
-	 */
-	public static BeanBox createBeanBoxInstance(Class<BeanBox> clazz, BeanBoxContext context) {
-		try {
-			Constructor<?> c0 = clazz.getDeclaredConstructor();
-			c0.setAccessible(true);
-			BeanBox box = (BeanBox) c0.newInstance();
-			box.setContext(context);
-			return box;
-		} catch (Exception e) {
-			BeanBoxException.throwEX("BeanBox createBeanBoxWithCtr0 error:  clazz=" + clazz, e);
-		}
-		return null;
-	}
-
-	enum ObjectType {
-		BEANBOX_CLASS, BEANBOX_INSTANCE, CLASS, INSTANCE
-	}
-
-	/**
-	 * Judge unknow Object type
-	 */
-	public static ObjectType judgeType(Object unknowObject) {
-		if (unknowObject instanceof BeanBox)
-			return ObjectType.BEANBOX_INSTANCE;
-		else if (unknowObject instanceof Class && BeanBox.class.isAssignableFrom((Class<?>) unknowObject))
-			return ObjectType.BEANBOX_CLASS;
-		else if (unknowObject instanceof Class)
-			return ObjectType.CLASS;
-		return ObjectType.INSTANCE;
-	}
-
 	@SuppressWarnings("unchecked")
-	public static Object getRealValue(Object unknow, BeanBoxContext context) {
-		ObjectType type = BeanBoxUtils.judgeType(unknow);
-		switch (type) {
-		case BEANBOX_INSTANCE:
-			return ((BeanBox) unknow).setContext(context).getBean();
-		case BEANBOX_CLASS:
-			return BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) unknow, context).getBean();
-		case CLASS:
-			return context.getBean((Class<?>) unknow);
-		case INSTANCE:
-			return unknow;
-		default:
-			BeanBoxException.throwEX("BeanBoxUtils getRealValue default case error");
-		}
-		return null;
-	}
-
-	/**
-	 * Get annotated BeanBox instance, detail see InjectBox.java
-	 */
-	public static Object getInjectFieldValue(Class<?> ownerClass, InjectBox a, Class<?> fieldClass, // NOSONAR
-			String fieldname, int i, BeanBoxContext context) {
-		Class<?> box = null;
-		if (i == 1 && !Object.class.equals(a.value()))
-			box = a.value();
-		else if (i == 1 && !Object.class.equals(a.box()))
-			box = a.box();
-		else if (i == 1 && !Object.class.equals(a.box1()))
-			box = a.box1();
-		else if (i == 2 && !Object.class.equals(a.box2()))
-			box = a.box2();
-		else if (i == 3 && !Object.class.equals(a.box3()))
-			box = a.box3();
-		else if (i == 4 && !Object.class.equals(a.box4()))
-			box = a.box4();
-		else if (i == 5 && !Object.class.equals(a.box5()))
-			box = a.box5();
-		else if (i == 6 && !Object.class.equals(a.box6()))
-			box = a.box6();
+	public static BeanBox getUniqueBeanBox(BeanBoxContext ctx, Class<?> clazz) {
+		BeanBoxException.assureNotNull(clazz, "Target class can not be null");
+		BeanBox box = ctx.beanBoxMetaCache.get(clazz);
 		if (box != null)
-			return getBeanBox(ownerClass, fieldClass, box, fieldname, context, true);
-
-		if (i == 1 && !Object.class.equals(a.pox()))
-			box = a.pox();
-		else if (i == 1 && !Object.class.equals(a.pox1()))
-			box = a.pox1();
-		else if (i == 2 && !Object.class.equals(a.pox2()))
-			box = a.pox2();
-		else if (i == 3 && !Object.class.equals(a.pox3()))
-			box = a.pox3();
-		else if (i == 4 && !Object.class.equals(a.pox4()))
-			box = a.pox4();
-		else if (i == 5 && !Object.class.equals(a.pox5()))
-			box = a.pox5();
-		else if (i == 6 && !Object.class.equals(a.pox6()))
-			box = a.pox6();
-		if (box != null)
-			return getBeanBox(ownerClass, fieldClass, box, fieldname, context, true).setPrototype(true);
-
-		if (i == 1 && !Object.class.equals(a.sox()))
-			box = a.sox();
-		else if (i == 1 && !Object.class.equals(a.sox1()))
-			box = a.sox1();
-		else if (i == 2 && !Object.class.equals(a.sox2()))
-			box = a.sox2();
-		else if (i == 3 && !Object.class.equals(a.sox3()))
-			box = a.sox3();
-		else if (i == 4 && !Object.class.equals(a.sox4()))
-			box = a.sox4();
-		else if (i == 5 && !Object.class.equals(a.sox5()))
-			box = a.sox5();
-		else if (i == 6 && !Object.class.equals(a.sox6()))
-			box = a.sox6();
-		if (box != null)
-			return getBeanBox(ownerClass, fieldClass, box, fieldname, context, true).setPrototype(false);
-
-		BeanBox bx = getBeanBox(ownerClass, fieldClass, null, fieldname, context, true);
-		if (bx != null)
-			return bx;
-
-		if ((i == 1) && !"".equals(a.s()))
-			return a.s();
-
-		String methodname = null;
-		if (String.class.isAssignableFrom(fieldClass))
-			methodname = "s" + i;
-		else if (Integer.class.isAssignableFrom(fieldClass))
-			methodname = "i" + i;
-		else if (Boolean.class.isAssignableFrom(fieldClass))
-			methodname = "bl" + i;
-		else if (Byte.class.isAssignableFrom(fieldClass))
-			methodname = "bt" + i;
-		else if (Long.class.isAssignableFrom(fieldClass))
-			methodname = "l" + i;
-		else if (Short.class.isAssignableFrom(fieldClass))
-			methodname = "st" + i;
-		else if (Float.class.isAssignableFrom(fieldClass))
-			methodname = "f" + i;
-		else if (Double.class.isAssignableFrom(fieldClass))
-			methodname = "d" + i;
-		else if (Character.class.isAssignableFrom(fieldClass))
-			methodname = "c" + i;
-		if (methodname != null)
+			return box;
+		if (BeanBox.class.isAssignableFrom(clazz))
 			try {
-				return ReflectionUtils.findMethod(InjectBox.class, methodname).invoke(a);
+				box = (BeanBox) clazz.newInstance();
+				if (box.singleton == null)
+					box.singleton = true;
+				// ===== create method and config method
+				Method mthd = ctx.checkAndReturnCreateMethod((Class<BeanBox>) clazz);
+				if (mthd != null)
+					box.setCreateMethod(mthd);
+				mthd = ctx.checkAndReturnConifgMethod((Class<BeanBox>) clazz);
+				if (mthd != null)
+					box.setConfigMethod(mthd);
+
 			} catch (Exception e) {
-				BeanBoxException.throwEX("BeanBox getInjectFieldValue error, method" + methodname + "in fieldClass="
-						+ fieldClass + " not exist", e);
+				BeanBoxException.throwEX(e);
 			}
-		return null;
+		else
+			box = doCreateBeanBox(ctx, clazz);
+		ctx.beanBoxMetaCache.put(clazz, box);
+		return box;
 	}
 
-	/**
-	 * build BeanBox With Annotated Constructor
-	 */
-	public static Object buildBeanBoxWithAnnotatedCtr(Class<?> clazz, BeanBoxContext context) {// NOSONAR
-		Constructor<?>[] cons = clazz.getDeclaredConstructors();
-		for (Constructor<?> c : cons) {
-			if (c.isAnnotationPresent(InjectBox.class)) {
-				InjectBox anno = c.getAnnotation(InjectBox.class);
-				Class<?>[] parameterTypes = c.getParameterTypes();
-				if (parameterTypes == null)
-					return null;
-				int parameterCount = parameterTypes.length;
-				if (parameterCount == 0 || parameterCount > 6)
-					BeanBoxException.throwEX(
-							"BeanBox buildBeanBoxWithAnotatedCtr error, only support at most 6 constructor parameters,class="
-									+ clazz);
-				Object[] args = new Object[parameterCount];
-				for (int i = 0; i < parameterCount; i++)
-					args[i] = getInjectFieldValue(clazz, anno, parameterTypes[i], null, i + 1, context);
-
-				Object instance;
-				try {
-					instance = c.newInstance(getObjectRealValue(context, args));
-					return instance;
-				} catch (Exception e) {
-					return BeanBoxException.eatException(e);
-				}
-			}
+	/** Invoke method and catch exception to BeanBoxException */
+	public static Object invokeMethodAndCatchEX(Method method, Object obj, Object... params) {// NOSONAR
+		try {
+			return method.invoke(obj, params);
+		} catch (Exception e) {
+			return BeanBoxException.throwEX(e);
 		}
-		return null;
 	}
 
-	/**
-	 * If found advice for this class, use CGLib to create proxy bean, CGLIB is the
-	 * only way to create proxy in jBeanBox
-	 */
-	public static boolean ifHaveAdvice(BeanBox box, List<Advisor> advisors, Object classOrValue) {
-		if (box.needCreateProxy != null) {
-			if (box.needCreateProxy)
-				return true;
-			else
-				return false;
+	/** Get constructor of class and catch exception to BeanBoxException */
+	public static Constructor<?> getConstructAndCatchEX(Class<?> clazz, Class<?>... paramTypes) {// NOSONAR
+		try {
+			return clazz.getDeclaredConstructor(paramTypes);
+		} catch (Exception e) {
+			return (Constructor<?>) BeanBoxException.throwEX(e);// NOSONAR
 		}
-		if (classOrValue == null || !(classOrValue instanceof Class)) {
-			box.needCreateProxy = false;
-			return false;
-		}
-		Method[] methods = ((Class<?>) classOrValue).getMethods();
-		for (Method m : methods) {
-			if (m.isAnnotationPresent(AopAround.class)) {// if have AopAround annotation
-				box.needCreateProxy = true;
-				return true;
-			}
+	}
 
-			// If have @TX, @Trans format self customised annotation
-			if (!box.getContext().aopAroundAnnotationsMap.isEmpty()) {
-				Annotation[] annos = m.getDeclaredAnnotations();
-				if (annos != null)
-					for (Annotation ano : annos) {
-						for (Class<?> key : box.getContext().aopAroundAnnotationsMap.keySet())
-							if (key.equals(ano.annotationType())) {
-								box.needCreateProxy = true;
-								return true;
-							}
+	/** Get method of class and catch exception to BeanBoxException */
+	public static Method getMethodAndCatchEX(Class<?> clazz, String name, Class<?>... paramTypes) {// NOSONAR
+		try {
+			return clazz.getDeclaredMethod(name, paramTypes);
+		} catch (Exception e) {
+			return (Method) BeanBoxException.throwEX(e);// NOSONAR
+		}
+	}
+
+	/** Get Field of class and catch exception to BeanBoxException */
+	public static Field getFieldAndCatchEX(Class<?> clazz, String name) {// NOSONAR
+		try {
+			return clazz.getDeclaredField(name);
+		} catch (Exception e) {
+			return (Field) BeanBoxException.throwEX(e);// NOSONAR
+		}
+	}
+
+	protected static void belowArePrivateStaticMethods__________________________() {// NOSONAR
+	}
+
+	/** Read Bean annotations to build a BeanBox instance */
+	private static BeanBox doCreateBeanBox(BeanBoxContext ctx, Class<?> clazz) {// NOSONAR
+		BeanBox box = new BeanBox();
+		box.setBeanClass(clazz);
+		box.setSingleton(true);// Annotated class, default is singleton
+
+		if (!ctx.isAllowAnnotation())
+			return box;
+		boolean allowSpringJsrAnno = ctx.allowSpringJsrAnnotation;
+
+		// ========= singleton or prototype
+		if (checkAnnoExist(clazz, PROTOTYPE.class))
+			box.setSingleton(false);
+		else if (allowSpringJsrAnno) {
+			Map<String, Object> m = getAnnoAsMap(clazz, "org.springframework.context.annotation.Scope");
+			if (m != null)
+				for (Entry<String, Object> entry : m.entrySet())
+					if ("value".equals(entry.getKey())) {
+						if ("prototype".equalsIgnoreCase(String.valueOf(entry.getValue())))
+							box.setSingleton(false);
+						else if ("singleton".equalsIgnoreCase(String.valueOf(entry.getValue())))
+							box.setSingleton(true);
+						else
+							BeanBoxException.throwEX("'prototype' or 'singleton' required in @Scope annotation");
 					}
+		}
+
+		// ======== Class inject, if @INJECT, @PARAM put on class
+		Object[] v = getInjectAnnotationAsArray(clazz, allowSpringJsrAnno);
+		if (v != null) {
+			box.setTarget(v[0]);
+			box.setConstant((Boolean) v[1]);
+			box.setRequired((Boolean) v[2]);
+		}
+
+		// ========== Constructor inject
+		Constructor<?>[] constrs = clazz.getConstructors();
+		for (Constructor<?> constr : constrs) {
+			v = getInjectAnnotationAsArray(constr, allowSpringJsrAnno);
+			if (v != null) {
+				if (v[0] != null && EMPTY.class != v[0]) {// 1 parameter only
+					BeanBox inject = new BeanBox();
+					inject.setTarget(v[0]);
+					inject.setConstant((Boolean) v[1]);
+					inject.setRequired((Boolean) v[2]);
+					inject.setType(constr.getParameterTypes()[0]);
+					box.setConstructor(constr);
+					box.setConstructorParams(new BeanBox[] { inject });
+				} else { // no or many parameter
+					BeanBox[] paramInjects = getParameterInjectAsBeanBoxArray(constr, allowSpringJsrAnno);
+					box.setConstructor(constr);
+					box.setConstructorParams(paramInjects);
+				}
+			}
+		}
+
+		// =================Field inject=================
+		// @INJECT and values
+		for (Field f : clazz.getDeclaredFields()) {
+			v = getInjectAnnotationAsArray(f, allowSpringJsrAnno);
+			if (v != null) {
+				box.checkOrCreateFieldInjects();
+				BeanBox inject = new BeanBox();
+				inject.setTarget(v[0]);
+				inject.setConstant((Boolean) v[1]);
+				inject.setRequired((Boolean) v[2]);
+				inject.setType(f.getType());
+				makeAccessible(f);
+				box.getFieldInjects().put(f, inject);
+			}
+		}
+
+		Method[] methods = clazz.getDeclaredMethods();
+		for (Method m : methods) {
+			// ========== @PostConstruct and @PreDestory
+			if (m.getAnnotation(POSTCONSTRUCT.class) != null || m.getAnnotation(PostConstruct.class) != null) {
+				if (m.getParameterTypes().length > 0)
+					BeanBoxException.throwEX("In jBeanBox, PostConstruct should have no parameter.");
+				makeAccessible(m);
+				box.setPostConstruct(m);
+			}
+			if (m.getAnnotation(PREDESTROY.class) != null || m.getAnnotation(PreDestroy.class) != null) {
+				if (m.getParameterTypes().length > 0)
+					BeanBoxException.throwEX("In jBeanBox, PostConstruct should have no parameter.");
+				makeAccessible(m);
+				box.setPreDestroy(m);
 			}
 
-			for (Advisor adv : advisors)
-				if (adv.match(((Class<?>) classOrValue).getName(), m.getName())) {
-					box.needCreateProxy = true;
-					return true;
+			v = getInjectAnnotationAsArray(m, allowSpringJsrAnno);
+			if (v != null) {
+				makeAccessible(m);
+				BeanBox oneParam = new BeanBox();
+				oneParam.setTarget(v[0]);
+				oneParam.setConstant((Boolean) v[1]);
+				oneParam.setRequired((Boolean) v[2]);
+				boolean haveOneParameter = v[0] != null && EMPTY.class != v[0];
+				if (haveOneParameter)
+					oneParam.setType(m.getParameterTypes()[0]); // set parameter type for 1 parameter
+				// @INJECT or @Inject or @Autowired normal method inject
+				box.checkOrCreateMethodInjects();
+				if (haveOneParameter) // 1 parameter only
+					box.getMethodInjects().put(m, new BeanBox[] { oneParam });
+				else { // no or many parameter
+					BeanBox[] paramInjects = getParameterInjectAsBeanBoxArray(m, allowSpringJsrAnno);
+					box.getMethodInjects().put(m, paramInjects);
 				}
+			}
 		}
-		box.needCreateProxy = false;
+		return box;
+
+	}
+
+	/**
+	 * Get @INJECT or @POSTCONSTRUCT or @PARAM or @PREDESTROY or @PROTOTYPE
+	 * annotation values, return Object[3] or null if no above annotations found
+	 */
+	private static Object[] getInjectAnnotationAsArray(Object target, boolean allowSpringJsrAnno) {
+		Annotation[] anno = getAnnotations(target);
+		return getInjectAsArray(anno, allowSpringJsrAnno);
+	}
+
+	/**
+	 * get Inject As Object[4] Array, 0=value 1=isConstant 2=required
+	 * 3=annotationType, if not found annotation inject, return null
+	 */
+	private static Object[] getInjectAsArray(Annotation[] anno, boolean allowSpringJsrAnno) {// NOSONAR
+		for (Annotation a : anno) {
+			Class<? extends Annotation> type = a.annotationType();
+			if (INJECT.class.equals(type))
+				return new Object[] { ((INJECT) a).value(), ((INJECT) a).constant(), ((INJECT) a).required(), null };
+			if (CONS.class.equals(type))
+				return new Object[] { ((CONS) a).value(), ((CONS) a).constant(), ((CONS) a).required(), null };
+			if (allowSpringJsrAnno) {
+				if (Inject.class.equals(type))
+					return new Object[] { EMPTY.class, false, true, null };
+				if (Autowired.class.equals(type))
+					return new Object[] { EMPTY.class, false, ((Autowired) a).required(), null };
+			}
+		}
+		return null;// NOSONAR
+	}
+
+	/** Get Parameter Inject as BeanBox[] Array */
+	private static BeanBox[] getParameterInjectAsBeanBoxArray(Object o, boolean allowSpringJsrAnno) {
+		Annotation[][] annoss = null;
+		Class<?>[] paramTypes = null;
+		if (o instanceof Method) {
+			annoss = ((Method) o).getParameterAnnotations();
+			paramTypes = ((Method) o).getParameterTypes();
+		} else if (o instanceof Constructor) {
+			annoss = ((Constructor<?>) o).getParameterAnnotations();
+			paramTypes = ((Constructor<?>) o).getParameterTypes();
+		} else
+			return BeanBoxException.throwEX("Only method or Constructor are allowed at here for:" + o);
+		BeanBox[] beanBoxes = new BeanBox[annoss.length];
+		for (int i = 0; i < annoss.length; i++) {
+			Annotation[] annos = annoss[i];
+			Object[] v = getInjectAsArray(annos, allowSpringJsrAnno);
+			BeanBox inject = new BeanBox();
+			if (v != null) { // if parameter has annotation
+				inject.setTarget(v[0]);
+				inject.setConstant((Boolean) v[1]);
+				inject.setRequired((Boolean) v[2]);
+				inject.setType(paramTypes[i]);
+			} else // if parameter no annotation
+				inject.setTarget(paramTypes[i]);
+			beanBoxes[i] = inject;
+		}
+		return beanBoxes;
+	}
+
+	/** give a class or Field or Method, return annotations */
+	private static Annotation[] getAnnotations(Object targetClass) {
+		if (targetClass instanceof Field)
+			return ((Field) targetClass).getAnnotations();
+		else if (targetClass instanceof Method)
+			return ((Method) targetClass).getAnnotations();
+		else if (targetClass instanceof Constructor)
+			return ((Constructor<?>) targetClass).getAnnotations();
+		else if (targetClass instanceof Class)
+			return ((Class<?>) targetClass).getAnnotations();
+		else
+			return BeanBoxException.throwEX("targetClass should be Field, Method, Constructor or Class");
+	}
+
+	/** Return all annotations for Class or Field */
+	private static Map<String, Object> getAnnoAsMap(Object targetClass, String annoFullName) {
+		Annotation[] anno = getAnnotations(targetClass);
+		for (Annotation a : anno) {
+			Class<? extends Annotation> type = a.annotationType();
+			if (annoFullName.equals(type.getName()))
+				return changeAnnotationValuesToMap(a, type);
+		}
+		return null;
+	}
+
+	/** Check if annotation exist in Class or Field */
+	private static boolean checkAnnoExist(Object targetClass, Class<?> annoClass) {
+		Annotation[] anno = getAnnotations(targetClass);
+		for (Annotation annotation : anno) {
+			Class<? extends Annotation> type = annotation.annotationType();
+			if (annoClass.equals(type))
+				return true;
+		}
 		return false;
 	}
 
-	protected static boolean isPrimitiveType(Class<?> fieldClass) {
-		return String.class.equals(fieldClass) || Integer.class.equals(fieldClass) || Boolean.class.equals(fieldClass)// NOSONAR
-				|| Byte.class.equals(fieldClass) || Long.class.equals(fieldClass) || Short.class.equals(fieldClass)
-				|| Float.class.equals(fieldClass) || Double.class.equals(fieldClass)
-				|| Character.class.equals(fieldClass);
-	}
-
-	/**
-	 * Find BeanBox class and create BeanBox instance, for field with @InjectBox
-	 * annotation, follow below order: <br/>
-	 * Format: A.class{ @Inject(B.class) C fieldname;} <br/>
-	 * 1) B.class (if is BeanBox)<br/>
-	 * 2) B$CBox.class in B.class <br/>
-	 * 3) B$FieldnameBox.class in B.class <br/>
-	 * 
-	 * Format: A.class{ @Inject C fieldname; ...} <br/>
-	 * 4) C.class (if is BeanBox)<br/>
-	 * 5) CBox.class in same package of C <br/>
-	 * 6) C$CBox.class in C.class <br/>
-	 * 7) "ABox$CBox.class" in ABox.class <br/>
-	 * 8) "ABox$FieldnameBox.class" in ABox.class <br/>
-	 * 9) ConfigClass$CBox.class in globalConfig classes <br/>
-	 * 10) ConfigClass$FieldnameBox.class in globalConfig classes <br/>
-	 * 
-	 * for a context.getBean(C.class) call, follow above #4, #5, #6, #9 order <br/>
-	 * 
-	 * If no BeanBox class found, if A.class has 0 parameter constructor or
-	 * annotated constructor, wrap to BeanBox.<br/>
-	 * if no BeanBox created at final, throw a error unless "required=false" set
-	 * in @injectBox annotation
-	 * 
-	 * @param ownerClass
-	 *            Optional, the owner class which have a field
-	 * @param fieldClass
-	 *            The target class or a field type where have an Inject annotation
-	 *            marked on the field
-	 * @param annotatinClass
-	 *            Optional, the Inject annotation value marked on a field
-	 * @param fieldName
-	 *            Optional, the fieldName which have an Inject annotation marked on
-	 *            it
-	 * @param context
-	 *            The BeanBoxContext instance
-	 * @param required
-	 *            If set true and no BeanBox found, throw an Exception, if set false
-	 *            will not throw Exception
-	 * @return The BeanBox instance
-	 */
-	@SuppressWarnings("unchecked")
-	protected static BeanBox getBeanBox(Class<?> ownerClass, Class<?> fieldClass, Class<?> annotatinClass, // NOSONAR
-			String fieldName, BeanBoxContext context, boolean required) {
-		BeanBox beanbox = null;
-		Class<?> annoClass = annotatinClass;
-		if (Object.class.equals(annoClass))
-			annoClass = null;
-		Class<?> box = null;
-		if (annoClass != null) { // getBeanBox(A.class, B.class)
-			if (BeanBox.class.isAssignableFrom(annoClass))
-				box = annoClass;// #1
-			if (box == null && fieldClass != null)
-				box = BeanBoxUtils
-						.checkIfExist(annoClass.getName() + "$" + fieldClass.getSimpleName() + context.boxIdentity);// #2
-			if (box == null)
-				box = BeanBoxUtils.checkIfExist(annoClass.getName() + "$" + fieldName.substring(0, 1).toUpperCase()
-						+ fieldName.substring(1) + context.boxIdentity);// #3
-		} else {// getBeanBox(A.class)
-			if (fieldClass == null)
-				BeanBoxException.throwEX("BeanBox getBeanBox error! target class not set");
-			if (BeanBox.class.isAssignableFrom(fieldClass))
-				box = fieldClass;
-			if (box == null)
-				box = BeanBoxUtils.checkIfExist(fieldClass.getName() + context.boxIdentity);// NOSONAR #5
-			if (box == null)
-				box = BeanBoxUtils
-						.checkIfExist(fieldClass.getName() + "$" + fieldClass.getSimpleName() + context.boxIdentity);// #6
-			if (box == null && ownerClass != null)
-				box = BeanBoxUtils
-						.checkIfExist(ownerClass.getName() + "$" + fieldClass.getSimpleName() + context.boxIdentity);// #6.5
-			if (box == null && ownerClass != null)
-				box = BeanBoxUtils.checkIfExist(ownerClass.getName() + context.boxIdentity + "$"
-						+ fieldClass.getSimpleName() + context.boxIdentity);// #7
-
-			if (box == null && ownerClass != null && !BeanBoxUtils.isEmptyStr(fieldName))
-				box = BeanBoxUtils.checkIfExist(
-						ownerClass.getName() + context.boxIdentity + "$" + fieldName + context.boxIdentity);// #8
-			if (box == null) {
-				for (Class<?> configs : context.getConfigClassList()) {// NOSONAR
-					box = BeanBoxUtils
-							.checkIfExist(configs.getName() + "$" + fieldClass.getSimpleName() + context.boxIdentity);// #9
-					if (box != null)// NOSONAR
-						break;
-					if (!BeanBoxUtils.isEmptyStr(fieldName))// NOSONAR
-						box = BeanBoxUtils
-								.checkIfExist(configs.getName() + "$" + fieldName.substring(0, 1).toUpperCase()
-										+ fieldName.substring(1) + context.boxIdentity);// #10
-					if (box != null)// NOSONAR
-						break;
-				}
-			}
-		}
-		if ((box == null) && BeanBoxUtils.isPrimitiveType(fieldClass))
-			return null;
-		if (box == null) {
-			beanbox = new BeanBox(fieldClass).setContext(context); // try wrap it to a BeanBox
-			if (!context.ignoreAnnotation) {
-				InjectBox in = fieldClass.getAnnotation(InjectBox.class);// NOSONAR
-				if (in != null && in.prototype())
-					beanbox.setPrototype(true);
-			}
-		} else
-			beanbox = BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) box, context);
-		if (required && beanbox == null)
-			BeanBoxException.throwEX("BeanBox getBeanBox error! class can not be created, class=" + fieldClass);
-		if (beanbox != null && beanbox.getClassOrValue() == null)
-			beanbox.setClassOrValue(fieldClass);
-		return beanbox;
-	}
-	
-	private static Map<Class<?>, Object[]> createMethodCache = new HashMap<Class<?>, Object[]>();
-
-	protected static Method checkAndReturnCreateMethod(Class<?> clazz) {
-		Object[] methods = createMethodCache.get(clazz);
-		if (methods == null) {
-			Method mtd = null;
+	/** This used for unknown Annotation, change values to a Map */
+	protected static Map<String, Object> changeAnnotationValuesToMap(Annotation annotation,
+			Class<? extends Annotation> type) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		result.put("AnnotationExist", true);
+		for (Method method : type.getDeclaredMethods())
 			try {
-				mtd = ReflectionUtils.findMethod(clazz, BeanBox.CREATE_METHOD);
-			} catch (Exception e) {
+				result.put(method.getName(), method.invoke(annotation, (Object[]) null));
+			} catch (Exception e) {// NOSONAR
 			}
-			if (mtd != null)
-				createMethodCache.put(clazz, new Object[] { mtd });
-			else
-				createMethodCache.put(clazz, new Object[] {});
-			return mtd;
-		} else {
-			if (methods.length == 1)
-				return (Method) methods[0];
-			else
-				return null;
-		}
+		return result;
 	}
-	
-	private static Map<Class<?>, Object[]> cconfigMethodCache = new HashMap<Class<?>, Object[]>();
 
-	protected static Method checkAndReturnConfigMethod(Class<?> clazz) {
-		Object[] methods = cconfigMethodCache.get(clazz);
-		if (methods == null) {
-			Method mtd = null;
-			try {
-				mtd = ReflectionUtils.findMethod(clazz, BeanBox.CONFIG_METHOD);
-			} catch (Exception e) {
-			}
-			if (mtd != null)
-				cconfigMethodCache.put(clazz, new Object[] { mtd });
-			else
-				cconfigMethodCache.put(clazz, new Object[] {});
-			return mtd;
-		} else {
-			if (methods.length == 1)
-				return (Method) methods[0];
-			else
-				return null;
+	/** Make the given method accessible */
+	protected static void makeAccessible(Method method) {
+		if ((!Modifier.isPublic(method.getModifiers()) || !Modifier.isPublic(method.getDeclaringClass().getModifiers()))
+				&& !method.isAccessible()) {
+			method.setAccessible(true);
 		}
 	}
+
+	/** Make the given field accessible */
+	protected static void makeAccessible(Field field) {
+		if ((!Modifier.isPublic(field.getModifiers()) || !Modifier.isPublic(field.getDeclaringClass().getModifiers())
+				|| Modifier.isFinal(field.getModifiers())) && !field.isAccessible()) {
+			field.setAccessible(true);
+		}
+	}
+
+	/** Force set field's value */
+	protected static void setFieldValue(Object bean, Field f, Object fieldValue) {
+		try {
+			f.set(bean, fieldValue);
+		} catch (IllegalAccessException e) {
+			BeanBoxException.throwEX("Fail to write to field:" + f, e);
+		}
+	}
+
 }

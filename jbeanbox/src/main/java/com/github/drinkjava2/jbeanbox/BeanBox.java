@@ -1,660 +1,380 @@
-/**
- * Copyright (C) 2016 the original author or authors
- *
+/*
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by
+ * applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * OF ANY KIND, either express or implied. See the License for the specific
+ * language governing permissions and limitations under the License.
  */
-
 package com.github.drinkjava2.jbeanbox;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import com.github.drinkjava2.cglib3_2_0.proxy.Enhancer;
-import com.github.drinkjava2.jbeanbox.BeanBoxUtils.ObjectType;
-import com.github.drinkjava2.jbeanbox.springsrc.ReflectionUtils;
 
 /**
- * jBeanBox is a macro scale IOC & AOP framework for Java 6 and above.
- * 
+ * BeanBox is a virtual model tell system how to build or lookup bean instance
+ *
  * @author Yong Zhu
- * @since 1.0
- * 
+ * @since 2.4.7
+ *
  */
-@SuppressWarnings("all")
 public class BeanBox {
 
-	private enum PropertyType {
-		BEAN, VALUE, STATIC_FACTORY, BEAN_FACTORY
+	// below fields for BeanBox has a target
+	protected Object target; // inject can be constant, beanBox, beanBox class, class
+
+	protected boolean constant = false; // mark the target is a constant
+
+	protected Class<?> type; // For field and parameter constant inject, need know what's the type
+
+	protected boolean required = true;// For field and parameter, if not found throw exception
+
+	// below fields for BeanBox has no target
+	protected Class<?> beanClass; // bean class, usually is an annotated class
+
+	protected Boolean singleton; // default BeanBox is singleton
+
+	protected List<Object> classInterceptors;// if not null, need create proxy
+
+	protected Map<Method, List<Object>> methodInterceptors;// if not null, need create proxy
+
+	protected Constructor<?> constructor; // if not null, use constructor to create
+
+	protected BeanBox[] constructorParams; // store constructor parameters if have
+
+	// ======================fill or call back stage====================
+
+	protected Method postConstruct; // if not null, call these methods after built
+
+	protected Method preDestroy; // if not null, call postConstruct after built
+
+	protected Map<Field, BeanBox> fieldInjects;// if not null, inject Fields
+
+	protected Map<Method, BeanBox[]> methodInjects;// if not null, inject Methods
+
+	protected Method createMethod; // if not null, use this method to create bean
+
+	protected Method configMethod; // if not null, after bean created, will call this method
+
+	public BeanBox() { // Default constructor
 	}
 
-	protected static final String CREATE_METHOD = "create"; // Used to create bean instance manually(Java type safe)
-	protected static final String CONFIG_METHOD = "config"; // Used to set instance properties(Java type safe)
-
-	private Object classOrValue;// Class or an Object
-	private boolean isValueType = false; // if true means it's a value type, no need create instance
-	private boolean prototype = false;// Default is singleTon, set prototype=true will each time return a new instance
-	private Object[] constructorArgs;// for constructor injection use
-	private Class<?>[] constructorTypes;// from 2.4.5 added, give constructor types
-	private String postConstructor;
-	private String preDestory;
-	protected Boolean needCreateProxy; // Null:unknow true:Need Create Proxy false:Already checked no need create
-	// protected Boolean hasCreateMethod; // Null:unknow true:Yes false:NO proxy
-	// protected Boolean hasConfigMethod; // Null:unknow true:Yes false:NO proxy
-
-	private ConcurrentHashMap<String, Object[]> properties = new ConcurrentHashMap<String, Object[]>();// properties
-	public static final BeanBoxContext defaultContext = new BeanBoxContext();// this is a global default context
-	private BeanBoxContext context = defaultContext;
-
-
-	// Use a thread local counter to check circular dependency
-	private static final ThreadLocal<Integer> circularCounter = new ThreadLocal<Integer>() {
-		@Override
-		protected Integer initialValue() {
-			return 0;
-		}
-	};
-
-	/**
-	 * Create a BeanBox
-	 */
-	public BeanBox() {
-		// Default Constructor
-	}
-
-	/**
-	 * Create a BeanBox and set classOrValue
-	 */
-	public BeanBox(Object classOrValue) {
-		setClassOrValue(classOrValue);
-	}
-
-	/**
-	 * Create a BeanBox and set constructorClass and constructorParameters
-	 */
-	public BeanBox(Class<?> constructorClass, Object... constructorParameters) {
-		classOrValue = constructorClass;
-		constructorArgs = constructorParameters;
-	}
-
-	/**
-	 * Set constructorClass and constructorParameters for a BeanBox instance
-	 */
-	public BeanBox setConstructor(Class<?> constructorClass, Object... constructorParameters) {
-		classOrValue = constructorClass;
-		constructorArgs = constructorParameters;
-		return this;
-	}
-
-	/**
-	 * Set constructor parameter types, this method is useful when sometimes if only
-	 * give constructorParameters but not enough to determine use which constructor
-	 */
-	public BeanBox setConstructorTypes(Class<?>... constructorTypes) {
-		this.constructorTypes = constructorTypes;
-		return this;
-	}
-
-	/**
-	 * Set classOrValue for a BeanBox instance
-	 */
-	public BeanBox setClassOrValue(Object classOrValue) {
-		this.classOrValue = classOrValue;
-		if (!(classOrValue instanceof Class))
-			isValueType = true;
-		return this;
-	}
-
-	/**
-	 * Set isValueType, if set true will not create class instance when getBean()
-	 * method be called
-	 */
-	public BeanBox setValueType(boolean isValueType) {
-		this.isValueType = isValueType;
-		return this;
-	}
-
-	public Object getProperty(String property) {
-		return (properties.get(property))[1];
-	}
-
-	public BeanBoxContext getContext() {
-		return context;
-	}
-
-	public BeanBox setContext(BeanBoxContext context) {
-		this.context = context;
-		return this;
-	}
-
-	public boolean isPrototype() {
-		return prototype;
-	}
-
-	/**
-	 * Default is singleTon, if set true, each time will create a new instance when
-	 * getBean() method be called
-	 */
-	public BeanBox setPrototype(boolean prototype) {
-		this.prototype = prototype;
-		return this;
-	}
-
-	public Object[] getConstructorArgs() {
-		return constructorArgs;
-	}
-
-	public Object getClassOrValue() {
-		return classOrValue;
-	}
-
-	public String getPostConstructor() {
-		return postConstructor;
-	}
-
-	/**
-	 * Set postConstructor method, will be called after bean instance be created
-	 */
-	public BeanBox setPostConstructor(String postConstructor) {
-		this.postConstructor = postConstructor;
-		return this;
-	}
-
-	public String getPreDestory() {
-		return preDestory;
-	}
-
-	/**
-	 * Set preDestory method, will be called before BeanBox context be closed
-	 */
-	public BeanBox setPreDestory(String preDestory) {
-		this.preDestory = preDestory;
-		return this;
-	}
-
-	/**
-	 * Set property, can be BeanBox class or normal class or value, for normal class
-	 * will be wrapped as a BeanBox
-	 */
-	public BeanBox setProperty(String property, Object classOrValue) {
-		ObjectType type = BeanBoxUtils.judgeType(classOrValue);
-		switch (type) {
-		case BEANBOX_INSTANCE:
-			properties.put(property, new Object[] { PropertyType.BEAN, classOrValue });
-			break;
-		case BEANBOX_CLASS:// NOSONAR
-			try {
-				properties.put(property, new Object[] { PropertyType.BEAN,
-						BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) classOrValue, context) });
-			} catch (Exception e) {
-				BeanBoxException.throwEX(
-						"BeanBox setProperty error! property=" + property + " classOrValue=" + classOrValue, e);
-			}
-			break;
-		case CLASS:
-			properties.put(property, new Object[] { PropertyType.BEAN, new BeanBox(classOrValue) });
-			break;
-		case INSTANCE:
-			properties.put(property, new Object[] { PropertyType.VALUE, classOrValue });
-			break;
-		default:
-			BeanBoxException.throwEX("BeanBox setProperty default case error");
-		}
-		return this;
-	}
-
-	/**
-	 * Set static factory method and parameters
-	 */
-	public BeanBox setStaticFactory(String property, Class<?> staticFactoryClass, String methodName, Object... args) {
-		properties.put(property, new Object[] { PropertyType.STATIC_FACTORY, staticFactoryClass, methodName, args });
-		return this;
-	}
-
-	/**
-	 * Set Bean factory method and parameters
-	 */
-	public BeanBox setBeanFactory(String property, BeanBox beanBox, String methodName, Object... args) {
-		properties.put(property, new Object[] { PropertyType.BEAN_FACTORY, beanBox, methodName, args });
-		return this;
-	}
-
-	/**
-	 * Use CGLib create proxy bean, if advice set for this class
-	 */
-	public Object getProxyBean(Class<?> clazz, List<Advisor> advisorList) {
-		Enhancer enhancer = new Enhancer();
-		enhancer.setSuperclass(clazz);
-		enhancer.setCallback(new ProxyBean(clazz, advisorList, context));
-		if (constructorArgs != null) {
-			Class<?>[] argsTypes = constructorTypes;
-			if (constructorTypes == null)
-				argsTypes = guessObjectClassType(constructorArgs);
-			return enhancer.create(argsTypes, constructorArgs);
-		} else
-			return enhancer.create();
-	}
-
-	/**
-	 * Inject values into bean, use standard JDK reflection, bean setter methods are
-	 * necessary
-	 */
-	private void invokeMethodToSetValue(Object bean, Method method, Object... args) {
-		try {
-			if (((PropertyType) args[0]) == PropertyType.VALUE) {
-				method.invoke(bean, new Object[] { args[1] });
-			} else if (((PropertyType) args[0]) == PropertyType.BEAN)
-				method.invoke(bean, new Object[] { ((BeanBox) args[1]).setContext(context).getBean() });
-			else if (((PropertyType) args[0]) == PropertyType.STATIC_FACTORY) {
-				// PropertyType.STATIC_FACTORY, staticFactoryClass, methodName, args
-				Class<?> c = (Class<?>) args[1];
-				Object[] beanArgs = (Object[]) args[3];
-				Method m = ReflectionUtils.findMethod(c, (String) args[2], guessObjectClassType(beanArgs));
-				Object beaninstance = m.invoke(c, BeanBoxUtils.getObjectRealValue(context, beanArgs));
-				method.invoke(bean, new Object[] { beaninstance });
-			} else if (((PropertyType) args[0]) == PropertyType.BEAN_FACTORY) {
-				// PropertyType.BEAN_FACTORY, beanBox, methodName, args
-				BeanBox bx = (BeanBox) args[1];
-				bx.setContext(context);
-				Object instance = bx.getBean();
-				Object[] beanArgs = (Object[]) args[3];
-				Method m = ReflectionUtils.findMethod(instance.getClass(), (String) args[2],
-						guessObjectClassType(beanArgs));
-				Object beaninstance = m.invoke(instance, BeanBoxUtils.getObjectRealValue(context, beanArgs));
-				method.invoke(bean, new Object[] { beaninstance });
-			}
-		} catch (Exception e) {
-			BeanBoxException.throwEX(
-					"BeanBox invokeMethodToSetValue error! bean=" + bean + " method=" + method + " args=" + args, e);
-		}
-	}
-
-	/**
-	 * Inject values into bean, use field.set method, not recommend because it can
-	 * inject into private field
-	 */
-	private void forceInjectFieldValue(Object bean, Field field, Object... args) {
-		try {
-			ReflectionUtils.makeAccessible(field);
-			if (((PropertyType) args[0]) == PropertyType.VALUE) {
-				field.set(bean, args[1]);
-			} else if (((PropertyType) args[0]) == PropertyType.BEAN)
-				field.set(bean, ((BeanBox) args[1]).setContext(context).getBean());
-			else if (((PropertyType) args[0]) == PropertyType.STATIC_FACTORY) {
-				Class<?> c = (Class<?>) args[1];
-				Object[] beanArgs = (Object[]) args[3];
-				Method m = ReflectionUtils.findMethod(c, (String) args[2], guessObjectClassType(beanArgs));
-				Object beaninstance = m.invoke(c, BeanBoxUtils.getObjectRealValue(context, beanArgs));
-				field.set(bean, beaninstance);
-			} else if (((PropertyType) args[0]) == PropertyType.BEAN_FACTORY) {
-				Object instance = ((BeanBox) args[1]).setContext(context).getBean();
-				Object[] beanArgs = (Object[]) args[3];
-				Method m = ReflectionUtils.findMethod(instance.getClass(), (String) args[2],
-						guessObjectClassType(beanArgs));
-				Object beaninstance = m.invoke(instance, BeanBoxUtils.getObjectRealValue(context, beanArgs));
-				field.set(bean, beaninstance);
-			}
-		} catch (Exception e) {
-			BeanBoxException.throwEX(
-					"BeanBox invokeMethodToSetValue error! bean=" + bean + " field=" + field + " args=" + args, e);
-		}
-	}
-
-	/**
-	 * Inject properties values into bean instance
-	 */
-	private void injectInstancePropertyValues(Object instance) {
-		Set<String> keys = properties.keySet();
-		Method[] methods = ReflectionUtils.getAllDeclaredMethods(instance.getClass());
-		for (String property : keys) {
-			boolean found = false;
-			for (Method method : methods) {
-				String setter = "set" + property.substring(0, 1).toUpperCase() + property.substring(1);
-				if (method.getName().equals(setter)) {
-					ReflectionUtils.makeAccessible(method);
-					invokeMethodToSetValue(instance, method, properties.get(property));
-					found = true;
-				}
-			}
-			if (!found) {
-				try {
-					Field field = instance.getClass().getDeclaredField(property);
-					forceInjectFieldValue(instance, field, properties.get(property));
-				} catch (Exception e) {
-					BeanBoxException.throwEX(
-							"BeanBox setInstancePropertyValues error! class=" + this.getClassOrValue() + ", property ='"
-									+ property
-									+ "', this may caused by inject value into Proxy bean, it's not supported by CGLib",
-							e);
-				}
-			}
-		}
-	}
-
-	/**
-	 * For a field with @Inject annotation, find BeanBox or value, then inject into
-	 * field
-	 */
-	private void injectAnnotationFields(Class<?> beanClass, Object beanInstance) {
-		Field[] fields = beanClass.getDeclaredFields();
-		for (Field field : fields) {
-			InjectBox anno = field.getAnnotation(InjectBox.class);
-			try {
-				if (anno != null) {
-					Object obj = BeanBoxUtils.getInjectFieldValue(beanClass, anno, field.getType(), field.getName(), 1,
-							context);
-					if (obj == null)// NOSONAR
-						continue;
-					obj = BeanBoxUtils.getRealValue(obj, context);
-					if (obj != null) {// NOSONAR
-						ReflectionUtils.makeAccessible(field);
-						field.set(beanInstance, obj);
-					}
-				}
-			} catch (Exception e) {
-				BeanBoxException.throwEX(
-						"BeanBox injectAnnotationFields error! beanClass=" + beanClass + " field=" + field.getName(),
-						e);
-			}
-		}
-	}
-
-	/**
-	 * For a method with @Inject annotation, find BeanBox or value, then inject and
-	 * call method
-	 */
-	private void injectAnnotationMethods(Class<?> beanClass, Object beanInstance) {
-		Method[] methods = beanClass.getDeclaredMethods();
-		for (Method m : methods) {
-			if (m.isAnnotationPresent(InjectBox.class)) {
-				InjectBox a = m.getAnnotation(InjectBox.class);
-				Class<?>[] parameterTypes = m.getParameterTypes();
-				if (parameterTypes == null)
-					return;
-				int parameterCount = parameterTypes.length;
-				if (parameterCount == 0 || parameterCount > 6)
-					BeanBoxException.throwEX(
-							"BeanBox buildBeanBoxWithAnotatedCtr error, only support at 1~6 method parameters,class="
-									+ beanClass);
-				Object[] args = new Object[parameterCount];
-				for (int i = 0; i < parameterCount; i++)
-					args[i] = BeanBoxUtils.getInjectFieldValue(beanClass, a, parameterTypes[i], null, i + 1, context);
-				try {
-					m.setAccessible(true);
-					m.invoke(beanInstance, BeanBoxUtils.getObjectRealValue(context, args));
-				} catch (Exception e) {
-					BeanBoxException.throwEX(
-							"BeanBox buildBeanBoxWithAnotatedCtr error,class=" + beanClass + " method=" + m.getName(),
-							e);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Translate object[] to Class[], for invoke use
-	 */
-	private Class<?>[] guessObjectClassType(Object... beanArgs) {// Translate object[] to Class[], for invoke use
-		Class<?>[] classes = new Class[beanArgs.length];
-		for (int i = 0; i < classes.length; i++) {
-			ObjectType type = BeanBoxUtils.judgeType(beanArgs[i]);
-			switch (type) {
-			case BEANBOX_INSTANCE: {// NOSONAR
-				BeanBox b = (BeanBox) beanArgs[i];
-				Method method = ReflectionUtils.findMethod(b.getClass(), CREATE_METHOD);
-				if (method == null)
-					classes[i] = (Class<?>) (b.getClassOrValue());
-				else
-					classes[i] = method.getReturnType();
-			}
-				break;
-			case BEANBOX_CLASS:
-				classes[i] = (Class<?>) BeanBoxUtils.createBeanBoxInstance((Class<BeanBox>) beanArgs[i], context)
-						.getClassOrValue();
-				break;
-			case CLASS:
-				classes[i] = (Class<?>) beanArgs[i];
-				break;
-			case INSTANCE:
-				classes[i] = beanArgs[i].getClass();
-				break;
-			default:
-				BeanBoxException.throwEX("BeanBox getObjectClassType default case error");
-			}
-		}
-		return classes;
-	}
-
-	/**
-	 * Call config method in a BeanBox class, usually used to set bean instance
-	 * properties
-	 */
-	private void callConfigBeanMethod(Object instance) throws AssertionError {
-		Method configMethod = BeanBoxUtils.checkAndReturnConfigMethod(getClass());
-		try {
-			Method[] methods = getClass().getDeclaredMethods();
-			for (Method method : methods)
-				if (CONFIG_METHOD.equals(method.getName())) {
-					configMethod = method;
-					break;
-				}
-		} catch (Exception e) {
-			BeanBoxException.eatException(e);
-		}
-		if (configMethod != null) {
-			ReflectionUtils.makeAccessible(configMethod);
-			try {
-				configMethod.invoke(this, new Object[] { instance });
-			} catch (Exception e) {
-				BeanBoxException.throwEX("BeanBox  create bean error!  setPropertiesMethod=" + configMethod, e);
-			}
-		}
-	}
-
-	private static Integer plusCircularCounter() {
-		Integer check = circularCounter.get() + 1;
-		circularCounter.set(check);
-		return check;
-	}
-
-	private static void decreaseCircularCounter() {
-		Integer check = circularCounter.get() - 1;
-		if(check<0)check=0;
-		circularCounter.set(check);
-	}
-
-	/**
-	 * Create new bean instance or get singleTon bean instance in cache (if cached)
-	 */
-	public <T> T getBean() {// NOSONAR 
-		if (isValueType)
-			return (T) classOrValue;
-		Object instance = null;
-		String beanBoxName = BeanBox.class.getName();
-		String beanID = createBeanID(beanBoxName);
-
-		if (plusCircularCounter() > 100) {// throw exception before out of stack memory
-			decreaseCircularCounter();
-			System.err.println("BeanBox getBean circular dependency error found! classOrValue=" + classOrValue);
+	public Object getSingletonId() {
+		if (singleton == null || !singleton || constant || target != null)
 			return null;
-		}  
-		synchronized (context.signletonCache) {
-			if (!prototype) {
-				instance = context.signletonCache.get(beanID);
-				if (instance != null) {
-					decreaseCircularCounter();
-					return (T) instance;// found singleTon bean in cache, good luck
-				}
-			} 
-			// Check if has create method in BeanBox
-			Method createBeanMethod = BeanBoxUtils.checkAndReturnCreateMethod(getClass()); 
-			if (createBeanMethod != null) {
-				this.setClassOrValue(createBeanMethod.getReturnType()); 
-				try {
-					ReflectionUtils.makeAccessible(createBeanMethod);
-					instance = createBeanMethod.invoke(this);// MayProblem
-				} catch (Exception e) {
-					decreaseCircularCounter();
-					BeanBoxException.throwEX("BeanBox getBean error! init method invoke error, class=" + this, e);
-				}
-			} else { 
-				if (BeanBoxUtils.ifHaveAdvice(this, context.advisorList, classOrValue)) {
-					instance = getProxyBean((Class<?>) classOrValue, context.advisorList);
-				} else if (constructorArgs != null) // first use given constructor to create instance
-					try { 
-						instance = createBeanByGivenConstructor();
-						if (instance == null)// NOSONAR
-							BeanBoxException
-									.throwEX("BeanBox getBean error! not found given public constructor for class "
-											+ classOrValue);
-					} catch (Exception e) {
-						decreaseCircularCounter();
-						BeanBoxException.throwEX("BeanBox create constructor error! constructor=" + classOrValue, e);
-					}
-				else if (classOrValue instanceof Class) { 
-					instance = BeanBoxUtils.createInstanceWithCtr0((Class<?>) classOrValue);
-					if (instance == null) {
-						if (!context.getIgnoreAnnotation()) // NOSONAR 3rd find annotated constructor
-							instance = BeanBoxUtils.buildBeanBoxWithAnnotatedCtr((Class<?>) classOrValue, context);
-						else {
-							BeanBox bx = BeanBoxUtils.getBeanBox(null, (Class<?>) classOrValue, null, null, context,
-									false);
-							if (bx != null)// NOSONAR
-								instance = bx.getBean();
-						}
-						if (instance == null) {// NOSONAR
-							decreaseCircularCounter();
-							BeanBoxException.throwEX("BeanBox create bean error! class=" + classOrValue
-									+ " no available constructor found.");
-						}
-					} 
-				} else {
-					decreaseCircularCounter();
-					BeanBoxException.throwEX("BeanBox create bean undefined! classOrValue=" + classOrValue);
-				}
-			} 
-			if (!prototype) {
-				context.signletonCache.put(beanID, instance);// save SingleTon in cache
-				if (!BeanBoxUtils.isEmptyStr(this.getPreDestory())) {// save PreDestory methods in cache
-					try {
-						Method predestoryMethod = ReflectionUtils.findMethod(instance.getClass(), getPreDestory(), // NOSONAR
-								new Class[] {});
-						this.context.preDestoryMethodCache.put(beanID, predestoryMethod);
-					} catch (Exception e) {
-						decreaseCircularCounter();
-						BeanBoxException.throwEX("BeanBox  create bean error!  PreDestory=" + getPreDestory(), e);
-					}
-				}
-			}
-		} 
-		if (instance == null) {
-			decreaseCircularCounter();
-			return null;
-		} 
-		if (!context.getIgnoreAnnotation()) {
-			injectAnnotationFields((Class<?>) classOrValue, instance);
-			injectAnnotationMethods((Class<?>) classOrValue, instance);
-		} 
-		callConfigBeanMethod(instance);// Check if have config method in BeanBox class 
-		injectInstancePropertyValues(instance);
-		if (!BeanBoxUtils.isEmptyStr(getPostConstructor()))
-			try {
-				Method postConstr = ReflectionUtils.findMethod(instance.getClass(), getPostConstructor());// MayProblem
-				postConstr.invoke(instance);// MayProblem
-			} catch (Exception e) {
-				decreaseCircularCounter();
-				BeanBoxException.throwEX("BeanBox create bean error! postConstructor=" + getPostConstructor(), e);
-			}
-		decreaseCircularCounter(); 
-		return (T) instance;
+		return this;
 	}
 
-	private String createBeanID(String beanBoxName) {
-		String beanID = getClass().getName();
-		if (beanID.equals(beanBoxName)) {
-			if (this.getClassOrValue() instanceof Class)// use real bean class name & args as beanID
-				beanID = ((Class<?>) this.getClassOrValue()).getName()
-						+ (constructorArgs == null ? "" : constructorArgs);
-			else
-				BeanBoxException.throwEX("BeanBox createOrGetFromCache error! BeanBox ID can not be determined!");
+	/** Use default global BeanBoxContext to create bean */
+	public <T> T getBean() {
+		return BeanBoxContext.globalBeanBoxContext.getBean(this);
+	}
+
+	/** Use given BeanBoxContext to create bean */
+	public <T> T getBean(BeanBoxContext ctx) {
+		return ctx.getBean(this);
+	}
+
+	public BeanBox newCopy() {
+		BeanBox box = new BeanBox();
+		box.target = this.target;
+		box.beanClass = this.beanClass;
+		box.constant = this.constant;
+		box.singleton = this.singleton;
+		box.required = this.required;
+		box.classInterceptors = this.classInterceptors;
+		box.methodInterceptors = this.methodInterceptors;
+		box.constructor = this.constructor;
+		box.constructorParams = this.constructorParams;
+		box.fieldInjects = this.fieldInjects;
+		box.methodInjects = this.methodInjects;
+		box.postConstruct = this.postConstruct;
+		box.preDestroy = this.preDestroy;
+		box.createMethod = this.createMethod;
+		box.configMethod = this.configMethod;
+		return box;
+	}
+
+	protected String getDebugInfo() {
+		StringBuilder sb = new StringBuilder("\r\n========BeanBox Debug for " + this + "===========\r\n");
+		sb.append("target=" + this.target).append("\r\n");
+		sb.append("constant=" + this.constant).append("\r\n");
+		sb.append("type=" + this.type).append("\r\n");
+		sb.append("required=" + this.required).append("\r\n");
+		sb.append("beanClass=" + this.beanClass).append("\r\n");
+		sb.append("singleton=" + this.singleton).append("\r\n");
+		sb.append("classInterceptors=" + this.classInterceptors).append("\r\n");
+		sb.append("methodInterceptors=" + this.methodInterceptors).append("\r\n");
+		sb.append("constructor=" + this.constructor).append("\r\n");
+		sb.append("constructorParams=" + this.constructorParams).append("\r\n");
+		sb.append("postConstructs=" + this.postConstruct).append("\r\n");
+		sb.append("preDestorys=" + this.preDestroy).append("\r\n");
+		sb.append("fieldInjects=" + this.fieldInjects).append("\r\n");
+		sb.append("methodInjects=" + this.methodInjects).append("\r\n");
+		sb.append("createMethod=" + this.createMethod).append("\r\n");
+		sb.append("configMethod=" + this.configMethod).append("\r\n");
+		sb.append("========BeanBox Debug Info End===========");
+		return sb.toString();
+	}
+
+	protected void checkOrCreateFieldInjects() {
+		if (fieldInjects == null)
+			fieldInjects = new HashMap<Field, BeanBox>();
+	}
+
+	protected void checkOrCreateMethodInjects() {
+		if (methodInjects == null)
+			methodInjects = new HashMap<Method, BeanBox[]>();
+	}
+
+	protected void checkOrCreateMethodInterceptors() {
+		if (methodInterceptors == null)
+			methodInterceptors = new HashMap<Method, List<Object>>();
+	}
+
+	protected void checkOrCreateClassInterceptors() {
+		if (classInterceptors == null)
+			classInterceptors = new ArrayList<Object>();
+	}
+
+	protected void belowAreJavaConfigMethods_______________() {// NOSONAR
+	}
+
+	public BeanBox setAsConstant(Object value) {
+		this.constant = true;
+		this.target = value;
+		return this;
+	}
+
+	/**
+	 * T his method will be deprecated, use setTarget() method as replace
+	 */
+	public BeanBox setClassOrValue(Object obj) {
+		this.target = obj;
+		return this;
+	}
+
+	/**
+	 * This method will be deprecated, use setSingleton() method as replace
+	 */
+	public BeanBox setPrototype(boolean isPrototype) {
+		this.singleton = !isPrototype;
+		return this;
+	}
+
+	public BeanBox injectConstruct(Class<?> clazz, Object... configs) {
+		if (configs.length == 0) {
+			this.constructor = BeanBoxUtils.getConstructAndCatchEX(clazz);
+		} else {
+			Class<?>[] paramTypes = new Class<?>[configs.length / 2];
+			BeanBox[] params = new BeanBox[configs.length / 2];
+			int mid = configs.length / 2;
+			for (int i = 0; i < mid; i++)
+				paramTypes[i] = (Class<?>) configs[i];
+			for (int i = mid; i < configs.length; i++) {
+				params[i - mid] = (BeanBox) configs[i];
+				params[i - mid].setType(paramTypes[i - mid]);
+			}
+			this.constructor = BeanBoxUtils.getConstructAndCatchEX(clazz, paramTypes);
+			this.constructorParams = params;
 		}
-		return beanID;
+		return this;
 	}
 
-	/**
-	 * Create Bean instance by given constructor
-	 */
-	public Object createBeanByGivenConstructor() {
-		Class<?>[] argsTypes = constructorTypes;
-		if (constructorTypes == null)
-			argsTypes = guessObjectClassType(constructorArgs);
-		outer: for (Constructor<?> c : ((Class<?>) classOrValue).getConstructors()) {// NOSONAR
-			Class<?>[] cType = c.getParameterTypes();
-			if (cType.length != argsTypes.length)
-				continue outer;
-			for (int i = 0; i < cType.length; i++)
-				if (!cType[i].isAssignableFrom(argsTypes[i]))
-					continue outer;
-			c.setAccessible(true);
-			Object instance;
-			try {
-				instance = c.newInstance(BeanBoxUtils.getObjectRealValue(context, constructorArgs));
-			} catch (Exception e) {
-				return BeanBoxException.throwEX(
-						"BeanBox createBeanByGivenConstructor error for constructorArgs: " + constructorArgs, e);
-			}
-			return instance;
+	public BeanBox injectMethod(String methodName, Object... configs) {
+		checkOrCreateMethodInjects();
+		Class<?>[] paramTypes = new Class<?>[configs.length / 2];
+		BeanBox[] params = new BeanBox[configs.length / 2];
+		int mid = configs.length / 2;
+		for (int i = 0; i < mid; i++)
+			paramTypes[i] = (Class<?>) configs[i];
+		for (int i = mid; i < configs.length; i++) {
+			params[i - mid] = (BeanBox) configs[i];
+			params[i - mid].setType(paramTypes[i - mid]);
 		}
-		return null;
+		Method m = BeanBoxUtils.getMethodAndCatchEX(beanClass, methodName, paramTypes);
+		if (m != null)
+			BeanBoxUtils.makeAccessible(m);
+		this.getMethodInjects().put(m, params);
+		return this;
 	}
 
-	/**
-	 * Return a bean instance by class name, use default BeanBoxContext;
-	 */
-	public static <T> T getBean(Class<?> clazz) {
-		return defaultContext.getBean(clazz);
+	public BeanBox setPostConstruct(String methodName) {// NOSONAR
+		Method m = BeanBoxUtils.getMethodAndCatchEX(beanClass, methodName);
+		this.setPostConstruct(m);
+		return this;
 	}
 
-	/**
-	 * Force return a prototype bean instance by class name
-	 */
-	public static <T> T getPrototypeBean(Class<?> clazz) {
-		return defaultContext.getPrototypeBean(clazz);
+	public BeanBox setPreDestroy(String methodName) {// NOSONAR
+		Method m = BeanBoxUtils.getMethodAndCatchEX(beanClass, methodName);
+		this.setPreDestroy(m);
+		return this;
 	}
 
-	/**
-	 * Force return a singleton bean instance by class name
-	 */
-	public static <T> T getSingletonBean(Class<?> clazz) {
-		return defaultContext.getSingletonBean(clazz);
+	public BeanBox injectField(String fieldName, BeanBox inject) {
+		checkOrCreateFieldInjects();
+		Field f = BeanBoxUtils.getFieldAndCatchEX(beanClass, fieldName);
+		inject.setType(f.getType());
+		BeanBoxUtils.makeAccessible(f);
+		this.getFieldInjects().put(f, inject);
+		return this;
 	}
 
-	/** Return current Aop Around Annotations Map */
-	public static Map<Class<?>, Class<?>> getAopAroundAnnotationsMap() {
-		return defaultContext.aopAroundAnnotationsMap;
+	public boolean isSingleton() {
+		return singleton != null && singleton;
 	}
 
-	/**
-	 * Register an AOP Around annotation, usage:
-	 * beanBoxContext.setAopAroundValue(Tx.class, FooBarBox.class);
-	 */
-	public static void regAopAroundAnnotation(Class<?> annotationClass, Class<?> defaultBoxClass) {
-		defaultContext.aopAroundAnnotationsMap.put(annotationClass, defaultBoxClass);
+	protected void getterAndSetters_____________________() {// NOSONAR
 	}
- 
+
+	public Object getTarget() {
+		return target;
+	}
+
+	public BeanBox setTarget(Object target) {
+		this.target = target;
+		return this;
+	}
+
+	public boolean isConstant() {
+		return constant;
+	}
+
+	public BeanBox setConstant(boolean constant) {
+		this.constant = constant;
+		return this;
+	}
+
+	public Class<?> getType() {
+		return type;
+	}
+
+	public BeanBox setType(Class<?> type) {
+		this.type = type;
+		return this;
+	}
+
+	public boolean isRequired() {
+		return required;
+	}
+
+	public BeanBox setRequired(boolean required) {
+		this.required = required;
+		return this;
+	}
+
+	public Class<?> getBeanClass() {
+		return beanClass;
+	}
+
+	public BeanBox setBeanClass(Class<?> beanClass) {
+		this.beanClass = beanClass;
+		return this;
+	}
+
+	public Boolean getSingleton() {
+		return singleton;
+	}
+
+	public BeanBox setSingleton(Boolean singleton) {
+		this.singleton = singleton;
+		return this;
+	}
+
+	public List<Object> getClassInterceptors() {
+		return classInterceptors;
+	}
+
+	public BeanBox setClassInterceptors(List<Object> classInterceptors) {
+		this.classInterceptors = classInterceptors;
+		return this;
+	}
+
+	public Map<Method, List<Object>> getMethodInterceptors() {
+		return methodInterceptors;
+	}
+
+	public BeanBox setMethodInterceptors(Map<Method, List<Object>> methodInterceptors) {
+		this.methodInterceptors = methodInterceptors;
+		return this;
+	}
+
+	public Constructor<?> getConstructor() {
+		return constructor;
+	}
+
+	public BeanBox setConstructor(Constructor<?> constructor) {
+		this.constructor = constructor;
+		return this;
+	}
+
+	public BeanBox[] getConstructorParams() {
+		return constructorParams;
+	}
+
+	public BeanBox setConstructorParams(BeanBox[] constructorParams) {
+		this.constructorParams = constructorParams;
+		return this;
+	}
+
+	public Method getPostConstruct() {
+		return postConstruct;
+	}
+
+	public BeanBox setPostConstruct(Method postConstruct) {
+		this.postConstruct = postConstruct;
+		return this;
+	}
+
+	public Method getPreDestroy() {
+		return preDestroy;
+	}
+
+	public BeanBox setPreDestroy(Method preDestroy) {
+		this.preDestroy = preDestroy;
+		return this;
+	}
+
+	public Map<Field, BeanBox> getFieldInjects() {
+		return fieldInjects;
+	}
+
+	public BeanBox setFieldInjects(Map<Field, BeanBox> fieldInjects) {
+		this.fieldInjects = fieldInjects;
+		return this;
+	}
+
+	public Map<Method, BeanBox[]> getMethodInjects() {
+		return methodInjects;
+	}
+
+	public BeanBox setMethodInjects(Map<Method, BeanBox[]> methodInjects) {
+		this.methodInjects = methodInjects;
+		return this;
+	}
+
+	public Method getCreateMethod() {
+		return createMethod;
+	}
+
+	public BeanBox setCreateMethod(Method createMethod) {
+		this.createMethod = createMethod;
+		return this;
+	}
+
+	public Method getConfigMethod() {
+		return configMethod;
+	}
+
+	public BeanBox setConfigMethod(Method configMethod) {
+		this.configMethod = configMethod;
+		return this;
+	}
 
 }
