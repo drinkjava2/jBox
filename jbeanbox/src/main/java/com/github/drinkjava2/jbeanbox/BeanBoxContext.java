@@ -18,6 +18,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.aopalliance.intercept.Interceptor;
+
 import com.github.drinkjava2.jbeanbox.ConstTranslator.DefaultConstTranslator;
 
 /**
@@ -33,7 +35,7 @@ public class BeanBoxContext {
 	protected static boolean globalNextAllowSpringJsrAnnotation = true; // as title
 	protected static String globalNextCreateMethodName = "create"; // as title
 	protected static String globalNextConfigMethodName = "config"; // as title
-	protected static ConstTranslator globalNextConstTranslator = new DefaultConstTranslator(); // as title
+	protected static ConstTranslator globalNextConstTranslator = new DefaultConstTranslator(); // see user manual
 
 	protected boolean allowAnnotation = globalNextAllowAnnotation;
 	protected boolean allowSpringJsrAnnotation = globalNextAllowSpringJsrAnnotation;
@@ -46,6 +48,9 @@ public class BeanBoxContext {
 	protected Map<Object, Object> singletonCache = new ConcurrentHashMap<Object, Object>(); // class or BeanBox as key
 	protected Map<Class<?>, Method> createMethodCache = new ConcurrentHashMap<Class<?>, Method>();// as title
 	protected Map<Class<?>, Method> configMethodCache = new ConcurrentHashMap<Class<?>, Method>();// as title
+
+	// store AOP Alliance Interceptors
+	protected Map<Class<?>, ConcurrentHashMap<Method, List<Interceptor>>> aopCache = new ConcurrentHashMap<Class<?>, ConcurrentHashMap<Method, List<Interceptor>>>();
 
 	protected static BeanBoxContext globalBeanBoxContext = new BeanBoxContext();// Global BeanBox context
 
@@ -103,9 +108,12 @@ public class BeanBoxContext {
 					}
 			}
 		}
-		bindCache = new ConcurrentHashMap<Object, Object>();// clear
-		beanBoxMetaCache = new ConcurrentHashMap<Class<?>, BeanBox>();// clear
-		singletonCache = new ConcurrentHashMap<Object, Object>();// clear
+		bindCache.clear();
+		beanBoxMetaCache.clear();
+		singletonCache.clear();
+		createMethodCache.clear();
+		configMethodCache.clear();
+		aopCache.clear();
 	}
 
 	public <T> T getBean(Object obj) {
@@ -252,7 +260,7 @@ public class BeanBoxContext {
 		}
 
 		if (box.getPostConstruct() != null) // PostConstructor
-			BeanBoxUtils.invokeMethodAndCatchEX(box.getPostConstruct(), bean);
+			ReflectionUtils.invokeMethod(box.getPostConstruct(), bean);
 
 		if (box.getFieldInjects() != null) // Fields inject
 			for (Entry<Field, BeanBox> entry : box.getFieldInjects().entrySet()) {
@@ -266,7 +274,7 @@ public class BeanBoxContext {
 				} else {
 					if (fieldValue != null && fieldValue instanceof String)
 						fieldValue = this.constTranslator.translate((String) fieldValue, b.getType());
-					BeanBoxUtils.setFieldValue(bean, f, fieldValue);
+					ReflectionUtils.setField(f, bean, fieldValue);
 				}
 			}
 
@@ -276,9 +284,9 @@ public class BeanBoxContext {
 				BeanBox[] paramBoxs = methods.getValue();
 				if (paramBoxs != null && paramBoxs.length > 0) {
 					Object[] methodParams = param2RealObjects(this, history, paramBoxs);
-					BeanBoxUtils.invokeMethodAndCatchEX(m, bean, methodParams);
+					ReflectionUtils.invokeMethod(m, bean, methodParams);
 				} else // method has no parameter
-					BeanBoxUtils.invokeMethodAndCatchEX(m, bean);
+					ReflectionUtils.invokeMethod(m, bean);
 			}
 		}
 		return bean;
@@ -339,7 +347,7 @@ public class BeanBoxContext {
 					break;
 				}
 			if (method != null) {
-				BeanBoxUtils.makeAccessible(method);
+				ReflectionUtils.makeAccessible(method);
 				createMethodCache.put(clazz, method);
 			} else
 				createMethodCache.put(clazz, NOT_EXIST_METHOD);
@@ -362,7 +370,7 @@ public class BeanBoxContext {
 					break;
 				}
 			if (method != null) {
-				BeanBoxUtils.makeAccessible(method);
+				ReflectionUtils.makeAccessible(method);
 				configMethodCache.put(clazz, method);
 			} else
 				configMethodCache.put(clazz, NOT_EXIST_METHOD);

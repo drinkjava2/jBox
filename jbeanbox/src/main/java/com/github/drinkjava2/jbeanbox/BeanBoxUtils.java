@@ -13,7 +13,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -24,8 +23,8 @@ import javax.inject.Inject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 import com.github.drinkjava2.jbeanbox.annotation.CONS;
+import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 import com.github.drinkjava2.jbeanbox.annotation.POSTCONSTRUCT;
 import com.github.drinkjava2.jbeanbox.annotation.PREDESTROY;
 import com.github.drinkjava2.jbeanbox.annotation.PROTOTYPE;
@@ -69,39 +68,13 @@ public class BeanBoxUtils {// NOSONAR
 		return box;
 	}
 
-	/** Invoke method and catch exception to BeanBoxException */
-	public static Object invokeMethodAndCatchEX(Method method, Object obj, Object... params) {// NOSONAR
+	public static Constructor<?> getConstructor(Class<?> clazz, Class<?>... paramTypes) {// NOSONAR
 		try {
-			return method.invoke(obj, params);
-		} catch (Exception e) {
-			return BeanBoxException.throwEX(e);
-		}
-	}
-
-	/** Get constructor of class and catch exception to BeanBoxException */
-	public static Constructor<?> getConstructAndCatchEX(Class<?> clazz, Class<?>... paramTypes) {// NOSONAR
-		try {
-			return clazz.getDeclaredConstructor(paramTypes);
-		} catch (Exception e) {
-			return (Constructor<?>) BeanBoxException.throwEX(e);// NOSONAR
-		}
-	}
-
-	/** Get method of class and catch exception to BeanBoxException */
-	public static Method getMethodAndCatchEX(Class<?> clazz, String name, Class<?>... paramTypes) {// NOSONAR
-		try {
-			return clazz.getDeclaredMethod(name, paramTypes);
-		} catch (Exception e) {
-			return (Method) BeanBoxException.throwEX(e);// NOSONAR
-		}
-	}
-
-	/** Get Field of class and catch exception to BeanBoxException */
-	public static Field getFieldAndCatchEX(Class<?> clazz, String name) {// NOSONAR
-		try {
-			return clazz.getDeclaredField(name);
-		} catch (Exception e) {
-			return (Field) BeanBoxException.throwEX(e);// NOSONAR
+			return clazz.getConstructor(paramTypes);
+		} catch (SecurityException e) {
+			throw new IllegalStateException("Security exception found for method: " + e.getMessage());
+		} catch (NoSuchMethodException e) {
+			throw new IllegalStateException("Method not found: " + e.getMessage());
 		}
 	}
 
@@ -175,7 +148,7 @@ public class BeanBoxUtils {// NOSONAR
 				inject.setConstant((Boolean) v[1]);
 				inject.setRequired((Boolean) v[2]);
 				inject.setType(f.getType());
-				makeAccessible(f);
+				ReflectionUtils.makeAccessible(f);
 				box.getFieldInjects().put(f, inject);
 			}
 		}
@@ -186,19 +159,19 @@ public class BeanBoxUtils {// NOSONAR
 			if (m.getAnnotation(POSTCONSTRUCT.class) != null || m.getAnnotation(PostConstruct.class) != null) {
 				if (m.getParameterTypes().length > 0)
 					BeanBoxException.throwEX("In jBeanBox, PostConstruct should have no parameter.");
-				makeAccessible(m);
+				ReflectionUtils.makeAccessible(m);
 				box.setPostConstruct(m);
 			}
 			if (m.getAnnotation(PREDESTROY.class) != null || m.getAnnotation(PreDestroy.class) != null) {
 				if (m.getParameterTypes().length > 0)
 					BeanBoxException.throwEX("In jBeanBox, PostConstruct should have no parameter.");
-				makeAccessible(m);
+				ReflectionUtils.makeAccessible(m);
 				box.setPreDestroy(m);
 			}
 
 			v = getInjectAnnotationAsArray(m, allowSpringJsrAnno);
 			if (v != null) {
-				makeAccessible(m);
+				ReflectionUtils.makeAccessible(m);
 				BeanBox oneParam = new BeanBox();
 				oneParam.setTarget(v[0]);
 				oneParam.setConstant((Boolean) v[1]);
@@ -326,31 +299,6 @@ public class BeanBoxUtils {// NOSONAR
 			} catch (Exception e) {// NOSONAR
 			}
 		return result;
-	}
-
-	/** Make the given method accessible */
-	protected static void makeAccessible(Method method) {
-		if ((!Modifier.isPublic(method.getModifiers()) || !Modifier.isPublic(method.getDeclaringClass().getModifiers()))
-				&& !method.isAccessible()) {
-			method.setAccessible(true);
-		}
-	}
-
-	/** Make the given field accessible */
-	protected static void makeAccessible(Field field) {
-		if ((!Modifier.isPublic(field.getModifiers()) || !Modifier.isPublic(field.getDeclaringClass().getModifiers())
-				|| Modifier.isFinal(field.getModifiers())) && !field.isAccessible()) {
-			field.setAccessible(true);
-		}
-	}
-
-	/** Force set field's value */
-	protected static void setFieldValue(Object bean, Field f, Object fieldValue) {
-		try {
-			f.set(bean, fieldValue);
-		} catch (IllegalAccessException e) {
-			BeanBoxException.throwEX("Fail to write to field:" + f, e);
-		}
 	}
 
 }

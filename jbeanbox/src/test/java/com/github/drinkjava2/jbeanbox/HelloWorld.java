@@ -31,10 +31,6 @@ public class HelloWorld {
 		void init() {
 			this.name = "Hello6";
 		}
-
-		void close() {
-			System.out.println("Hello7");
-		}
 	}
 
 	public static class HelloBox extends BeanBox {
@@ -74,7 +70,5 @@ public class HelloWorld {
 		Hello h6 = JBEANBOX.getBean(new BeanBox().setSingleton(true).setBeanClass(Hello.class).setPostConstruct("init")
 				.setPreDestroy("close"));
 		System.out.println(h6.name);
-
-		JBEANBOX.reset();
 	}
 }

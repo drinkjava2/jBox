@@ -59,4 +59,11 @@ public class BeanBoxException extends RuntimeException {
 					optionMessages.length == 0 ? "Assert error, String parameter can not be empty" : optionMessages[0]);
 		return true;
 	}
+	
+	public static boolean assure(boolean condition, String... optionMessages) {
+		if (!condition)
+			throw new BeanBoxException(
+					optionMessages.length == 0 ? "Assert expected true but got false" : optionMessages[0]);
+		return true;
+	}
 }

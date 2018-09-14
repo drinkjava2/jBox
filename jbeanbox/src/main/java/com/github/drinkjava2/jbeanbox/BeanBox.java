@@ -76,6 +76,11 @@ public class BeanBox {
 		return BeanBoxContext.globalBeanBoxContext.getBean(this);
 	}
 
+	/** Use default global BeanBoxContext to create bean */
+	public static <T> T getBean(Object target) {
+		return BeanBoxContext.globalBeanBoxContext.getBean(target);
+	}
+
 	/** Use given BeanBoxContext to create bean */
 	public <T> T getBean(BeanBoxContext ctx) {
 		return ctx.getBean(this);
@@ -153,14 +158,6 @@ public class BeanBox {
 	}
 
 	/**
-	 * T his method will be deprecated, use setTarget() method as replace
-	 */
-	public BeanBox setClassOrValue(Object obj) {
-		this.target = obj;
-		return this;
-	}
-
-	/**
 	 * This method will be deprecated, use setSingleton() method as replace
 	 */
 	public BeanBox setPrototype(boolean isPrototype) {
@@ -170,7 +167,7 @@ public class BeanBox {
 
 	public BeanBox injectConstruct(Class<?> clazz, Object... configs) {
 		if (configs.length == 0) {
-			this.constructor = BeanBoxUtils.getConstructAndCatchEX(clazz);
+			this.constructor = BeanBoxUtils.getConstructor(clazz);
 		} else {
 			Class<?>[] paramTypes = new Class<?>[configs.length / 2];
 			BeanBox[] params = new BeanBox[configs.length / 2];
@@ -181,7 +178,7 @@ public class BeanBox {
 				params[i - mid] = (BeanBox) configs[i];
 				params[i - mid].setType(paramTypes[i - mid]);
 			}
-			this.constructor = BeanBoxUtils.getConstructAndCatchEX(clazz, paramTypes);
+			this.constructor = BeanBoxUtils.getConstructor(clazz, paramTypes);
 			this.constructorParams = params;
 		}
 		return this;
@@ -198,30 +195,42 @@ public class BeanBox {
 			params[i - mid] = (BeanBox) configs[i];
 			params[i - mid].setType(paramTypes[i - mid]);
 		}
-		Method m = BeanBoxUtils.getMethodAndCatchEX(beanClass, methodName, paramTypes);
+		Method m = ReflectionUtils.findMethod(beanClass, methodName, paramTypes);
 		if (m != null)
-			BeanBoxUtils.makeAccessible(m);
+			ReflectionUtils.makeAccessible(m);
 		this.getMethodInjects().put(m, params);
 		return this;
 	}
 
 	public BeanBox setPostConstruct(String methodName) {// NOSONAR
-		Method m = BeanBoxUtils.getMethodAndCatchEX(beanClass, methodName);
+		Method m = ReflectionUtils.findMethod(beanClass, methodName);
 		this.setPostConstruct(m);
 		return this;
 	}
 
 	public BeanBox setPreDestroy(String methodName) {// NOSONAR
-		Method m = BeanBoxUtils.getMethodAndCatchEX(beanClass, methodName);
+		Method m = ReflectionUtils.findMethod(beanClass, methodName);
 		this.setPreDestroy(m);
 		return this;
 	}
 
 	public BeanBox injectField(String fieldName, BeanBox inject) {
 		checkOrCreateFieldInjects();
-		Field f = BeanBoxUtils.getFieldAndCatchEX(beanClass, fieldName);
+		Field f = ReflectionUtils.findField(beanClass, fieldName);
 		inject.setType(f.getType());
-		BeanBoxUtils.makeAccessible(f);
+		ReflectionUtils.makeAccessible(f);
+		this.getFieldInjects().put(f, inject);
+		return this;
+	}
+
+	public BeanBox injectField(String fieldName, Object constValue) {
+		checkOrCreateFieldInjects();
+		Field f = ReflectionUtils.findField(beanClass, fieldName);
+		BeanBox inject = new BeanBox();
+		inject.setTarget(constValue);
+		inject.setType(f.getType());
+		inject.setConstant(true);
+		ReflectionUtils.makeAccessible(f);
 		this.getFieldInjects().put(f, inject);
 		return this;
 	}

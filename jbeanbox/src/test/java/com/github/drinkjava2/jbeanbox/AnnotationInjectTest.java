@@ -409,62 +409,6 @@ public class AnnotationInjectTest {
 		Assert.assertEquals(CA.class, bean.a.getClass());
 	}
 
-	// ===============create and config method name ===========
-	protected void CreateConfigMethod1_______________() {
-	}
-
-	public static class CFdemo1 {
-		String a;
-		String b;
-	}
-
-	public static class CFdemoBox extends BeanBox {
-
-		public Object create() {
-			CFdemo1 c = new CFdemo1();
-			c.a = "1";
-			return c;
-		}
-
-		public void config(CFdemo1 c) {
-			c.b = "2";
-		}
-	}
-
-	@Test
-	public void createAndConfigMethodTest() {
-		CFdemo1 c1 = JBEANBOX.getBean(CFdemoBox.class);
-		Assert.assertEquals("1", c1.a);
-		Assert.assertEquals("2", c1.b);
-	}
-
-	protected void CreateConfigMethod2_______________() {
-	}
-
-	public static class CFdemo2 {
-		CFdemo1 field1;
-		CFdemo1 field2;
-	}
-
-	public static class CFdemoBox2 extends BeanBox {
-
-		public Object create(Caller v) {
-			CFdemo2 c2 = new CFdemo2();
-			c2.field1 = v.getBean(CFdemoBox.class);
-			return c2;
-		}
-
-		public void config(Object c, Caller v) {
-			((CFdemo2) c).field2 = v.getBean(CFdemoBox.class);
-		}
-	}
-
-	@Test
-	public void createAndConfigMethodTest2() {
-		CFdemo2 c2 = JBEANBOX.getBean(CFdemoBox2.class);
-		Assert.assertEquals("1", c2.field1.a);
-		Assert.assertEquals("2", c2.field2.b);
-		Assert.assertEquals(c2.field1, c2.field2);
-	}
+	 
 
 }
