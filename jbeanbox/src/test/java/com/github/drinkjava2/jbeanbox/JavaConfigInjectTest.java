@@ -11,6 +11,7 @@
  */
 package com.github.drinkjava2.jbeanbox;
 
+import static com.github.drinkjava2.jbeanbox.JBEANBOX.autowired;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.cons;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.inject;
 
@@ -132,18 +133,9 @@ public class JavaConfigInjectTest {
 	}
 
 	@Test
-	public void postConsAndPreDestTest() {
-		BeanBox box = new BeanBox().setBeanClass(P.class).setPostConstruct("postcons1").setPreDestroy("predest1");
-		P p = JBEANBOX.getBean(box);
-		JBEANBOX.reset();
-		Assert.assertEquals(1, p.count);
-		Assert.assertNotEquals(JBEANBOX.getBean(box), JBEANBOX.getBean(box));
-	}
-
-	@Test
 	public void postConsAndPreDestTest2() {
-		BeanBox box = new BeanBox().setBeanClass(P.class).setPostConstruct("postcons1").setPreDestroy("predest1")
-				.setSingleton(true);
+		BeanBox box = new BeanBox().setBeanClass(P.class).setPostConstruct("postcons1").setSingleton(true)
+				.setPreDestroy("predest1");
 		P p = JBEANBOX.getBean(box);
 		JBEANBOX.reset();
 		Assert.assertEquals(2, p.count);
@@ -189,7 +181,7 @@ public class JavaConfigInjectTest {
 		box.injectField("field6", cons("6"));
 		box.injectField("field7", inject(EMPTY.class, false, false));
 		box.injectField("field8", inject());
-		box.injectField("field9", inject());
+		box.injectField("field9", autowired());
 
 		FieldInject2 bean = JBEANBOX.getBean(box);
 		Assert.assertEquals("aa", bean.field0);
@@ -244,7 +236,7 @@ public class JavaConfigInjectTest {
 		box.injectMethod("method3", long.class, cons("3"));
 		box.injectMethod("method4", boolean.class, cons("true"));
 		box.injectMethod("method5", String.class, Byte.class, inject(HelloBox.class), cons("5"));
-		box.injectMethod("method6", CA.class, inject());
+		box.injectMethod("method6", CA.class, autowired());
 
 		MethodInject1 bean = JBEANBOX.getBean(box);
 		Assert.assertEquals("Hello", bean.s1);

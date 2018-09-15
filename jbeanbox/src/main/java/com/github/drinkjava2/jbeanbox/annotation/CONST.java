@@ -15,7 +15,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * CONST for inject const parameter
+ * CONST for inject constant parameter
  * 
  * @author Yong Zhu
  * @since 2.4.7
@@ -23,11 +23,11 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
-public @interface CONS {
+public @interface CONST {
 
 	public String value(); // a String represents a constant value
 
-	public boolean constant() default true; // BeanBox's constant field
+	public boolean constant() default true; // Of cause is true
 
-	public boolean required() default true; // BeanBox's required field
+	public boolean required() default true; // Of cause is true
 }

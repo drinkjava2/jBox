@@ -23,7 +23,7 @@ import javax.inject.Inject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.github.drinkjava2.jbeanbox.annotation.CONS;
+import com.github.drinkjava2.jbeanbox.annotation.CONST;
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 import com.github.drinkjava2.jbeanbox.annotation.POSTCONSTRUCT;
 import com.github.drinkjava2.jbeanbox.annotation.PREDESTROY;
@@ -211,8 +211,8 @@ public class BeanBoxUtils {// NOSONAR
 			Class<? extends Annotation> type = a.annotationType();
 			if (INJECT.class.equals(type))
 				return new Object[] { ((INJECT) a).value(), ((INJECT) a).constant(), ((INJECT) a).required(), null };
-			if (CONS.class.equals(type))
-				return new Object[] { ((CONS) a).value(), ((CONS) a).constant(), ((CONS) a).required(), null };
+			if (CONST.class.equals(type))
+				return new Object[] { ((CONST) a).value(), ((CONST) a).constant(), ((CONST) a).required(), null };
 			if (allowSpringJsrAnno) {
 				if (Inject.class.equals(type))
 					return new Object[] { EMPTY.class, false, true, null };

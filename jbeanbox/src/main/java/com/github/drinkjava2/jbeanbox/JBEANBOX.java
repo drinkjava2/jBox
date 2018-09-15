@@ -35,8 +35,16 @@ public class JBEANBOX {// NOSONAR
 		return bctx().getBean(target);
 	}
 
+	public static <T> T getBean(Object target, boolean required) {
+		return bctx().getBean(target, required);
+	}
+
 	public static <T> T getInstance(Class<T> clazz) {
 		return bctx().getInstance(clazz);
+	}
+
+	public static <T> T getInstance(Class<T> clazz, boolean required) {
+		return bctx().getInstance(clazz, required);
 	}
 
 	public static BeanBoxContext bind(Object shortcut, Object target) {
@@ -50,7 +58,7 @@ public class JBEANBOX {// NOSONAR
 	public static BeanBox autowired() {
 		return new BeanBox().setTarget(EMPTY.class);
 	}
-	
+
 	/** Create a "@Inject" type param */
 	public static BeanBox inject() {
 		return new BeanBox().setTarget(EMPTY.class);

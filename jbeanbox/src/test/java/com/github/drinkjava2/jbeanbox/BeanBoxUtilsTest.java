@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
-import com.github.drinkjava2.jbeanbox.annotation.CONS;
+import com.github.drinkjava2.jbeanbox.annotation.CONST;
 import com.github.drinkjava2.jbeanbox.annotation.POSTCONSTRUCT;
 import com.github.drinkjava2.jbeanbox.annotation.PREDESTROY;
 import com.github.drinkjava2.jbeanbox.annotation.PROTOTYPE;
@@ -64,7 +64,7 @@ public class BeanBoxUtilsTest {
 
 	//@formatter:off
 	@PROTOTYPE
-	@CONS("3")
+	@CONST("3")
 	public static class Demo4 { }
 	
 	@INJECT(Demo4.class)
@@ -118,7 +118,7 @@ public class BeanBoxUtilsTest {
 	}
 
 	public static class Constinject2 {
-		@CONS("ABC")
+		@CONST("ABC")
 		public Constinject2(String a) {
 		}
 	}
@@ -128,8 +128,8 @@ public class BeanBoxUtilsTest {
 		}
 
 		@INJECT
-		public Constinject3(@CONS("ABC") String a, @INJECT(Demo1.class) boolean b, @CONS("3") int c,
-				@CONS("4") int d) {
+		public Constinject3(@CONST("ABC") String a, @INJECT(Demo1.class) boolean b, @CONST("3") int c,
+				@CONST("4") int d) {
 		}
 	}
 
@@ -199,10 +199,10 @@ public class BeanBoxUtilsTest {
 		@INJECT(value = Demo6.class, constant = false, required = false)
 		private String field2;
 
-		@CONS("false")
+		@CONST("false")
 		private Boolean field3;
 
-		@CONS("4")
+		@CONST("4")
 		private Byte field4;
 
 		@Autowired(required = false)
@@ -235,10 +235,10 @@ public class BeanBoxUtilsTest {
 
 		@INJECT
 		private void method3(@INJECT(value = Demo6.class, constant = true, required = false) String a,
-				@CONS("true") int b) {
+				@CONST("true") int b) {
 		}
 
-		@CONS("false")
+		@CONST("false")
 		private void method4(boolean a) {
 		}
 

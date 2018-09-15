@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
-import com.github.drinkjava2.jbeanbox.annotation.CONS;
+import com.github.drinkjava2.jbeanbox.annotation.CONST;
 import com.github.drinkjava2.jbeanbox.annotation.POSTCONSTRUCT;
 import com.github.drinkjava2.jbeanbox.annotation.PREDESTROY;
 import com.github.drinkjava2.jbeanbox.annotation.PROTOTYPE;
@@ -68,20 +68,20 @@ public class AnnotationInjectTest {
 	}
 
 	@PROTOTYPE
-	public static class Pro {
+	public static class Proto {
 	}
-  
 
-	public static class Pro2 extends BeanBox {
-		{	beanClass=Pro.class;
+	public static class Proto2 extends BeanBox {
+		{
 			singleton = false;
+			beanClass = Proto.class;
 		}
 	}
 
 	@Test
 	public void prototypeTest() {
-		Assert.assertTrue(JBEANBOX.getBean(Pro.class) != JBEANBOX.getBean(Pro.class)); 
-		Assert.assertTrue(JBEANBOX.getBean(Pro2.class) != JBEANBOX.getBean(Pro2.class));
+		Assert.assertTrue(JBEANBOX.getBean(Proto.class) != JBEANBOX.getBean(Proto.class));
+		Assert.assertTrue(JBEANBOX.getBean(Proto2.class) != JBEANBOX.getBean(Proto2.class));
 	}
 
 	protected void BindTest_____________________() {
@@ -171,7 +171,7 @@ public class AnnotationInjectTest {
 
 	//@formatter:off
 	@PROTOTYPE
-	@CONS("3")
+	@CONST("3")
 	public static class Demo4 { }
 	
 	@INJECT(Demo4.class)
@@ -215,9 +215,9 @@ public class AnnotationInjectTest {
 	public static class CA {}
 	public static class CB {}
 	public static class C1 { int i = 0; @INJECT public C1() { i = 2; } } 
-	public static class C2 { int i = 0; @INJECT public C2(@CONS("2") int a) { i = a; } }
-	public static class C3 { int i = 0; @CONS("2") public C3(int a) { i = a; } }
-	public static class C4 { int i = 0; @INJECT public C4(@CONS("2") Integer a,@CONS("2") byte b ) { i = b; } }
+	public static class C2 { int i = 0; @INJECT public C2(@CONST("2") int a) { i = a; } }
+	public static class C3 { int i = 0; @CONST("2") public C3(int a) { i = a; } }
+	public static class C4 { int i = 0; @INJECT public C4(@CONST("2") Integer a,@CONST("2") byte b ) { i = b; } }
 	public static class C5 { Object o ; @INJECT(value=Bar.class, constant=true) public C5(Object a) { o = a; } }
 	public static class C6 { Object o1,o2 ; @INJECT public C6(CA a, CB b) { o1 = a; o2=b; } }
 	//@formatter:on
@@ -306,13 +306,13 @@ public class AnnotationInjectTest {
 		@INJECT(HelloBox.class)
 		private String field3;
 
-		@CONS(value = "true")
+		@CONST(value = "true")
 		private Boolean field4;
 
-		@CONS("5")
+		@CONST("5")
 		private long field5;
 
-		@CONS("6")
+		@CONST("6")
 		private Long field6;
 
 		@Autowired(required = false)
@@ -376,17 +376,17 @@ public class AnnotationInjectTest {
 		}
 
 		@INJECT
-		private void method3(@CONS("3") long a) {
+		private void method3(@CONST("3") long a) {
 			l3 = a;
 		}
 
-		@CONS("true")
+		@CONST("true")
 		private void method4(boolean a) {
 			bl4 = a;
 		}
 
 		@INJECT
-		private void method5(@INJECT(HelloBox.class) String a, @CONS("5") Byte b) {
+		private void method5(@INJECT(HelloBox.class) String a, @CONST("5") Byte b) {
 			s5 = a;
 			bt5 = b;
 		}
@@ -408,7 +408,5 @@ public class AnnotationInjectTest {
 		Assert.assertEquals(5, bean.bt5);
 		Assert.assertEquals(CA.class, bean.a.getClass());
 	}
-
-	 
 
 }

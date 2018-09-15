@@ -49,9 +49,7 @@ public class BeanBoxContext {
 	protected Map<Class<?>, Method> createMethodCache = new ConcurrentHashMap<Class<?>, Method>();// as title
 	protected Map<Class<?>, Method> configMethodCache = new ConcurrentHashMap<Class<?>, Method>();// as title
 
-	// store AOP Alliance Interceptors
-	protected Map<Class<?>, ConcurrentHashMap<Method, List<Interceptor>>> aopCache = new ConcurrentHashMap<Class<?>, ConcurrentHashMap<Method, List<Interceptor>>>();
-
+ 
 	protected static BeanBoxContext globalBeanBoxContext = new BeanBoxContext();// Global BeanBox context
 
 	public BeanBoxContext() {
@@ -112,8 +110,7 @@ public class BeanBoxContext {
 		beanBoxMetaCache.clear();
 		singletonCache.clear();
 		createMethodCache.clear();
-		configMethodCache.clear();
-		aopCache.clear();
+		configMethodCache.clear(); 
 	}
 
 	public <T> T getBean(Object obj) {
@@ -122,6 +119,14 @@ public class BeanBoxContext {
 
 	public <T> T getInstance(Class<T> target) {
 		return getBean(target, true, null); // first step of changzheng
+	}
+
+	public <T> T getBean(Object obj, boolean required) {
+		return getBean(obj, required, null); // first step of changzheng
+	}
+
+	public <T> T getInstance(Class<T> target, boolean required) {
+		return getBean(target, required, null); // first step of changzheng
 	}
 
 	@SuppressWarnings("unchecked")

@@ -5,17 +5,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.github.drinkjava2.jbeanbox.BeanBox;
 import com.github.drinkjava2.jbeanbox.ReflectionUtils;
 
 public class ReflectionUtilsTest {
-	@Before
-	public void beforeTest() {
-		System.out.println("========= ReflectionUtilsTest =========");
-	}
 
 	@Test
 	public void testGetDeclaredMethod() {

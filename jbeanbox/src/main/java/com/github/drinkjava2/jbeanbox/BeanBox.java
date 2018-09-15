@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.aopalliance.intercept.Interceptor;
+
 /**
  * BeanBox is a virtual model tell system how to build or lookup bean instance
  *
@@ -61,6 +63,9 @@ public class BeanBox {
 	protected Method createMethod; // if not null, use this method to create bean
 
 	protected Method configMethod; // if not null, after bean created, will call this method
+
+	// ========== AOP About ===========
+	protected Map<Method, List<Interceptor>> interceptors;
 
 	public BeanBox() { // Default constructor
 	}
@@ -208,7 +213,14 @@ public class BeanBox {
 		return this;
 	}
 
+	private static boolean ifWarnedSetPrototypePreDestroy = false;
+
 	public BeanBox setPreDestroy(String methodName) {// NOSONAR
+		if (!isSingleton() && !ifWarnedSetPrototypePreDestroy) {
+			System.err.println("Warning: try to set a PreDestroy method '" + methodName// NOSONAR
+					+ "' for a prototype bean, suggest set bean to singleton first.");
+			BeanBoxException.throwEX("aa");
+		}
 		Method m = ReflectionUtils.findMethod(beanClass, methodName);
 		this.setPreDestroy(m);
 		return this;
@@ -383,6 +395,15 @@ public class BeanBox {
 
 	public BeanBox setConfigMethod(Method configMethod) {
 		this.configMethod = configMethod;
+		return this;
+	}
+
+	public Map<Method, List<Interceptor>> getInterceptors() {
+		return interceptors;
+	}
+
+	public BeanBox setInterceptors(Map<Method, List<Interceptor>> interceptors) {
+		this.interceptors = interceptors;
 		return this;
 	}
 
