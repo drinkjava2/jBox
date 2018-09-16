@@ -14,23 +14,39 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.github.drinkjava2.jbeanbox.EMPTY;
-
 /**
- * INJECT used to inject BeanBox class for class, fields, method, parameter
+ * AOP used to mark a AOP annotation, for example: <br/>
+ * 
+ * <pre>
+ * &#64;Retention(RetentionPolicy.RUNTIME)
+ * &#64;Target({ ElementType.TYPE, ElementType.METHOD })
+ * &#64;AOP
+ * public static @interface MyAop {
+ * 	public Class<?> value() default Interceptor1.class;
+ * 
+ * 	public String method() default "";
+ * }
+ * 
+ * &#64;MyAop
+ * public class User {
+ * 
+ *   &#64;MyAop
+ *   public void setName(){
+ *   ....
+ *   }
+ * }
+ * 
+ * 
+ * </pre>
+ * 
+ * Note: for method, method field definition is not required
+ * 
  * 
  * @author Yong Zhu
  * @since 2.4.7
  *
  */
+@Target(ElementType.ANNOTATION_TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
-public @interface INJECT {
-
-	public Class<?> value() default EMPTY.class; // In fact is BeanBox's target field
-
-	public boolean valueType() default false; // if target is value, set this to true
-
-	public boolean required() default true; // if target is required, set this to true
-
+public @interface AOP {
 }

@@ -13,7 +13,7 @@ package com.github.drinkjava2.jbeanbox;
  * EMPTY used to mark a EMPTY value
  * 
  * @author Yong Zhu
- * @since 2.4.7
+ * @since 2.4.8
  *
  */
 public final class EMPTY {// NOSONAR

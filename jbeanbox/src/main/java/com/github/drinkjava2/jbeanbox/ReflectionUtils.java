@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
  
 
 /**
+ * This class is copied from Spring 3.2.16, only change is removed declaredMethodsCache
  * Simple utility class for working with the reflection API and handling reflection exceptions.
  *
  * <p>
@@ -41,7 +42,7 @@ import java.util.regex.Pattern;
  * @author Costin Leau
  * @author Sam Brannen
  * @author Chris Beams 
- * @author Yong Zhu  (Remove declaredMethodsCache)
+ * @author Yong Zhu
  * @since 1.2.2
  */
 public abstract class ReflectionUtils {
@@ -180,7 +181,7 @@ public abstract class ReflectionUtils {
 	 * @return the Method object, or {@code null} if none found
 	 */
 	public static Method findMethod(Class<?> clazz, String name, Class<?>... paramTypes) {
-		BeanBoxException.assureNotNull(clazz, "Class must not be null");
+		BeanBoxException.assureNotNull(clazz, "BeanClass must not be null");
 		BeanBoxException.assureNotNull(name, "Method name must not be null");
 		Class<?> searchType = clazz;
 		while (searchType != null) {

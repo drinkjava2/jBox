@@ -17,8 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.aopalliance.intercept.Interceptor;
-
 /**
  * BeanBox is a virtual model tell system how to build or lookup bean instance
  *
@@ -31,7 +29,7 @@ public class BeanBox {
 	// below fields for BeanBox has a target
 	protected Object target; // inject can be constant, beanBox, beanBox class, class
 
-	protected boolean constant = false; // mark the target is a constant
+	protected boolean valueType = false; // mark the target is a value
 
 	protected Class<?> type; // For field and parameter constant inject, need know what's the type
 
@@ -41,10 +39,6 @@ public class BeanBox {
 	protected Class<?> beanClass; // bean class, usually is an annotated class
 
 	protected Boolean singleton; // default BeanBox is singleton
-
-	protected List<Object> classInterceptors;// if not null, need create proxy
-
-	protected Map<Method, List<Object>> methodInterceptors;// if not null, need create proxy
 
 	protected Constructor<?> constructor; // if not null, use constructor to create
 
@@ -65,13 +59,18 @@ public class BeanBox {
 	protected Method configMethod; // if not null, after bean created, will call this method
 
 	// ========== AOP About ===========
-	protected Map<Method, List<Interceptor>> interceptors;
+	protected Map<Method, List<Object>> methodAops;// if not null, need create proxy bean
+	protected Map<String, List<Object>> methodAopRules;// if not null, need create proxy bean
 
 	public BeanBox() { // Default constructor
 	}
 
+	public BeanBox(Class<?> beanClass) { // Default constructor
+		this.beanClass = beanClass;
+	}
+
 	public Object getSingletonId() {
-		if (singleton == null || !singleton || constant || target != null)
+		if (singleton == null || !singleton || valueType || target != null)
 			return null;
 		return this;
 	}
@@ -91,36 +90,17 @@ public class BeanBox {
 		return ctx.getBean(this);
 	}
 
-	public BeanBox newCopy() {
-		BeanBox box = new BeanBox();
-		box.target = this.target;
-		box.beanClass = this.beanClass;
-		box.constant = this.constant;
-		box.singleton = this.singleton;
-		box.required = this.required;
-		box.classInterceptors = this.classInterceptors;
-		box.methodInterceptors = this.methodInterceptors;
-		box.constructor = this.constructor;
-		box.constructorParams = this.constructorParams;
-		box.fieldInjects = this.fieldInjects;
-		box.methodInjects = this.methodInjects;
-		box.postConstruct = this.postConstruct;
-		box.preDestroy = this.preDestroy;
-		box.createMethod = this.createMethod;
-		box.configMethod = this.configMethod;
-		return box;
-	}
-
+	/** For debug only, will delete in future version */
 	protected String getDebugInfo() {
 		StringBuilder sb = new StringBuilder("\r\n========BeanBox Debug for " + this + "===========\r\n");
 		sb.append("target=" + this.target).append("\r\n");
-		sb.append("constant=" + this.constant).append("\r\n");
+		sb.append("valueType=" + this.valueType).append("\r\n");
 		sb.append("type=" + this.type).append("\r\n");
 		sb.append("required=" + this.required).append("\r\n");
 		sb.append("beanClass=" + this.beanClass).append("\r\n");
 		sb.append("singleton=" + this.singleton).append("\r\n");
-		sb.append("classInterceptors=" + this.classInterceptors).append("\r\n");
-		sb.append("methodInterceptors=" + this.methodInterceptors).append("\r\n");
+		sb.append("methodAops=" + this.methodAops).append("\r\n");
+		sb.append("methodAopRules=" + this.methodAopRules).append("\r\n");
 		sb.append("constructor=" + this.constructor).append("\r\n");
 		sb.append("constructorParams=" + this.constructorParams).append("\r\n");
 		sb.append("postConstructs=" + this.postConstruct).append("\r\n");
@@ -133,44 +113,49 @@ public class BeanBox {
 		return sb.toString();
 	}
 
-	protected void checkOrCreateFieldInjects() {
+	protected void checkOrCreateFieldInjects() {// no need explain
 		if (fieldInjects == null)
 			fieldInjects = new HashMap<Field, BeanBox>();
 	}
 
-	protected void checkOrCreateMethodInjects() {
+	protected void checkOrCreateMethodInjects() {// no need explain
 		if (methodInjects == null)
 			methodInjects = new HashMap<Method, BeanBox[]>();
 	}
 
-	protected void checkOrCreateMethodInterceptors() {
-		if (methodInterceptors == null)
-			methodInterceptors = new HashMap<Method, List<Object>>();
+	protected void checkOrCreateMethodAops() {// no need explain
+		if (methodAops == null)
+			methodAops = new HashMap<Method, List<Object>>();
 	}
 
-	protected void checkOrCreateClassInterceptors() {
-		if (classInterceptors == null)
-			classInterceptors = new ArrayList<Object>();
+	protected void checkOrCreateMethodAopRules() { // no need explain
+		if (methodAopRules == null)
+			methodAopRules = new HashMap<String, List<Object>>();
 	}
 
 	protected void belowAreJavaConfigMethods_______________() {// NOSONAR
 	}
 
-	public BeanBox setAsConstant(Object value) {
-		this.constant = true;
+	/** Set this box as a pure value */
+	public BeanBox setAsValue(Object value) {
+		this.valueType = true;
 		this.target = value;
 		return this;
 	}
 
-	/**
-	 * This method will be deprecated, use setSingleton() method as replace
-	 */
+	/** setPrototype(true) equal to setSintleton(false) */
 	public BeanBox setPrototype(boolean isPrototype) {
 		this.singleton = !isPrototype;
 		return this;
 	}
 
+	/**
+	 * This is Java configuration method equal to put @INJECT on a class's
+	 * constructor, a usage example: injectConstruct(User.class, String.class,
+	 * JBEANBOX.value("Sam"));
+	 */
 	public BeanBox injectConstruct(Class<?> clazz, Object... configs) {
+		this.beanClass = clazz;
 		if (configs.length == 0) {
 			this.constructor = BeanBoxUtils.getConstructor(clazz);
 		} else {
@@ -189,6 +174,10 @@ public class BeanBox {
 		return this;
 	}
 
+	/**
+	 * This is Java configuration method equal to put @INJECT on a class's method, a
+	 * usage example: injectMethod("setName", String.class, JBEANBOX.value("Sam"));
+	 */
 	public BeanBox injectMethod(String methodName, Object... configs) {
 		checkOrCreateMethodInjects();
 		Class<?>[] paramTypes = new Class<?>[configs.length / 2];
@@ -204,6 +193,51 @@ public class BeanBox {
 		if (m != null)
 			ReflectionUtils.makeAccessible(m);
 		this.getMethodInjects().put(m, params);
+		return this;
+	}
+
+	/**
+	 * This is Java configuration method equal to put a AOP annotation on method. a
+	 * AOP annotation is a kind of annotation be binded to an AOP alliance
+	 * interceptor like ctx.bind(Tx.class, MyInterceptor.class); then you can put
+	 * a @Tx annotation on method. But this method allow aop can be annotation class
+	 * or interceptor class for both
+	 */
+	public synchronized BeanBox addAopToMethod(Object aop, Method method) {
+		checkOrCreateMethodAops();
+		List<Object> aops = methodAops.get(method);
+		if (aops == null) {
+			aops = new ArrayList<Object>();
+			methodAops.put(method, aops);
+		}
+		aops.add(aop);
+		return this;
+	}
+
+	/**
+	 * This is Java configuration method equal to put a AOP annotation on method. a
+	 * AOP annotation is a kind of annotation be binded to an AOP alliance
+	 * interceptor like ctx.bind(Tx.class, MyInterceptor.class); then you can put
+	 * a @Tx annotation on method. But this method allow aop can be annotation class
+	 * or interceptor class for both
+	 */
+	public synchronized BeanBox addAopToMethod(Object aop, String methodName, Class<?>... paramTypes) {
+		checkOrCreateMethodAops();
+		Method m = ReflectionUtils.findMethod(beanClass, methodName, paramTypes);
+		BeanBoxException.assureNotNull(m, "Not found method: '" + methodName + "'");
+		addAopToMethod(aop, m);
+		return this;
+	}
+
+	public synchronized BeanBox addAopToMethods(Object aop, String methodNameRule) {
+		checkOrCreateMethodAopRules();
+		BeanBoxException.assureNotEmpty(methodNameRule, "methodNameRule can not be empty");
+		List<Object> aops = methodAopRules.get(methodNameRule);
+		if (aops == null) {
+			aops = new ArrayList<Object>();
+			methodAopRules.put(methodNameRule, aops);
+		}
+		aops.add(aop);
 		return this;
 	}
 
@@ -241,7 +275,7 @@ public class BeanBox {
 		BeanBox inject = new BeanBox();
 		inject.setTarget(constValue);
 		inject.setType(f.getType());
-		inject.setConstant(true);
+		inject.setValueType(true);
 		ReflectionUtils.makeAccessible(f);
 		this.getFieldInjects().put(f, inject);
 		return this;
@@ -263,12 +297,12 @@ public class BeanBox {
 		return this;
 	}
 
-	public boolean isConstant() {
-		return constant;
+	public boolean isValueType() {
+		return valueType;
 	}
 
-	public BeanBox setConstant(boolean constant) {
-		this.constant = constant;
+	public BeanBox setValueType(boolean constant) {
+		this.valueType = constant;
 		return this;
 	}
 
@@ -305,24 +339,6 @@ public class BeanBox {
 
 	public BeanBox setSingleton(Boolean singleton) {
 		this.singleton = singleton;
-		return this;
-	}
-
-	public List<Object> getClassInterceptors() {
-		return classInterceptors;
-	}
-
-	public BeanBox setClassInterceptors(List<Object> classInterceptors) {
-		this.classInterceptors = classInterceptors;
-		return this;
-	}
-
-	public Map<Method, List<Object>> getMethodInterceptors() {
-		return methodInterceptors;
-	}
-
-	public BeanBox setMethodInterceptors(Map<Method, List<Object>> methodInterceptors) {
-		this.methodInterceptors = methodInterceptors;
 		return this;
 	}
 
@@ -398,12 +414,21 @@ public class BeanBox {
 		return this;
 	}
 
-	public Map<Method, List<Interceptor>> getInterceptors() {
-		return interceptors;
+	public Map<Method, List<Object>> getMethodAops() {
+		return methodAops;
 	}
 
-	public BeanBox setInterceptors(Map<Method, List<Interceptor>> interceptors) {
-		this.interceptors = interceptors;
+	public BeanBox setMethodAops(Map<Method, List<Object>> methodAops) {
+		this.methodAops = methodAops;
+		return this;
+	}
+
+	public Map<String, List<Object>> getAopRules() {
+		return methodAopRules;
+	}
+
+	public BeanBox setAopRules(Map<String, List<Object>> aopRules) {
+		this.methodAopRules = aopRules;
 		return this;
 	}
 

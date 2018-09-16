@@ -10,17 +10,18 @@
 package com.github.drinkjava2.jbeanbox;
 
 /**
- * ConstTranslator translate a const String to different type
+ * ValueTranslator translate a String to a real value, user can write other
+ * ValueTranslator to replace the DefaultConstTranslator
  * 
  * @author Yong Zhu
  * @since 2.4.7
  *
  */
-public interface ConstTranslator {
+public interface ValueTranslator {
 
 	public Object translate(String s, Class<?> type);
 
-	public static class DefaultConstTranslator implements ConstTranslator {
+	public static class DefaultValueTranslator implements ValueTranslator {
 
 		@Override
 		public Object translate(String s, Class<?> type) {// NOSONAR

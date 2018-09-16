@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
-import com.github.drinkjava2.jbeanbox.annotation.CONST;
+import com.github.drinkjava2.jbeanbox.annotation.VALUE;
 import com.github.drinkjava2.jbeanbox.annotation.POSTCONSTRUCT;
 import com.github.drinkjava2.jbeanbox.annotation.PREDESTROY;
 import com.github.drinkjava2.jbeanbox.annotation.PROTOTYPE;
@@ -48,7 +48,7 @@ public class BeanBoxUtilsTest {
 	}
 
 	//@formatter:off
-	public static class Bind1 extends BeanBox {{ setAsConstant("Foo"); }} 
+	public static class Bind1 extends BeanBox {{ setAsValue("Foo"); }} 
 	public static class Bind2 extends BeanBox {{ setTarget(Bind1.class); }} 
 	//@formatter:on
 
@@ -64,7 +64,7 @@ public class BeanBoxUtilsTest {
 
 	//@formatter:off
 	@PROTOTYPE
-	@CONST("3")
+	@VALUE("3")
 	public static class Demo4 { }
 	
 	@INJECT(Demo4.class)
@@ -81,27 +81,27 @@ public class BeanBoxUtilsTest {
 	public void classInjectTest() throws NoSuchMethodException, SecurityException {
 		BeanBox box = class2BeanBox(Demo4.class);
 		Assert.assertEquals(false, box.isSingleton());
-		Assert.assertEquals(true, box.isConstant());
+		Assert.assertEquals(true, box.isValueType());
 		Assert.assertEquals("3", box.getTarget());
 		Assert.assertEquals(Demo4.class, box.getBeanClass());
 		Assert.assertEquals(null, box.getSingletonId());
 
 		box = class2BeanBox(Demo5.class);
 		Assert.assertEquals(Demo4.class, box.getTarget());
-		Assert.assertEquals(false, box.isConstant());
+		Assert.assertEquals(false, box.isValueType());
 		Assert.assertEquals(false, box.isSingleton());
 		Assert.assertEquals(Demo5.class, box.getBeanClass());
 		Assert.assertEquals(null, box.getSingletonId());
 
 		box = class2BeanBox(Demo6.class);
 		Assert.assertEquals(null, box.getTarget());
-		Assert.assertEquals(false, box.isConstant());
+		Assert.assertEquals(false, box.isValueType());
 		Assert.assertEquals(true, box.isSingleton());
 		Assert.assertEquals(Demo6.class, box.getBeanClass());
 		Assert.assertEquals(box, box.getSingletonId());
 
 		box = class2BeanBox(inf1.class);
-		Assert.assertEquals(false, box.isConstant());
+		Assert.assertEquals(false, box.isValueType());
 		Assert.assertEquals(true, box.isSingleton());
 		Assert.assertEquals(Demo1.class, box.getTarget());
 		Assert.assertEquals(inf1.class, box.getBeanClass());
@@ -118,7 +118,7 @@ public class BeanBoxUtilsTest {
 	}
 
 	public static class Constinject2 {
-		@CONST("ABC")
+		@VALUE("ABC")
 		public Constinject2(String a) {
 		}
 	}
@@ -128,8 +128,8 @@ public class BeanBoxUtilsTest {
 		}
 
 		@INJECT
-		public Constinject3(@CONST("ABC") String a, @INJECT(Demo1.class) boolean b, @CONST("3") int c,
-				@CONST("4") int d) {
+		public Constinject3(@VALUE("ABC") String a, @INJECT(Demo1.class) boolean b, @VALUE("3") int c,
+				@VALUE("4") int d) {
 		}
 	}
 
@@ -196,13 +196,13 @@ public class BeanBoxUtilsTest {
 		@INJECT(Demo6.class)
 		private String field1;
 
-		@INJECT(value = Demo6.class, constant = false, required = false)
+		@INJECT(value = Demo6.class, valueType = false, required = false)
 		private String field2;
 
-		@CONST("false")
+		@VALUE("false")
 		private Boolean field3;
 
-		@CONST("4")
+		@VALUE("4")
 		private Byte field4;
 
 		@Autowired(required = false)
@@ -230,15 +230,15 @@ public class BeanBoxUtilsTest {
 		}
 
 		@INJECT
-		private void method2(@INJECT(value = Demo6.class, constant = false) String a) {
+		private void method2(@INJECT(value = Demo6.class, valueType = false) String a) {
 		}
 
 		@INJECT
-		private void method3(@INJECT(value = Demo6.class, constant = true, required = false) String a,
-				@CONST("true") int b) {
+		private void method3(@INJECT(value = Demo6.class, valueType = true, required = false) String a,
+				@VALUE("true") int b) {
 		}
 
-		@CONST("false")
+		@VALUE("false")
 		private void method4(boolean a) {
 		}
 

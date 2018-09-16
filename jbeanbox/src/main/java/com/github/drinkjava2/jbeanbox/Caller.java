@@ -12,10 +12,10 @@ package com.github.drinkjava2.jbeanbox;
 import java.util.Set;
 
 /**
- * Env store SqlBoxContext, required and history these running environment
+ * Caller store BeanBoxContext, required and history
  *
  * @author Yong Zhu
- * @since 2.4.7
+ * @since 2.4.8
  *
  */
 public class Caller {

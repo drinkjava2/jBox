@@ -11,20 +11,28 @@
  */
 package com.github.drinkjava2.jbeanbox;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.github.drinkjava2.jbeanbox.annotation.AOP;
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
-import com.github.drinkjava2.jbeanbox.annotation.CONST;
 import com.github.drinkjava2.jbeanbox.annotation.POSTCONSTRUCT;
 import com.github.drinkjava2.jbeanbox.annotation.PREDESTROY;
 import com.github.drinkjava2.jbeanbox.annotation.PROTOTYPE;
+import com.github.drinkjava2.jbeanbox.annotation.VALUE;
 
 /**
  * BeanBoxContextTest
@@ -88,22 +96,22 @@ public class AnnotationInjectTest {
 	}
 
 	//@formatter:off
-	public static class HelloBox extends BeanBox {{this.setAsConstant("Hello"); }} 
+	public static class HelloBox extends BeanBox {{this.setAsValue("Hello"); }} 
 	//@formatter:on
 
 	@Test
 	public void getBean() {
 		// test pure value
-		Assert.assertEquals("Hello", new BeanBox().setAsConstant("Hello").getBean());
+		Assert.assertEquals("Hello", new BeanBox().setAsValue("Hello").getBean());
 
-		JBEANBOX.bind("A", new BeanBox().setAsConstant("Hello"));
+		JBEANBOX.bind("A", new BeanBox().setAsValue("Hello"));
 		Assert.assertEquals("Hello", JBEANBOX.getBean("A"));
 
 		// bind pure value
 		JBEANBOX.bind("D", "C").bind("C", "B").bind("B", "A");
 		Assert.assertEquals("Hello", JBEANBOX.getBean("D"));
 
-		BeanBox box1 = new BeanBox().setAsConstant("Hello");
+		BeanBox box1 = new BeanBox().setAsValue("Hello");
 		BeanBox box2 = new BeanBox().setTarget(box1);
 		Assert.assertEquals("Hello", box2.getBean());
 	}
@@ -171,7 +179,7 @@ public class AnnotationInjectTest {
 
 	//@formatter:off
 	@PROTOTYPE
-	@CONST("3")
+	@VALUE("3")
 	public static class Demo4 { }
 	
 	@INJECT(Demo4.class)
@@ -184,7 +192,7 @@ public class AnnotationInjectTest {
 	@INJECT(value=Demo4.class  )
 	public static interface inf1{}
 	
-	@INJECT(value=Demo4.class,  constant=true)
+	@INJECT(value=Demo4.class,  valueType=true)
 	public static interface inf2{}
 	//@formatter:on
 
@@ -215,10 +223,10 @@ public class AnnotationInjectTest {
 	public static class CA {}
 	public static class CB {}
 	public static class C1 { int i = 0; @INJECT public C1() { i = 2; } } 
-	public static class C2 { int i = 0; @INJECT public C2(@CONST("2") int a) { i = a; } }
-	public static class C3 { int i = 0; @CONST("2") public C3(int a) { i = a; } }
-	public static class C4 { int i = 0; @INJECT public C4(@CONST("2") Integer a,@CONST("2") byte b ) { i = b; } }
-	public static class C5 { Object o ; @INJECT(value=Bar.class, constant=true) public C5(Object a) { o = a; } }
+	public static class C2 { int i = 0; @INJECT public C2(@VALUE("2") int a) { i = a; } }
+	public static class C3 { int i = 0; @VALUE("2") public C3(int a) { i = a; } }
+	public static class C4 { int i = 0; @INJECT public C4(@VALUE("2") Integer a,@VALUE("2") byte b ) { i = b; } }
+	public static class C5 { Object o ; @INJECT(value=Bar.class, valueType=true) public C5(Object a) { o = a; } }
 	public static class C6 { Object o1,o2 ; @INJECT public C6(CA a, CB b) { o1 = a; o2=b; } }
 	//@formatter:on
 
@@ -297,22 +305,22 @@ public class AnnotationInjectTest {
 		@INJECT(required = false)
 		public String field0 = "aa";
 
-		@INJECT(value = ClassA.class, constant = false, required = true)
+		@INJECT(value = ClassA.class, valueType = false, required = true)
 		private ClassA field1;
 
-		@INJECT(value = ClassA.class, constant = false, required = false)
+		@INJECT(value = ClassA.class, valueType = false, required = false)
 		private ClassA field2;
 
 		@INJECT(HelloBox.class)
 		private String field3;
 
-		@CONST(value = "true")
+		@VALUE(value = "true")
 		private Boolean field4;
 
-		@CONST("5")
+		@VALUE("5")
 		private long field5;
 
-		@CONST("6")
+		@VALUE("6")
 		private Long field6;
 
 		@Autowired(required = false)
@@ -376,17 +384,17 @@ public class AnnotationInjectTest {
 		}
 
 		@INJECT
-		private void method3(@CONST("3") long a) {
+		private void method3(@VALUE("3") long a) {
 			l3 = a;
 		}
 
-		@CONST("true")
+		@VALUE("true")
 		private void method4(boolean a) {
 			bl4 = a;
 		}
 
 		@INJECT
-		private void method5(@INJECT(HelloBox.class) String a, @CONST("5") Byte b) {
+		private void method5(@INJECT(HelloBox.class) String a, @VALUE("5") Byte b) {
 			s5 = a;
 			bt5 = b;
 		}
@@ -409,4 +417,52 @@ public class AnnotationInjectTest {
 		Assert.assertEquals(CA.class, bean.a.getClass());
 	}
 
+	protected void aopTests_______________() {
+	}
+
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target({ ElementType.TYPE })
+	@AOP
+	public static @interface MyAop1 {
+		public Class<?> value() default Interceptor1.class;
+
+		public String method() default "";
+	}
+
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target({ ElementType.METHOD })
+	@AOP
+	public static @interface MyAop2 {
+		public Class<?> value() default Interceptor1.class;
+	}
+
+	public static class Interceptor1 implements MethodInterceptor {
+		@Override
+		public Object invoke(MethodInvocation invocation) throws Throwable {
+			System.out.println(invocation.getClass());
+			System.out.println(invocation.getMethod());
+			Object result = invocation.proceed();
+			System.out.println("invoked");
+			return result;
+		}
+	}
+
+	@MyAop1(value = Interceptor1.class, method = "set*")
+	public static class AopDemo1 {
+		String name;
+
+		@MyAop2
+		public void setName(String name) {
+			System.out.println("name=" + name);
+			this.name = name;
+		}
+	}
+
+	@Test
+	public void aopTest1() {
+		JBEANBOX.bctx().addAopToClasses(Interceptor1.class, "*", "put*");
+		AopDemo1 demo = JBEANBOX.getBean(AopDemo1.class);
+		demo.setName("1");
+		Assert.assertEquals("1", demo.name); 
+	}
 }

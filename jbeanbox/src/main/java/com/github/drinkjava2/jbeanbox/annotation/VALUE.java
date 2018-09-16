@@ -15,7 +15,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * CONST for inject constant parameter
+ * VALUE for inject pure value parameter, equal to Spring's @value annotation
  * 
  * @author Yong Zhu
  * @since 2.4.7
@@ -23,11 +23,11 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
-public @interface CONST {
+public @interface VALUE {
 
-	public String value(); // a String represents a constant value
+	public String value(); // a String represents a constant parameter value
 
-	public boolean constant() default true; // Of cause is true
+	public boolean valueType() default true; // Of cause is true
 
 	public boolean required() default true; // Of cause is true
 }

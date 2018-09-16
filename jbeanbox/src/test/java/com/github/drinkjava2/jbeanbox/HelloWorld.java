@@ -1,9 +1,9 @@
 package com.github.drinkjava2.jbeanbox;
 
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.autowired;
-import static com.github.drinkjava2.jbeanbox.JBEANBOX.cons;
+import static com.github.drinkjava2.jbeanbox.JBEANBOX.value;
 
-import com.github.drinkjava2.jbeanbox.annotation.CONST;
+import com.github.drinkjava2.jbeanbox.annotation.VALUE;
 
 /**
  * BeanBoxTest
@@ -11,59 +11,44 @@ import com.github.drinkjava2.jbeanbox.annotation.CONST;
  * @author Yong Zhu
  * @since 2.4.7
  */
+//@formatter:off
 public class HelloWorld {
-
-	public static class Hello {
+	public static class User {
 		String name;
-
-		public Hello() {
-		}
-
-		@CONST("Hello1")
-		public Hello(String name) {
-			this.name = name;
-		}
-
-		void setName(String name) {
-			this.name = name;
-		}
-
-		void init() {
-			this.name = "Hello5";
-		}
+		
+		public User() {}
+		
+		@VALUE("User1")
+		public User(String name) {	this.name = name;}
+		
+		void setName(String name) {	this.name = name;}
+		
+		void init() {this.name = "User6";}
 	}
 
-	public static class HelloBox extends BeanBox {
-		Object create() {
-			return new Hello("Hello2");
-		}
+	public static class UserBox extends BeanBox {
+		Object create() {return new User("User2");}
 	}
 
-	public static class H6 extends HelloBox {
-		{
-			setAsConstant("Hello6");
-		}
-	}
-
+	public static class H7 extends UserBox {{setAsValue("User7");}}
+ 
 	public static void main(String[] args) {
-		System.out.println(JBEANBOX.getInstance(Hello.class).name);
-
-		Hello h2 = JBEANBOX.bind(Hello.class, HelloBox.class).getBean(Hello.class);
-		System.out.println(h2.name);
-
-		Hello h3 = JBEANBOX.getBean(new BeanBox().injectConstruct(Hello.class, String.class, cons("Hello3")));
-		System.out.println(h3.name);
-
-		Hello h4 = JBEANBOX
-				.getBean(new BeanBox().setBeanClass(Hello.class).injectMethod("setName", String.class, cons("Hello4")));
-		System.out.println(h4.name);
-
-		Hello h5 = JBEANBOX.getBean(new BeanBox().setBeanClass(Hello.class).setPostConstruct("init"));
-		System.out.println(h5.name);
-
+		User u1 = JBEANBOX.getInstance(User.class);
+		User u2 = JBEANBOX.getBean(UserBox.class);
+		User u3 = JBEANBOX.getBean(new BeanBox().injectConstruct(User.class, String.class, value("User3")));
+		User u4 = JBEANBOX.getBean(new BeanBox(User.class).injectField("name", value("User4")));
+		User u5 = JBEANBOX
+				.getBean(new BeanBox().setBeanClass(User.class).injectMethod("setName", String.class, value("User5")));
+		User u6 = JBEANBOX.getBean(new BeanBox().setBeanClass(User.class).setPostConstruct("init"));
 		BeanBoxContext ctx = new BeanBoxContext();
-		Hello h6 = ctx.bind(String.class, "6").bind("6", H6.class)
-				.getBean(ctx.getBeanBox(Hello.class).injectField("name", autowired()));
-		System.out.println(h6.name);
+		User u7 = ctx.bind(String.class, "7").bind("7", H7.class)
+				.getBean(ctx.getBeanBox(User.class).injectField("name", autowired()));
+		System.out.println(u1.name);
+		System.out.println(u2.name);
+		System.out.println(u3.name);
+		System.out.println(u4.name);
+		System.out.println(u5.name);
+		System.out.println(u6.name);
+		System.out.println(u7.name);
 	}
 }

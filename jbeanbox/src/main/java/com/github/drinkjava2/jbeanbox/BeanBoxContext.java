@@ -11,6 +11,7 @@ package com.github.drinkjava2.jbeanbox;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -18,9 +19,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.aopalliance.intercept.Interceptor;
-
-import com.github.drinkjava2.jbeanbox.ConstTranslator.DefaultConstTranslator;
+import com.github.drinkjava2.jbeanbox.ValueTranslator.DefaultValueTranslator;
+import com.github.drinkjava2.jbeanbox.aop.ProxyBeanUtils;
 
 /**
  * BeanBoxContext is the Context to create beans
@@ -35,13 +35,13 @@ public class BeanBoxContext {
 	protected static boolean globalNextAllowSpringJsrAnnotation = true; // as title
 	protected static String globalNextCreateMethodName = "create"; // as title
 	protected static String globalNextConfigMethodName = "config"; // as title
-	protected static ConstTranslator globalNextConstTranslator = new DefaultConstTranslator(); // see user manual
+	protected static ValueTranslator globalNextValueTranslator = new DefaultValueTranslator(); // see user manual
 
 	protected boolean allowAnnotation = globalNextAllowAnnotation;
 	protected boolean allowSpringJsrAnnotation = globalNextAllowSpringJsrAnnotation;
 	protected String createMethodName = globalNextCreateMethodName;
 	protected String configMethodName = globalNextConfigMethodName;
-	protected ConstTranslator constTranslator = globalNextConstTranslator;
+	protected ValueTranslator valueTranslator = globalNextValueTranslator;
 
 	protected Map<Object, Object> bindCache = new ConcurrentHashMap<Object, Object>();// shortcuts cache
 	protected Map<Class<?>, BeanBox> beanBoxMetaCache = new ConcurrentHashMap<Class<?>, BeanBox>(); // as title
@@ -49,8 +49,10 @@ public class BeanBoxContext {
 	protected Map<Class<?>, Method> createMethodCache = new ConcurrentHashMap<Class<?>, Method>();// as title
 	protected Map<Class<?>, Method> configMethodCache = new ConcurrentHashMap<Class<?>, Method>();// as title
 
- 
 	protected static BeanBoxContext globalBeanBoxContext = new BeanBoxContext();// Global BeanBox context
+
+	// ==========AOP about=========
+	protected List<Object[]> classAopRules;
 
 	public BeanBoxContext() {
 		bind(Object.class, EMPTY.class);
@@ -110,7 +112,7 @@ public class BeanBoxContext {
 		beanBoxMetaCache.clear();
 		singletonCache.clear();
 		createMethodCache.clear();
-		configMethodCache.clear(); 
+		configMethodCache.clear();
 	}
 
 	public <T> T getBean(Object obj) {
@@ -118,15 +120,15 @@ public class BeanBoxContext {
 	}
 
 	public <T> T getInstance(Class<T> target) {
-		return getBean(target, true, null); // first step of changzheng
+		return getBean(target, true, null);
 	}
 
 	public <T> T getBean(Object obj, boolean required) {
-		return getBean(obj, required, null); // first step of changzheng
+		return getBean(obj, required, null);
 	}
 
 	public <T> T getInstance(Class<T> target, boolean required) {
-		return getBean(target, required, null); // first step of changzheng
+		return getBean(target, required, null);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -195,7 +197,7 @@ public class BeanBoxContext {
 				return bean;
 		}
 
-		if (box.isConstant()) // if constant?
+		if (box.isValueType()) // if constant?
 			return box.getTarget();
 		if (box.getTarget() != null) {// if target?
 			if (EMPTY.class != box.getTarget())
@@ -244,7 +246,21 @@ public class BeanBoxContext {
 		} else
 			return notfoundOrException(null, required); // return null or throw EX
 
-		if (box.isSingleton()) { // Cache it right now for circular dependency use
+		// ====== need change bean to AOP proxy bean if AOP setting exist
+		boolean needChangeToProxy = false;
+		if (box.getAopRules() != null || box.getMethodAops() != null)
+			needChangeToProxy = true;
+		else if (this.getAopRules() != null)
+			for (Object[] aops : getAopRules())
+				if (BeanBoxUtils.nameMatch((String) aops[0], bean.getClass().getName())) {
+					needChangeToProxy = true;
+					break;
+				}
+		if (needChangeToProxy)
+			bean = ProxyBeanUtils.changeBeanToProxy(bean, box, this);
+
+		// Cache bean or proxy bean right now for circular dependency use
+		if (box.isSingleton()) {
 			Object id = box.getSingletonId();
 			if (id != null)
 				singletonCache.put(box, bean);
@@ -278,7 +294,7 @@ public class BeanBoxContext {
 								+ f.getDeclaringClass().getName());
 				} else {
 					if (fieldValue != null && fieldValue instanceof String)
-						fieldValue = this.constTranslator.translate((String) fieldValue, b.getType());
+						fieldValue = this.valueTranslator.translate((String) fieldValue, b.getType());
 					ReflectionUtils.setField(f, bean, fieldValue);
 				}
 			}
@@ -303,6 +319,13 @@ public class BeanBoxContext {
 		return this;
 	}
 
+	public BeanBoxContext addAopToClasses(Object aop, String className, String methodName) {
+		if (classAopRules == null)
+			classAopRules = new ArrayList<Object[]>();
+		classAopRules.add(new Object[] { className, methodName, aop });
+		return this;
+	}
+
 	public BeanBox getBeanBox(Class<?> clazz) {
 		return BeanBoxUtils.getUniqueBeanBox(this, clazz);
 	}
@@ -315,7 +338,7 @@ public class BeanBoxContext {
 		for (int i = 0; i < boxes.length; i++) {
 			result[i] = ctx.getBeanFromBox(boxes[i], true, history);
 			if (result[i] != null && result[i] instanceof String)
-				result[i] = ctx.constTranslator.translate((String) result[i], boxes[i].getType());
+				result[i] = ctx.valueTranslator.translate((String) result[i], boxes[i].getType());
 		}
 		return result;
 	}
@@ -429,12 +452,12 @@ public class BeanBoxContext {
 		BeanBoxContext.globalNextConfigMethodName = globalNextConfigMethodName;
 	}
 
-	public static ConstTranslator getGlobalNextParamTranslator() {
-		return globalNextConstTranslator;
+	public static ValueTranslator getGlobalNextParamTranslator() {
+		return globalNextValueTranslator;
 	}
 
-	public static void setGlobalNextParamTranslator(ConstTranslator globalNextParamTranslator) {
-		BeanBoxContext.globalNextConstTranslator = globalNextParamTranslator;
+	public static void setGlobalNextParamTranslator(ValueTranslator globalNextParamTranslator) {
+		BeanBoxContext.globalNextValueTranslator = globalNextParamTranslator;
 	}
 
 	public boolean isAllowAnnotation() {
@@ -469,12 +492,12 @@ public class BeanBoxContext {
 		this.configMethodName = configMethodName;
 	}
 
-	public ConstTranslator getConstTranslator() {
-		return constTranslator;
+	public ValueTranslator getValueTranslator() {
+		return valueTranslator;
 	}
 
-	public void setConstTranslator(ConstTranslator constTranslator) {
-		this.constTranslator = constTranslator;
+	public void setValueTranslator(ValueTranslator valueTranslator) {
+		this.valueTranslator = valueTranslator;
 	}
 
 	public Map<Object, Object> getBindCache() {
@@ -523,6 +546,14 @@ public class BeanBoxContext {
 
 	public static void setNotExistMethod(Method notExistMethod) {
 		BeanBoxContext.NOT_EXIST_METHOD = notExistMethod;
+	}
+
+	public List<Object[]> getAopRules() {
+		return classAopRules;
+	}
+
+	public void setAopRules(List<Object[]> aopRules) {
+		this.classAopRules = aopRules;
 	}
 
 }

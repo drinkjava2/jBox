@@ -1,7 +1,7 @@
 
 package com.github.drinkjava2.jbeanbox.reflection_utils;
 
-import static com.github.drinkjava2.jbeanbox.JBEANBOX.cons;
+import static com.github.drinkjava2.jbeanbox.JBEANBOX.value;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,7 +28,7 @@ public class CreateMethodTest {
 	public static class childClassBox extends BaseClassBox {
 		{
 			this.setBeanClass(Parent.class);
-			this.injectField("userName", cons("u1"));
+			this.injectField("userName", value("u1"));
 		}
 	}
 

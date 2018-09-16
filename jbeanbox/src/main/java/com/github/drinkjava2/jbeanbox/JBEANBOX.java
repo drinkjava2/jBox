@@ -59,29 +59,29 @@ public class JBEANBOX {// NOSONAR
 		return new BeanBox().setTarget(EMPTY.class);
 	}
 
-	/** Create a "@Inject" type param */
+	/** Equal to "@INJECT" annotation */
 	public static BeanBox inject() {
 		return new BeanBox().setTarget(EMPTY.class);
 	}
 
-	/** Create a "@Inject" type param */
+	/** Equal to "@INJECT" annotation */
 	public static BeanBox inject(Object target) {
 		return new BeanBox().setTarget(target);
 	}
 
-	/** Create a "@Inject" type param */
+	/** Equal to "@INJECT" annotation */
 	public static BeanBox inject(Object target, boolean constant, boolean required) {
-		return new BeanBox().setTarget(target).setRequired(required).setConstant(constant);
+		return new BeanBox().setTarget(target).setRequired(required).setValueType(constant);
 	}
 
-	/** Create a "@Param" type param */
-	public static BeanBox cons(Object param) {
-		return new BeanBox().setTarget(param).setConstant(true).setRequired(true);
+	/** Equal to "@VALUE" annotation */
+	public static BeanBox value(Object value) {
+		return new BeanBox().setTarget(value).setValueType(true).setRequired(true);
 	}
 
-	/** Create a "@Param" type param */
-	public static BeanBox param(Object param, boolean constant, boolean required) {
-		return new BeanBox().setTarget(param).setRequired(required).setConstant(constant);
+	/** Equal to "@VALUE" annotation */
+	public static BeanBox value(Object value, boolean valueType, boolean required) {
+		return new BeanBox().setTarget(value).setRequired(required).setValueType(valueType);
 	}
 
 }

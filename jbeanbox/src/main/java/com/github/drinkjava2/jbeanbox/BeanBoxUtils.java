@@ -23,11 +23,12 @@ import javax.inject.Inject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.github.drinkjava2.jbeanbox.annotation.CONST;
+import com.github.drinkjava2.jbeanbox.annotation.AOP;
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 import com.github.drinkjava2.jbeanbox.annotation.POSTCONSTRUCT;
 import com.github.drinkjava2.jbeanbox.annotation.PREDESTROY;
 import com.github.drinkjava2.jbeanbox.annotation.PROTOTYPE;
+import com.github.drinkjava2.jbeanbox.annotation.VALUE;
 
 /**
  * BeanBoxUtils translate class to BeanBox instance and cache them
@@ -112,8 +113,20 @@ public class BeanBoxUtils {// NOSONAR
 		Object[] v = getInjectAnnotationAsArray(clazz, allowSpringJsrAnno);
 		if (v != null) {
 			box.setTarget(v[0]);
-			box.setConstant((Boolean) v[1]);
+			box.setValueType((Boolean) v[1]);
 			box.setRequired((Boolean) v[2]);
+		}
+ 
+		// ======== AOP annotated annotations on class
+		Annotation[] annos = clazz.getAnnotations();
+		for (Annotation anno : annos) {
+			if (anno.annotationType().isAnnotationPresent(AOP.class)) {
+				Map<String, Object> annoMap = changeAnnotationValuesToMap(anno);
+				Object aop = annoMap.get("value");
+				String methodNameRule = (String) annoMap.get("method");// name must be method
+				if (methodNameRule != null && methodNameRule.length() > 0 && aop != null)
+					box.addAopToMethods(aop, methodNameRule);
+			}
 		}
 
 		// ========== Constructor inject
@@ -124,7 +137,7 @@ public class BeanBoxUtils {// NOSONAR
 				if (v[0] != null && EMPTY.class != v[0]) {// 1 parameter only
 					BeanBox inject = new BeanBox();
 					inject.setTarget(v[0]);
-					inject.setConstant((Boolean) v[1]);
+					inject.setValueType((Boolean) v[1]);
 					inject.setRequired((Boolean) v[2]);
 					inject.setType(constr.getParameterTypes()[0]);
 					box.setConstructor(constr);
@@ -138,14 +151,14 @@ public class BeanBoxUtils {// NOSONAR
 		}
 
 		// =================Field inject=================
-		// @INJECT and values
+		// @INJECT and values, for annotations, no need care about parent class's method
 		for (Field f : clazz.getDeclaredFields()) {
 			v = getInjectAnnotationAsArray(f, allowSpringJsrAnno);
 			if (v != null) {
 				box.checkOrCreateFieldInjects();
 				BeanBox inject = new BeanBox();
 				inject.setTarget(v[0]);
-				inject.setConstant((Boolean) v[1]);
+				inject.setValueType((Boolean) v[1]);
 				inject.setRequired((Boolean) v[2]);
 				inject.setType(f.getType());
 				ReflectionUtils.makeAccessible(f);
@@ -153,7 +166,7 @@ public class BeanBoxUtils {// NOSONAR
 			}
 		}
 
-		Method[] methods = clazz.getDeclaredMethods();
+		Method[] methods = clazz.getDeclaredMethods();// no need care about parent class's method
 		for (Method m : methods) {
 			// ========== @PostConstruct and @PreDestory
 			if (m.getAnnotation(POSTCONSTRUCT.class) != null || m.getAnnotation(PostConstruct.class) != null) {
@@ -169,12 +182,23 @@ public class BeanBoxUtils {// NOSONAR
 				box.setPreDestroy(m);
 			}
 
+			// ========== AOP about annotation =========
+			Annotation[] mtdAnnos = m.getAnnotations();
+			for (Annotation anno : mtdAnnos)
+				if (anno.annotationType().isAnnotationPresent(AOP.class)) {
+					Map<String, Object> annoMap = changeAnnotationValuesToMap(anno);
+					Object aop = annoMap.get("value");
+					if (aop != null)
+						box.addAopToMethod(aop, m);
+				}
+
+			// =========== method inject annotation ==============
 			v = getInjectAnnotationAsArray(m, allowSpringJsrAnno);
 			if (v != null) {
 				ReflectionUtils.makeAccessible(m);
 				BeanBox oneParam = new BeanBox();
 				oneParam.setTarget(v[0]);
-				oneParam.setConstant((Boolean) v[1]);
+				oneParam.setValueType((Boolean) v[1]);
 				oneParam.setRequired((Boolean) v[2]);
 				boolean haveOneParameter = v[0] != null && EMPTY.class != v[0];
 				if (haveOneParameter)
@@ -210,9 +234,9 @@ public class BeanBoxUtils {// NOSONAR
 		for (Annotation a : anno) {
 			Class<? extends Annotation> type = a.annotationType();
 			if (INJECT.class.equals(type))
-				return new Object[] { ((INJECT) a).value(), ((INJECT) a).constant(), ((INJECT) a).required(), null };
-			if (CONST.class.equals(type))
-				return new Object[] { ((CONST) a).value(), ((CONST) a).constant(), ((CONST) a).required(), null };
+				return new Object[] { ((INJECT) a).value(), ((INJECT) a).valueType(), ((INJECT) a).required(), null };
+			if (VALUE.class.equals(type))
+				return new Object[] { ((VALUE) a).value(), ((VALUE) a).valueType(), ((VALUE) a).required(), null };
 			if (allowSpringJsrAnno) {
 				if (Inject.class.equals(type))
 					return new Object[] { EMPTY.class, false, true, null };
@@ -242,7 +266,7 @@ public class BeanBoxUtils {// NOSONAR
 			BeanBox inject = new BeanBox();
 			if (v != null) { // if parameter has annotation
 				inject.setTarget(v[0]);
-				inject.setConstant((Boolean) v[1]);
+				inject.setValueType((Boolean) v[1]);
 				inject.setRequired((Boolean) v[2]);
 				inject.setType(paramTypes[i]);
 			} else // if parameter no annotation
@@ -272,7 +296,7 @@ public class BeanBoxUtils {// NOSONAR
 		for (Annotation a : anno) {
 			Class<? extends Annotation> type = a.annotationType();
 			if (annoFullName.equals(type.getName()))
-				return changeAnnotationValuesToMap(a, type);
+				return changeAnnotationValuesToMap(a);
 		}
 		return null;
 	}
@@ -289,16 +313,35 @@ public class BeanBoxUtils {// NOSONAR
 	}
 
 	/** This used for unknown Annotation, change values to a Map */
-	protected static Map<String, Object> changeAnnotationValuesToMap(Annotation annotation,
-			Class<? extends Annotation> type) {
+	protected static Map<String, Object> changeAnnotationValuesToMap(Annotation annotation) {
 		Map<String, Object> result = new HashMap<String, Object>();
-		result.put("AnnotationExist", true);
-		for (Method method : type.getDeclaredMethods())
+		for (Method method : annotation.annotationType().getDeclaredMethods())
 			try {
 				result.put(method.getName(), method.invoke(annotation, (Object[]) null));
 			} catch (Exception e) {// NOSONAR
 			}
 		return result;
+	}
+
+	/**
+	 * A simple matcher for class and method name, only 1 * allowed <br/>
+	 * "*abc.ef" matches "any.abc.ef", "anymoreabc.ef" ... <br/>
+	 * "abc.ef*" matches "abc.efg", "abc.efg.hj" ... <br/>
+	 * "abc*def" matches "abcd.efg.ddef", "abcany*anydef"
+	 */
+	public static boolean nameMatch(String regex, String name) {
+		if (regex == null || regex.length() == 0 || name == null || name.length() == 0)
+			return false;
+		if ('*' == (regex.charAt(0))) {
+			return name.endsWith(regex.substring(1));
+		} else if (regex.endsWith("*")) {
+			return name.startsWith(regex.substring(0, regex.length() - 1));
+		} else {
+			int starPos = regex.indexOf("*");
+			if (-1 == starPos)
+				return regex.equals(name);
+			return name.startsWith(regex.substring(0, starPos)) && name.endsWith(regex.substring(starPos + 1));
+		}
 	}
 
 }

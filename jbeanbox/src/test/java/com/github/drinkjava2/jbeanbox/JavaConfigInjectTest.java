@@ -12,11 +12,16 @@
 package com.github.drinkjava2.jbeanbox;
 
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.autowired;
-import static com.github.drinkjava2.jbeanbox.JBEANBOX.cons;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.inject;
+import static com.github.drinkjava2.jbeanbox.JBEANBOX.value;
+
+import java.lang.reflect.Method;
+import java.util.Map;
 
 import javax.inject.Inject;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +40,8 @@ import com.github.drinkjava2.jbeanbox.annotation.INJECT;
  */
 @SuppressWarnings("unused")
 public class JavaConfigInjectTest {
+	public static Method mmm;
+	public static Map map;
 
 	@Before
 	public void init() {
@@ -46,7 +53,7 @@ public class JavaConfigInjectTest {
 
 	public static class ConstBox extends BeanBox {
 		{
-			this.setTarget("Foo").setConstant(true);
+			this.setTarget("Foo").setValueType(true);
 		}
 	}
 
@@ -90,7 +97,7 @@ public class JavaConfigInjectTest {
 	public static class C1 { int i = 0;   public C1() { i = 2; } } 
 	public static class C2 { int i = 0;   public C2(  int a) { i = a; } } 
 	public static class C4 { int i = 0;  public C4( Integer a,  byte b ) { i = b; } }
-	public static class C5 { Object o ; @INJECT(value=Bar.class, constant=true) public C5(Object a) { o = a; } }
+	public static class C5 { Object o ; @INJECT(value=Bar.class, valueType=true) public C5(Object a) { o = a; } }
 	public static class C6 { Object o1,o2 ; @INJECT public C6(CA a, CB b) { o1 = a; o2=b; } }
 	//@formatter:on
 
@@ -99,15 +106,15 @@ public class JavaConfigInjectTest {
 		C1 bean = JBEANBOX.getInstance(C1.class);
 		Assert.assertEquals(2, bean.i);
 
-		BeanBox box = new BeanBox().injectConstruct(C2.class, int.class, cons(2));
+		BeanBox box = new BeanBox().injectConstruct(C2.class, int.class, value(2));
 		C2 bean2 = JBEANBOX.getBean(box);
 		Assert.assertEquals(2, bean2.i);
 
-		box = new BeanBox().injectConstruct(C4.class, Integer.class, byte.class, cons("2"), cons("2"));
+		box = new BeanBox().injectConstruct(C4.class, Integer.class, byte.class, value("2"), value("2"));
 		C4 bean4 = JBEANBOX.getBean(box);
 		Assert.assertEquals(2, bean4.i);
 
-		box = new BeanBox().injectConstruct(C5.class, Object.class, cons(Bar.class));
+		box = new BeanBox().injectConstruct(C5.class, Object.class, value(Bar.class));
 		C5 bean5 = JBEANBOX.getBean(box);
 		Assert.assertEquals(Bar.class, bean5.o);
 
@@ -178,7 +185,7 @@ public class JavaConfigInjectTest {
 		box.injectField("field3", inject(HelloBox.class));
 		box.injectField("field4", true);
 		box.injectField("field5", 5L);
-		box.injectField("field6", cons("6"));
+		box.injectField("field6", value("6"));
 		box.injectField("field7", inject(EMPTY.class, false, false));
 		box.injectField("field8", inject());
 		box.injectField("field9", autowired());
@@ -233,9 +240,9 @@ public class JavaConfigInjectTest {
 	public void methodInjectTest() {
 		BeanBox box = new BeanBox().setBeanClass(MethodInject1.class);
 		box.injectMethod("method1", String.class, inject(HelloBox.class));
-		box.injectMethod("method3", long.class, cons("3"));
-		box.injectMethod("method4", boolean.class, cons("true"));
-		box.injectMethod("method5", String.class, Byte.class, inject(HelloBox.class), cons("5"));
+		box.injectMethod("method3", long.class, value("3"));
+		box.injectMethod("method4", boolean.class, value("true"));
+		box.injectMethod("method5", String.class, Byte.class, inject(HelloBox.class), value("5"));
 		box.injectMethod("method6", CA.class, autowired());
 
 		MethodInject1 bean = JBEANBOX.getBean(box);
@@ -322,10 +329,56 @@ public class JavaConfigInjectTest {
 
 	@Test
 	public void createAndConfigMethodTest2() {
-		BeanBoxContext.globalBeanBoxContext.setCreateMethodName("c");
-		BeanBoxContext.globalBeanBoxContext.setConfigMethodName("f");
+		JBEANBOX.bctx().setCreateMethodName("c");
+		JBEANBOX.bctx().setConfigMethodName("f");
 		CFdemo3 c3 = JBEANBOX.getBean(CFdemo3Box.class);
 		Assert.assertEquals("1", c3.a);
 		Assert.assertEquals("2", c3.b);
+	}
+
+	protected void aopTests_______________() {
+	}
+
+	public static class AopDemo1 {
+		String name;
+
+		public AopDemo1() {
+			
+		}
+		
+		public AopDemo1(String s, Integer i) {
+			name = s;
+		}
+
+		public void setName(String name) {
+			System.out.println("name=" + name);
+			this.name = name;
+		}
+	}
+
+	public static class AopDemo1Box extends BeanBox {
+		{
+			//this.injectConstruct(AopDemo1.class, String.class, Integer.class, value("Tom"), value("1"));
+			//this.addAopToMethods(Interceptor1.class, "set1*");
+			this.setBeanClass(AopDemo1.class);
+			this.addAopToMethod(Interceptor1.class, "setName", String.class);
+		}
+	}
+
+	public static class Interceptor1 implements MethodInterceptor {
+		@Override
+		public Object invoke(MethodInvocation invocation) throws Throwable {
+			Object result = invocation.proceed();
+			System.out.println("invoked");
+			return result;
+		}
+	}
+
+	@Test
+	public void aopTest1() throws SecurityException, NoSuchMethodException {
+		JBEANBOX.bctx().addAopToClasses(Interceptor1.class, "*", "put*");
+		AopDemo1 demo = JBEANBOX.getBean(AopDemo1Box.class);
+		demo.setName("1");
+		Assert.assertEquals("1", demo.name);
 	}
 }

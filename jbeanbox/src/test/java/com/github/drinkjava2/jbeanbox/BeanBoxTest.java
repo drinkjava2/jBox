@@ -17,12 +17,6 @@ public class BeanBoxTest {
 	}
 
 	@Test
-	public void newCopy() {
-		BeanBox box = new BeanBox().newCopy();
-		Assert.assertNotNull(box);
-	}
-
-	@Test
 	public void getDebugInfo() {
 		BeanBox box = new BeanBox();
 		Assert.assertNotNull(box.getDebugInfo());
