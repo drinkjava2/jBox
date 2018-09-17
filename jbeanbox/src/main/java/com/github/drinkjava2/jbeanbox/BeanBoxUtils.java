@@ -116,7 +116,7 @@ public class BeanBoxUtils {// NOSONAR
 			box.setValueType((Boolean) v[1]);
 			box.setRequired((Boolean) v[2]);
 		}
- 
+
 		// ======== AOP annotated annotations on class
 		Annotation[] annos = clazz.getAnnotations();
 		for (Annotation anno : annos) {
@@ -134,6 +134,7 @@ public class BeanBoxUtils {// NOSONAR
 		for (Constructor<?> constr : constrs) {
 			v = getInjectAnnotationAsArray(constr, allowSpringJsrAnno);
 			if (v != null) {
+				box.setBeanClass(clazz);// anyway set beanClass first
 				if (v[0] != null && EMPTY.class != v[0]) {// 1 parameter only
 					BeanBox inject = new BeanBox();
 					inject.setTarget(v[0]);

@@ -15,9 +15,6 @@ import static com.github.drinkjava2.jbeanbox.JBEANBOX.autowired;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.inject;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.value;
 
-import java.lang.reflect.Method;
-import java.util.Map;
-
 import javax.inject.Inject;
 
 import org.aopalliance.intercept.MethodInterceptor;
@@ -40,8 +37,6 @@ import com.github.drinkjava2.jbeanbox.annotation.INJECT;
  */
 @SuppressWarnings("unused")
 public class JavaConfigInjectTest {
-	public static Method mmm;
-	public static Map map;
 
 	@Before
 	public void init() {
@@ -341,44 +336,46 @@ public class JavaConfigInjectTest {
 
 	public static class AopDemo1 {
 		String name;
+		String address;
 
-		public AopDemo1() {
-			
-		}
-		
-		public AopDemo1(String s, Integer i) {
+		public AopDemo1(String s) {
 			name = s;
 		}
 
 		public void setName(String name) {
-			System.out.println("name=" + name);
 			this.name = name;
 		}
-	}
-
-	public static class AopDemo1Box extends BeanBox {
-		{
-			//this.injectConstruct(AopDemo1.class, String.class, Integer.class, value("Tom"), value("1"));
-			//this.addAopToMethods(Interceptor1.class, "set1*");
-			this.setBeanClass(AopDemo1.class);
-			this.addAopToMethod(Interceptor1.class, "setName", String.class);
+		
+		public void setAddress(String address) {
+			this.address = address;
 		}
+		
 	}
 
-	public static class Interceptor1 implements MethodInterceptor {
+	public static class Interceptor implements MethodInterceptor {
 		@Override
 		public Object invoke(MethodInvocation invocation) throws Throwable {
-			Object result = invocation.proceed();
-			System.out.println("invoked");
-			return result;
+			invocation.getArguments()[0] = "3";
+			return invocation.proceed();
+		}
+	}
+	 
+	
+	public static class AopDemo1Box extends BeanBox {
+		{
+			this.injectConstruct(AopDemo1.class, String.class, value("1"));
+			// this.addAopToMethods(Interceptor1.class, "set*");
+			this.addAopToMethod(Interceptor.class, "setName", String.class); 
 		}
 	}
 
+ 
+
 	@Test
-	public void aopTest1() throws SecurityException, NoSuchMethodException {
-		JBEANBOX.bctx().addAopToClasses(Interceptor1.class, "*", "put*");
+	public void aopTest1() {
+		// JBEANBOX.bctx().addAopToClasses(Interceptor1.class, "*", "put*");
 		AopDemo1 demo = JBEANBOX.getBean(AopDemo1Box.class);
-		demo.setName("1");
-		Assert.assertEquals("1", demo.name);
+		demo.setName("2");
+		Assert.assertEquals("3", demo.name);
 	}
 }

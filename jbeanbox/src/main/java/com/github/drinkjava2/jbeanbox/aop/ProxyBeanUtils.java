@@ -9,13 +9,10 @@
  */
 package com.github.drinkjava2.jbeanbox.aop;
 
-import org.objenesis.Objenesis;
-import org.objenesis.ObjenesisStd;
-
 import com.github.drinkjava2.cglib3_2_0.proxy.Enhancer;
-import com.github.drinkjava2.cglib3_2_0.proxy.Factory;
 import com.github.drinkjava2.jbeanbox.BeanBox;
 import com.github.drinkjava2.jbeanbox.BeanBoxContext;
+import com.github.drinkjava2.jbeanbox.BeanBoxException;
 
 /**
  * ProxyBeanUtils use Objenesis and Cglib to create AOP proxy bean
@@ -25,11 +22,11 @@ import com.github.drinkjava2.jbeanbox.BeanBoxContext;
  *
  */
 public class ProxyBeanUtils {// NOSONAR
-	private static final Objenesis objenesis = new ObjenesisStd(true);
 
-	public static Object changeBeanToProxy(Object bean, BeanBox box, BeanBoxContext ctx) {
+	public static Object createProxyBean(Class<?> clazz, BeanBox box, BeanBoxContext ctx) {
+		BeanBoxException.assureNotNull(clazz, "To create a CGLib proxy, beanClass can not be null");
 		Enhancer enhancer = new Enhancer();
-		enhancer.setSuperclass(bean.getClass());
+		enhancer.setSuperclass(clazz);
 		if (box.getConstructorParams() != null && box.getConstructorParams().length > 0) {
 			BeanBox[] boxes = box.getConstructorParams();
 			Class<?>[] argsTypes = new Class<?>[boxes.length];
@@ -41,21 +38,10 @@ public class ProxyBeanUtils {// NOSONAR
 					realValue = ctx.getValueTranslator().translate((String) realValue, boxes[i].getType());
 				realArgsValue[i] = realValue;
 			}
-
-//			enhancer.setCallbackType(ProxyBean.class);
-//			Class<?> proxyClass = enhancer.createClass();
-//			Object proxyInstance = objenesis.newInstance(proxyClass);
-//			if (proxyInstance != null) {
-//				((Factory) proxyInstance).setCallback(0, new ProxyBean(bean, box, ctx));
-//				return proxyInstance;
-//			} else 
-//			
-			{
-				enhancer.setCallback(new ProxyBean(bean, box, ctx));
-				return enhancer.create(argsTypes, realArgsValue);
-			}
+			enhancer.setCallback(new ProxyBean(box, ctx));
+			return enhancer.create(argsTypes, realArgsValue);
 		} else {
-			enhancer.setCallback(new ProxyBean(bean, box, ctx));
+			enhancer.setCallback(new ProxyBean(box, ctx));
 			return enhancer.create();
 		}
 	}

@@ -208,7 +208,18 @@ public class BeanBoxContext {
 				return notfoundOrException(box.getTarget(), box.isRequired());
 		}
 
-		if (box.getCreateMethod() != null) // if have create method?
+		boolean needChangeToProxy = false;// is AOP?
+		if (box.getAopRules() != null || box.getMethodAops() != null)
+			needChangeToProxy = true;
+		else if (this.getAopRules() != null)
+			for (Object[] aops : getAopRules())
+				if (BeanBoxUtils.nameMatch((String) aops[0], box.getBeanClass().getName())) {
+					needChangeToProxy = true;
+					break;
+				}
+		if (needChangeToProxy)
+			bean = ProxyBeanUtils.createProxyBean(box.getBeanClass(), box, this);
+		else if (box.getCreateMethod() != null) // if have create method?
 			try {
 				Method m = box.getCreateMethod();
 				if (m.getParameterTypes().length == 1) {
@@ -247,17 +258,6 @@ public class BeanBoxContext {
 			return notfoundOrException(null, required); // return null or throw EX
 
 		// ====== need change bean to AOP proxy bean if AOP setting exist
-		boolean needChangeToProxy = false;
-		if (box.getAopRules() != null || box.getMethodAops() != null)
-			needChangeToProxy = true;
-		else if (this.getAopRules() != null)
-			for (Object[] aops : getAopRules())
-				if (BeanBoxUtils.nameMatch((String) aops[0], bean.getClass().getName())) {
-					needChangeToProxy = true;
-					break;
-				}
-		if (needChangeToProxy)
-			bean = ProxyBeanUtils.changeBeanToProxy(bean, box, this);
 
 		// Cache bean or proxy bean right now for circular dependency use
 		if (box.isSingleton()) {

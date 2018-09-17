@@ -1,23 +1,13 @@
-/**
- * Copyright (C) 2016 Yong Zhu.
- *
+/*
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by
+ * applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * OF ANY KIND, either express or implied. See the License for the specific
+ * language governing permissions and limitations under the License.
  */
 package com.github.drinkjava2.jbeanbox.aop;
-
-import static com.github.drinkjava2.jbeanbox.ReflectionUtils.isEqualsMethod;
-import static com.github.drinkjava2.jbeanbox.ReflectionUtils.isHashCodeMethod;
-import static com.github.drinkjava2.jbeanbox.ReflectionUtils.isToStringMethod;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
@@ -30,10 +20,9 @@ import com.github.drinkjava2.cglib3_2_0.proxy.MethodInterceptor;
 import com.github.drinkjava2.cglib3_2_0.proxy.MethodProxy;
 import com.github.drinkjava2.jbeanbox.BeanBox;
 import com.github.drinkjava2.jbeanbox.BeanBoxContext;
-import com.github.drinkjava2.jbeanbox.BeanBoxException;
 
 /**
- * ProxyBean to build a AopChain, AopChain build a TempMethodInvocation
+ * ProxyBean to build a Invocation, Invocation call next invocation...
  * 
  * @author Yong Zhu
  * @since 2.4
@@ -41,78 +30,54 @@ import com.github.drinkjava2.jbeanbox.BeanBoxException;
  */
 @SuppressWarnings("all")
 class ProxyBean implements MethodInterceptor, Callback {
-	protected Object[] bean_box_ctx;
+	protected Object[] box_ctx;
 
-	protected ProxyBean(Object bean, BeanBox box, BeanBoxContext ctx) {
-		bean_box_ctx = new Object[] { bean, box, ctx };
+	protected ProxyBean(BeanBox box, BeanBoxContext ctx) {
+		box_ctx = new Object[] { box, ctx };
 	}
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy cgLibMethodProxy) throws Throwable {
-		if (isEqualsMethod(method) || isHashCodeMethod(method) || isToStringMethod(method))
-			return cgLibMethodProxy.invokeSuper(obj, args);
-		BeanBox box = (BeanBox) bean_box_ctx[1];
-		if (box == null || box.getMethodAops() == null || box.getMethodAops().isEmpty())
-			return cgLibMethodProxy.invokeSuper(obj, args);
-		List<Object> interceptors = box.getMethodAops().get(method);
-		if (interceptors == null || interceptors.isEmpty())
-			return cgLibMethodProxy.invokeSuper(obj, args);
-		else
-			return new AopChain(obj, method, args, cgLibMethodProxy, bean_box_ctx, interceptors).callNext();
-	}
-
-	public static class AopChain {
-		Object proxy;
-		Method method;
-		Object[] args;
-		MethodProxy cgLibMethodProxy;
-		Object[] bean_box_ctx;
-		List<Object> interceptors;
-		int index = -1; // the AOP chain index
-
-		public AopChain(Object proxy, Method method, Object[] args, MethodProxy cgLibMethodProxy, Object[] bean_box_ctx,
-				List<Object> interceptors) {
-			this.proxy = proxy;
-			this.method = method;
-			this.cgLibMethodProxy = cgLibMethodProxy;
-			this.bean_box_ctx = bean_box_ctx;
-			this.interceptors = interceptors;
-		}
-
-		public Object callNext() throws Throwable {
-			index++;
-			if (index > interceptors.size() - 1)
-				return cgLibMethodProxy.invokeSuper(proxy, args);
-			else {
-				BeanBoxContext ctx = (BeanBoxContext) bean_box_ctx[2];
-				Object target = interceptors.get(index);
-				org.aopalliance.intercept.MethodInterceptor inter = ctx.getBean(target);
-				BeanBoxException.assureNotNull(inter);
-				MethodInvocation invocation = new TempMethodInvocation(proxy, method, args, this);
-				return inter.invoke(invocation);
-			}
-		}
+	public Object intercept(Object obj, Method m, Object[] args, MethodProxy mprxy) throws Throwable {
+		BeanBox box = (BeanBox) box_ctx[0];
+		BeanBoxContext ctx = (BeanBoxContext) box_ctx[1];
+		List<Object> inters = box.getMethodAops().get(m);
+		org.aopalliance.intercept.MethodInterceptor inter = ctx.getBean(inters.get(0));
+		if (inter != null)
+			return inter.invoke(new MtdInvoc(obj, m, args, mprxy, inters, ctx, 1));
+		return mprxy.invokeSuper(obj, args);
 	}
 
 	//@formatter:off
-	public static class TempMethodInvocation implements MethodInvocation {
-		private final Object proxy;
-		private final Method method;
+	public static class MtdInvoc implements MethodInvocation {// AOP alliance required
+		private final Object obj;
+		private final Method m;
 		private final Object[] args;
-		private final AopChain chain;
+		private final MethodProxy mprxy;
+		private final List<Object> inters;
+		private final BeanBoxContext ctx;
+		private int count;
 
-		protected TempMethodInvocation(Object proxy, Method method, Object[] args, AopChain chain) {
-			this.proxy = proxy;	this.method = method;this.args = args;this.chain = chain;
+		protected MtdInvoc(Object obj, Method m, Object[] args, MethodProxy mprxy, List<Object> inters, BeanBoxContext ctx,
+				int count) {
+			this.obj = obj;	this.m = m;	this.args = args;	this.mprxy = mprxy;
+			this.inters = inters;	this.ctx = ctx;	this.count = count;
 		}
-		@Override
-		public final Object getThis() {	return this.proxy;	}
-		@Override
-		public final AccessibleObject getStaticPart() {	return this.method;	}
-		@Override
-		public final Method getMethod() { return this.method;	}
-		@Override
-		public final Object[] getArguments() { return this.args != null ? this.args : new Object[0];}
-		@Override
-		public Object proceed() throws Throwable { return chain.callNext();}
+ 
+		public Object proceed() throws Throwable {
+			if (count <= (inters.size() - 1)) { 
+				org.aopalliance.intercept.MethodInterceptor inter = ctx.getBean(inters.get(count));
+			    return inter.invoke(new MtdInvoc(obj, m, args, mprxy, inters, ctx, count + 1));
+			}
+			return mprxy.invokeSuper(obj, args);
+		} 
+		
+		public final Object getThis() { return obj; }
+ 
+		public final AccessibleObject getStaticPart() { return m; }
+ 
+		public final Method getMethod() { return m; }
+ 
+		public final Object[] getArguments() { return this.args != null ? this.args : new Object[0]; }
 	}
+
 }

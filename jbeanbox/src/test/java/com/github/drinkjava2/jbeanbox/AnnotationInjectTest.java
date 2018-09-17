@@ -439,15 +439,12 @@ public class AnnotationInjectTest {
 	public static class Interceptor1 implements MethodInterceptor {
 		@Override
 		public Object invoke(MethodInvocation invocation) throws Throwable {
-			System.out.println(invocation.getClass());
-			System.out.println(invocation.getMethod());
-			Object result = invocation.proceed();
-			System.out.println("invoked");
-			return result;
+			invocation.getArguments()[0] = "3";
+			return invocation.proceed();
 		}
 	}
 
-	@MyAop1(value = Interceptor1.class, method = "set*")
+	// @MyAop1(value = Interceptor1.class, method = "set*")
 	public static class AopDemo1 {
 		String name;
 
@@ -460,9 +457,9 @@ public class AnnotationInjectTest {
 
 	@Test
 	public void aopTest1() {
-		JBEANBOX.bctx().addAopToClasses(Interceptor1.class, "*", "put*");
+		// JBEANBOX.bctx().addAopToClasses(Interceptor1.class, "*", "put*");
 		AopDemo1 demo = JBEANBOX.getBean(AopDemo1.class);
 		demo.setName("1");
-		Assert.assertEquals("1", demo.name); 
+		Assert.assertEquals("3", demo.name);
 	}
 }
