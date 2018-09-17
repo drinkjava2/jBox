@@ -165,7 +165,7 @@ public class AnnotationInjectTest {
 		Assert.assertNotEquals(JBEANBOX.getBean(Foo.class), JBEANBOX.getBean(Bar.class));
 
 		BeanBoxContext.reset();
-		BeanBox box = JBEANBOX.getBox(Foo.class);
+		BeanBox box = JBEANBOX.getBeanBox(Foo.class);
 		box.setTarget(Bar.class);
 		Assert.assertEquals(JBEANBOX.getBean(box), JBEANBOX.getBean(Bar.class));
 
@@ -192,7 +192,7 @@ public class AnnotationInjectTest {
 	@INJECT(value=Demo4.class  )
 	public static interface inf1{}
 	
-	@INJECT(value=Demo4.class,  valueType=true)
+	@INJECT(value=Demo4.class,  pureValue=true)
 	public static interface inf2{}
 	//@formatter:on
 
@@ -226,7 +226,7 @@ public class AnnotationInjectTest {
 	public static class C2 { int i = 0; @INJECT public C2(@VALUE("2") int a) { i = a; } }
 	public static class C3 { int i = 0; @VALUE("2") public C3(int a) { i = a; } }
 	public static class C4 { int i = 0; @INJECT public C4(@VALUE("2") Integer a,@VALUE("2") byte b ) { i = b; } }
-	public static class C5 { Object o ; @INJECT(value=Bar.class, valueType=true) public C5(Object a) { o = a; } }
+	public static class C5 { Object o ; @INJECT(value=Bar.class, pureValue=true) public C5(Object a) { o = a; } }
 	public static class C6 { Object o1,o2 ; @INJECT public C6(CA a, CB b) { o1 = a; o2=b; } }
 	//@formatter:on
 
@@ -305,10 +305,10 @@ public class AnnotationInjectTest {
 		@INJECT(required = false)
 		public String field0 = "aa";
 
-		@INJECT(value = ClassA.class, valueType = false, required = true)
+		@INJECT(value = ClassA.class, pureValue = false, required = true)
 		private ClassA field1;
 
-		@INJECT(value = ClassA.class, valueType = false, required = false)
+		@INJECT(value = ClassA.class, pureValue = false, required = false)
 		private ClassA field2;
 
 		@INJECT(HelloBox.class)

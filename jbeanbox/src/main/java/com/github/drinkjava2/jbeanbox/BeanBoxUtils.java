@@ -113,7 +113,7 @@ public class BeanBoxUtils {// NOSONAR
 		Object[] v = getInjectAnnotationAsArray(clazz, allowSpringJsrAnno);
 		if (v != null) {
 			box.setTarget(v[0]);
-			box.setValueType((Boolean) v[1]);
+			box.setPureValue((Boolean) v[1]);
 			box.setRequired((Boolean) v[2]);
 		}
 
@@ -138,7 +138,7 @@ public class BeanBoxUtils {// NOSONAR
 				if (v[0] != null && EMPTY.class != v[0]) {// 1 parameter only
 					BeanBox inject = new BeanBox();
 					inject.setTarget(v[0]);
-					inject.setValueType((Boolean) v[1]);
+					inject.setPureValue((Boolean) v[1]);
 					inject.setRequired((Boolean) v[2]);
 					inject.setType(constr.getParameterTypes()[0]);
 					box.setConstructor(constr);
@@ -159,7 +159,7 @@ public class BeanBoxUtils {// NOSONAR
 				box.checkOrCreateFieldInjects();
 				BeanBox inject = new BeanBox();
 				inject.setTarget(v[0]);
-				inject.setValueType((Boolean) v[1]);
+				inject.setPureValue((Boolean) v[1]);
 				inject.setRequired((Boolean) v[2]);
 				inject.setType(f.getType());
 				ReflectionUtils.makeAccessible(f);
@@ -199,7 +199,7 @@ public class BeanBoxUtils {// NOSONAR
 				ReflectionUtils.makeAccessible(m);
 				BeanBox oneParam = new BeanBox();
 				oneParam.setTarget(v[0]);
-				oneParam.setValueType((Boolean) v[1]);
+				oneParam.setPureValue((Boolean) v[1]);
 				oneParam.setRequired((Boolean) v[2]);
 				boolean haveOneParameter = v[0] != null && EMPTY.class != v[0];
 				if (haveOneParameter)
@@ -235,9 +235,9 @@ public class BeanBoxUtils {// NOSONAR
 		for (Annotation a : anno) {
 			Class<? extends Annotation> type = a.annotationType();
 			if (INJECT.class.equals(type))
-				return new Object[] { ((INJECT) a).value(), ((INJECT) a).valueType(), ((INJECT) a).required(), null };
+				return new Object[] { ((INJECT) a).value(), ((INJECT) a).pureValue(), ((INJECT) a).required(), null };
 			if (VALUE.class.equals(type))
-				return new Object[] { ((VALUE) a).value(), ((VALUE) a).valueType(), ((VALUE) a).required(), null };
+				return new Object[] { ((VALUE) a).value(), ((VALUE) a).pureValue(), ((VALUE) a).required(), null };
 			if (allowSpringJsrAnno) {
 				if (Inject.class.equals(type))
 					return new Object[] { EMPTY.class, false, true, null };
@@ -267,7 +267,7 @@ public class BeanBoxUtils {// NOSONAR
 			BeanBox inject = new BeanBox();
 			if (v != null) { // if parameter has annotation
 				inject.setTarget(v[0]);
-				inject.setValueType((Boolean) v[1]);
+				inject.setPureValue((Boolean) v[1]);
 				inject.setRequired((Boolean) v[2]);
 				inject.setType(paramTypes[i]);
 			} else // if parameter no annotation

@@ -51,7 +51,7 @@ public class JBEANBOX {// NOSONAR
 		return bctx().bind(shortcut, target);
 	}
 
-	public static BeanBox getBox(Class<?> clazz) {
+	public static BeanBox getBeanBox(Class<?> clazz) {
 		return BeanBoxUtils.getUniqueBeanBox(BeanBoxContext.globalBeanBoxContext, clazz);
 	}
 
@@ -70,18 +70,18 @@ public class JBEANBOX {// NOSONAR
 	}
 
 	/** Equal to "@INJECT" annotation */
-	public static BeanBox inject(Object target, boolean constant, boolean required) {
-		return new BeanBox().setTarget(target).setRequired(required).setValueType(constant);
+	public static BeanBox inject(Object target, boolean pureValue, boolean required) {
+		return new BeanBox().setTarget(target).setPureValue(pureValue).setRequired(required);
 	}
 
 	/** Equal to "@VALUE" annotation */
 	public static BeanBox value(Object value) {
-		return new BeanBox().setTarget(value).setValueType(true).setRequired(true);
+		return new BeanBox().setTarget(value).setPureValue(true).setRequired(true);
 	}
 
 	/** Equal to "@VALUE" annotation */
-	public static BeanBox value(Object value, boolean valueType, boolean required) {
-		return new BeanBox().setTarget(value).setRequired(required).setValueType(valueType);
+	public static BeanBox value(Object value, boolean pureValue, boolean required) {
+		return new BeanBox().setTarget(value).setPureValue(pureValue).setRequired(required);
 	}
 
 }

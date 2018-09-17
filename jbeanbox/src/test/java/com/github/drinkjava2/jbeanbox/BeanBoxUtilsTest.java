@@ -81,27 +81,27 @@ public class BeanBoxUtilsTest {
 	public void classInjectTest() throws NoSuchMethodException, SecurityException {
 		BeanBox box = class2BeanBox(Demo4.class);
 		Assert.assertEquals(false, box.isSingleton());
-		Assert.assertEquals(true, box.isValueType());
+		Assert.assertEquals(true, box.isPureValue());
 		Assert.assertEquals("3", box.getTarget());
 		Assert.assertEquals(Demo4.class, box.getBeanClass());
 		Assert.assertEquals(null, box.getSingletonId());
 
 		box = class2BeanBox(Demo5.class);
 		Assert.assertEquals(Demo4.class, box.getTarget());
-		Assert.assertEquals(false, box.isValueType());
+		Assert.assertEquals(false, box.isPureValue());
 		Assert.assertEquals(false, box.isSingleton());
 		Assert.assertEquals(Demo5.class, box.getBeanClass());
 		Assert.assertEquals(null, box.getSingletonId());
 
 		box = class2BeanBox(Demo6.class);
 		Assert.assertEquals(null, box.getTarget());
-		Assert.assertEquals(false, box.isValueType());
+		Assert.assertEquals(false, box.isPureValue());
 		Assert.assertEquals(true, box.isSingleton());
 		Assert.assertEquals(Demo6.class, box.getBeanClass());
 		Assert.assertEquals(box, box.getSingletonId());
 
 		box = class2BeanBox(inf1.class);
-		Assert.assertEquals(false, box.isValueType());
+		Assert.assertEquals(false, box.isPureValue());
 		Assert.assertEquals(true, box.isSingleton());
 		Assert.assertEquals(Demo1.class, box.getTarget());
 		Assert.assertEquals(inf1.class, box.getBeanClass());
@@ -196,7 +196,7 @@ public class BeanBoxUtilsTest {
 		@INJECT(Demo6.class)
 		private String field1;
 
-		@INJECT(value = Demo6.class, valueType = false, required = false)
+		@INJECT(value = Demo6.class, pureValue = false, required = false)
 		private String field2;
 
 		@VALUE("false")
@@ -230,11 +230,11 @@ public class BeanBoxUtilsTest {
 		}
 
 		@INJECT
-		private void method2(@INJECT(value = Demo6.class, valueType = false) String a) {
+		private void method2(@INJECT(value = Demo6.class, pureValue = false) String a) {
 		}
 
 		@INJECT
-		private void method3(@INJECT(value = Demo6.class, valueType = true, required = false) String a,
+		private void method3(@INJECT(value = Demo6.class, pureValue = true, required = false) String a,
 				@VALUE("true") int b) {
 		}
 

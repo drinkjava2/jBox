@@ -197,7 +197,7 @@ public class BeanBoxContext {
 				return bean;
 		}
 
-		if (box.isValueType()) // if constant?
+		if (box.isPureValue()) // if constant?
 			return box.getTarget();
 		if (box.getTarget() != null) {// if target?
 			if (EMPTY.class != box.getTarget())
@@ -369,11 +369,9 @@ public class BeanBoxContext {
 			return null;
 		Method method = createMethodCache.get(clazz);
 		if (method == null) {
-			for (Method m : clazz.getDeclaredMethods())
-				if (createMethodName.equals(m.getName()) && m.getParameterTypes().length <= 1) {
-					method = m;
-					break;
-				}
+			method = ReflectionUtils.findMethod(clazz, createMethodName);
+			if (method == null)
+				method = ReflectionUtils.findMethod(clazz, createMethodName, Caller.class);
 			if (method != null) {
 				ReflectionUtils.makeAccessible(method);
 				createMethodCache.put(clazz, method);
@@ -392,11 +390,9 @@ public class BeanBoxContext {
 			return null;
 		Method method = configMethodCache.get(clazz);
 		if (method == null) {
-			for (Method m : clazz.getDeclaredMethods())
-				if (configMethodName.equals(m.getName()) && m.getParameterTypes().length <= 2) {
-					method = m;
-					break;
-				}
+			method = ReflectionUtils.findMethod(clazz, configMethodName, Object.class);
+			if (method == null)
+				method = ReflectionUtils.findMethod(clazz, configMethodName, Object.class, Caller.class);
 			if (method != null) {
 				ReflectionUtils.makeAccessible(method);
 				configMethodCache.put(clazz, method);

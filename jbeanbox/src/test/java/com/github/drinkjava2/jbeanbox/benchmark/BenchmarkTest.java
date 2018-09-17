@@ -57,7 +57,7 @@ public class BenchmarkTest {
 	@Test
 	public void testAnnotationSingleton() {
 		BeanBoxContext.reset();
-		JBEANBOX.getBox(A.class).setSingleton(true);
+		JBEANBOX.getBeanBox(A.class).setSingleton(true);
 		for (int i = 0; i < REPEAT_TIMES; i++)
 			JBEANBOX.getBean(A.class);
 	}
@@ -122,7 +122,7 @@ public class BenchmarkTest {
 		}
 
 		JBEANBOX.reset();
-		JBEANBOX.getBox(A.class).setSingleton(true);
+		JBEANBOX.getBeanBox(A.class).setSingleton(true);
 		a1 = JBEANBOX.getBean(A.class);
 		a2 = JBEANBOX.getBean(A.class);
 		Assert.assertTrue(a1 == a2);

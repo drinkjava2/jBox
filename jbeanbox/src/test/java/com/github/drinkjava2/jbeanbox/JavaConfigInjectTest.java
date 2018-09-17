@@ -48,7 +48,7 @@ public class JavaConfigInjectTest {
 
 	public static class ConstBox extends BeanBox {
 		{
-			this.setTarget("Foo").setValueType(true);
+			this.setTarget("Foo").setPureValue(true);
 		}
 	}
 
@@ -92,7 +92,7 @@ public class JavaConfigInjectTest {
 	public static class C1 { int i = 0;   public C1() { i = 2; } } 
 	public static class C2 { int i = 0;   public C2(  int a) { i = a; } } 
 	public static class C4 { int i = 0;  public C4( Integer a,  byte b ) { i = b; } }
-	public static class C5 { Object o ; @INJECT(value=Bar.class, valueType=true) public C5(Object a) { o = a; } }
+	public static class C5 { Object o ; @INJECT(value=Bar.class, pureValue=true) public C5(Object a) { o = a; } }
 	public static class C6 { Object o1,o2 ; @INJECT public C6(CA a, CB b) { o1 = a; o2=b; } }
 	//@formatter:on
 
@@ -155,19 +155,12 @@ public class JavaConfigInjectTest {
 		public String field0 = "aa";
 		private ClassA field1;
 		private ClassA field2;
-		@INJECT(HelloBox.class)
 		private String field3;
 		private Boolean field4;
 		private long field5;
 		private Long field6;
-
-		@Autowired(required = false)
 		public String field7 = "7";
-
-		@Inject
 		public CA field8;
-
-		@Autowired
 		public CB field9;
 	}
 
@@ -260,14 +253,14 @@ public class JavaConfigInjectTest {
 
 	public static class CFdemoBox extends BeanBox {
 
-		public Object create() {
+		public Object create(Caller v) {
 			CFdemo1 c = new CFdemo1();
 			c.a = "1";
 			return c;
 		}
 
-		public void config(CFdemo1 c) {
-			c.b = "2";
+		public void config(Object c) {
+			((CFdemo1) c).b = "2";
 		}
 	}
 
@@ -317,8 +310,8 @@ public class JavaConfigInjectTest {
 			return c;
 		}
 
-		public void f(CFdemo3 c) {
-			c.b = "2";
+		public void f(Object c) {
+			((CFdemo3)c).b = "2";
 		}
 	}
 
@@ -337,6 +330,10 @@ public class JavaConfigInjectTest {
 	public static class AopDemo1 {
 		String name;
 		String address;
+		String email;
+
+		public AopDemo1() {
+		}
 
 		public AopDemo1(String s) {
 			name = s;
@@ -345,11 +342,19 @@ public class JavaConfigInjectTest {
 		public void setName(String name) {
 			this.name = name;
 		}
-		
+
 		public void setAddress(String address) {
 			this.address = address;
 		}
-		
+
+		void init() {
+			System.out.println("init");
+		}
+
+		void close() {
+			System.out.println("close");
+		}
+
 	}
 
 	public static class Interceptor implements MethodInterceptor {
@@ -359,17 +364,18 @@ public class JavaConfigInjectTest {
 			return invocation.proceed();
 		}
 	}
-	 
-	
+
 	public static class AopDemo1Box extends BeanBox {
 		{
 			this.injectConstruct(AopDemo1.class, String.class, value("1"));
 			// this.addAopToMethods(Interceptor1.class, "set*");
-			this.addAopToMethod(Interceptor.class, "setName", String.class); 
+			this.addAopToMethod(Interceptor.class, "setName", String.class);
+			this.injectMethod("setAddress", String.class, value("China"));
+			this.injectField("email", value("abc"));
+			this.setPostConstruct("init");
+			this.setPreDestroy("close");
 		}
 	}
-
- 
 
 	@Test
 	public void aopTest1() {
@@ -377,5 +383,9 @@ public class JavaConfigInjectTest {
 		AopDemo1 demo = JBEANBOX.getBean(AopDemo1Box.class);
 		demo.setName("2");
 		Assert.assertEquals("3", demo.name);
+		Assert.assertEquals("China", demo.address);
+		Assert.assertEquals("abc", demo.email);
+		JBEANBOX.reset();
+
 	}
 }

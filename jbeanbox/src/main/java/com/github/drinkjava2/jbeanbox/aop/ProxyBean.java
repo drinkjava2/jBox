@@ -20,6 +20,7 @@ import com.github.drinkjava2.cglib3_2_0.proxy.MethodInterceptor;
 import com.github.drinkjava2.cglib3_2_0.proxy.MethodProxy;
 import com.github.drinkjava2.jbeanbox.BeanBox;
 import com.github.drinkjava2.jbeanbox.BeanBoxContext;
+import com.github.drinkjava2.jbeanbox.BeanBoxException;
 
 /**
  * ProxyBean to build a Invocation, Invocation call next invocation...
@@ -41,6 +42,8 @@ class ProxyBean implements MethodInterceptor, Callback {
 		BeanBox box = (BeanBox) box_ctx[0];
 		BeanBoxContext ctx = (BeanBoxContext) box_ctx[1];
 		List<Object> inters = box.getMethodAops().get(m);
+		if(inters==null || inters.size()==0)
+			return mprxy.invokeSuper(obj, args); 
 		org.aopalliance.intercept.MethodInterceptor inter = ctx.getBean(inters.get(0));
 		if (inter != null)
 			return inter.invoke(new MtdInvoc(obj, m, args, mprxy, inters, ctx, 1));

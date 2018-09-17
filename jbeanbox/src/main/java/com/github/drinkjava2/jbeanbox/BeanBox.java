@@ -29,7 +29,7 @@ public class BeanBox {
 	// below fields for BeanBox has a target
 	protected Object target; // inject can be constant, beanBox, beanBox class, class
 
-	protected boolean valueType = false; // mark the target is a value
+	protected boolean pureValue = false; // if true means target is a pure value
 
 	protected Class<?> type; // For field and parameter constant inject, need know what's the type
 
@@ -38,7 +38,7 @@ public class BeanBox {
 	// below fields for BeanBox has no target
 	protected Class<?> beanClass; // bean class, usually is an annotated class
 
-	protected Boolean singleton; // default BeanBox is singleton
+	protected Boolean singleton; // Default singleton is not set, see readme.md
 
 	protected Constructor<?> constructor; // if not null, use constructor to create
 
@@ -70,7 +70,7 @@ public class BeanBox {
 	}
 
 	public Object getSingletonId() {
-		if (singleton == null || !singleton || valueType || target != null)
+		if (singleton == null || !singleton || pureValue || target != null)
 			return null;
 		return this;
 	}
@@ -94,7 +94,7 @@ public class BeanBox {
 	protected String getDebugInfo() {
 		StringBuilder sb = new StringBuilder("\r\n========BeanBox Debug for " + this + "===========\r\n");
 		sb.append("target=" + this.target).append("\r\n");
-		sb.append("valueType=" + this.valueType).append("\r\n");
+		sb.append("pureValue=" + this.pureValue).append("\r\n");
 		sb.append("type=" + this.type).append("\r\n");
 		sb.append("required=" + this.required).append("\r\n");
 		sb.append("beanClass=" + this.beanClass).append("\r\n");
@@ -138,7 +138,7 @@ public class BeanBox {
 
 	/** Set this box as a pure value */
 	public BeanBox setAsValue(Object value) {
-		this.valueType = true;
+		this.pureValue = true;
 		this.target = value;
 		return this;
 	}
@@ -247,14 +247,7 @@ public class BeanBox {
 		return this;
 	}
 
-	private static boolean ifWarnedSetPrototypePreDestroy = false;
-
 	public BeanBox setPreDestroy(String methodName) {// NOSONAR
-		if (!isSingleton() && !ifWarnedSetPrototypePreDestroy) {
-			System.err.println("Warning: try to set a PreDestroy method '" + methodName// NOSONAR
-					+ "' for a prototype bean, suggest set bean to singleton first.");
-			BeanBoxException.throwEX("aa");
-		}
 		Method m = ReflectionUtils.findMethod(beanClass, methodName);
 		this.setPreDestroy(m);
 		return this;
@@ -275,7 +268,7 @@ public class BeanBox {
 		BeanBox inject = new BeanBox();
 		inject.setTarget(constValue);
 		inject.setType(f.getType());
-		inject.setValueType(true);
+		inject.setPureValue(true);
 		ReflectionUtils.makeAccessible(f);
 		this.getFieldInjects().put(f, inject);
 		return this;
@@ -297,12 +290,12 @@ public class BeanBox {
 		return this;
 	}
 
-	public boolean isValueType() {
-		return valueType;
+	public boolean isPureValue() {
+		return pureValue;
 	}
 
-	public BeanBox setValueType(boolean constant) {
-		this.valueType = constant;
+	public BeanBox setPureValue(boolean pureValue) {
+		this.pureValue = pureValue;
 		return this;
 	}
 

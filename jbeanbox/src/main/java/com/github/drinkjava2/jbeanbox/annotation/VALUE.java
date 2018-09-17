@@ -27,7 +27,7 @@ public @interface VALUE {
 
 	public String value(); // a String represents a constant parameter value
 
-	public boolean valueType() default true; // Of cause is true
+	public boolean pureValue() default true; // if true means value is a pure value, otherwise value is a target
 
-	public boolean required() default true; // Of cause is true
+	public boolean required() default true; // if true when target not found will throw exception, if false keep silence
 }

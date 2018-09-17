@@ -29,8 +29,8 @@ public @interface INJECT {
 
 	public Class<?> value() default EMPTY.class; // In fact is BeanBox's target field
 
-	public boolean valueType() default false; // if target is value, set this to true
+	public boolean pureValue() default false; // if true mean values is a pure value, otherwise value is a target
 
-	public boolean required() default true; // if target is required, set this to true
+	public boolean required() default true; // if true when target not found will throw exception, if false keep silence
 
 }
