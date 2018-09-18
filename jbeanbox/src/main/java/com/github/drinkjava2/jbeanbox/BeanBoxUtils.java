@@ -125,7 +125,7 @@ public class BeanBoxUtils {// NOSONAR
 				Object aop = annoMap.get("value");
 				String methodNameRule = (String) annoMap.get("method");// name must be method
 				if (methodNameRule != null && methodNameRule.length() > 0 && aop != null)
-					box.addAopToMethods(aop, methodNameRule);
+					box.addBeanAop(aop, methodNameRule);
 			}
 		}
 
@@ -331,6 +331,8 @@ public class BeanBoxUtils {// NOSONAR
 	 * "abc*def" matches "abcd.efg.ddef", "abcany*anydef"
 	 */
 	public static boolean nameMatch(String regex, String name) {
+//		System.out.println("reg"+regex);
+//		System.out.println("name"+name);
 		if (regex == null || regex.length() == 0 || name == null || name.length() == 0)
 			return false;
 		if ('*' == (regex.charAt(0))) {

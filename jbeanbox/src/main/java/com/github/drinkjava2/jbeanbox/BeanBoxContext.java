@@ -52,7 +52,7 @@ public class BeanBoxContext {
 	protected static BeanBoxContext globalBeanBoxContext = new BeanBoxContext();// Global BeanBox context
 
 	// ==========AOP about=========
-	protected List<Object[]> classAopRules;
+	protected List<Object[]> aopRules;
 
 	public BeanBoxContext() {
 		bind(Object.class, EMPTY.class);
@@ -211,9 +211,9 @@ public class BeanBoxContext {
 		boolean needChangeToProxy = false;// is AOP?
 		if (box.getAopRules() != null || box.getMethodAops() != null)
 			needChangeToProxy = true;
-		else if (this.getAopRules() != null && box.getBeanClass()!=null)
+		else if (this.getAopRules() != null && box.getBeanClass() != null)
 			for (Object[] aops : this.getAopRules()) // global AOP
-				if (BeanBoxUtils.nameMatch((String) aops[0], box.getBeanClass().getName())) {
+				if (BeanBoxUtils.nameMatch((String) aops[1], box.getBeanClass().getName())) {
 					needChangeToProxy = true;
 					break;
 				}
@@ -319,11 +319,15 @@ public class BeanBoxContext {
 		return this;
 	}
 
-	public BeanBoxContext addAopToClasses(Object aop, String className, String methodName) {
-		if (classAopRules == null)
-			classAopRules = new ArrayList<Object[]>();
-		classAopRules.add(new Object[] { className, methodName, aop });
+	public BeanBoxContext addGlobalAop(Object aop, String classNameRegex, String methodNameRegex) {
+		if (aopRules == null)
+			aopRules = new ArrayList<Object[]>();
+		aopRules.add(new Object[] { aop, classNameRegex, methodNameRegex });
 		return this;
+	}
+
+	public BeanBoxContext addGlobalAop(Object aop, Class<?> clazz, String methodNameRegex) {
+		return addGlobalAop(aop, clazz.getName()+"*", methodNameRegex);
 	}
 
 	public BeanBox getBeanBox(Class<?> clazz) {
@@ -545,11 +549,11 @@ public class BeanBoxContext {
 	}
 
 	public List<Object[]> getAopRules() {
-		return classAopRules;
+		return aopRules;
 	}
 
 	public void setAopRules(List<Object[]> aopRules) {
-		this.classAopRules = aopRules;
+		this.aopRules = aopRules;
 	}
 
 }

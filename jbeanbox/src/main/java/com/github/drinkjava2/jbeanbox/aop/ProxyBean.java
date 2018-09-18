@@ -42,34 +42,41 @@ class ProxyBean implements MethodInterceptor, Callback {
 
 	@Override
 	public Object intercept(Object obj, Method m, Object[] args, MethodProxy mprxy) throws Throwable {
-		BeanBox box = (BeanBox) box_ctx[0];
+
+		List<Object> allInters = new ArrayList<Object>();
+
+		BeanBox box = (BeanBox) box_ctx[0];// box method aops
 		BeanBoxContext ctx = (BeanBoxContext) box_ctx[1];
-		List<Object> inters = box.getMethodAops().get(m);
-		if(inters==null || inters.size()==0)
-			return mprxy.invokeSuper(obj, args); 
-		List<Object> allInters=new ArrayList<Object>(inters);
-		if(box.getAopRules()!=null) //class aop rules, need add cache in future version
-			for (Entry<String, List<Object>> entry : box.getAopRules().entrySet()) {
-				String methodRegex=entry.getKey();
-				Object inter=entry.getValue();
-				if(BeanBoxUtils.nameMatch(methodRegex, m.getName()))
-					allInters.add( inter);
+		if (box.getMethodAops() != null) {
+			List<Object> inters = box.getMethodAops().get(m);
+			if (inters != null && !inters.isEmpty())
+				allInters.addAll(inters);
+		}
+
+		if (box.getAopRules() != null) // box methods aops, need add cache in future
+			for (Object[] entry : box.getAopRules()) {
+				if (BeanBoxUtils.nameMatch((String) entry[1], m.getName()))
+					allInters.add(entry[0]);
 			}
-		if(ctx.getAopRules()!=null)
-			for (Entry<String, List<Object>> entry : box.getAopRules().entrySet()) {
-				m.getc
-				String methodRegex=entry.getKey();
-				Object inter=entry.getValue();
-				if(BeanBoxUtils.nameMatch(methodRegex, m.getName()))
-					allInters.add( inter);
+
+		if (ctx.getAopRules() != null) {// BeanBoxContext aops, need add cache in future
+			String thisClassName = obj.getClass().getName();
+
+			for (Object[] aops : ctx.getAopRules()) {
+				String classReg = (String) aops[1];
+				if (BeanBoxUtils.nameMatch(classReg, thisClassName)) {
+					String methodRegex = (String) aops[2];
+					if (BeanBoxUtils.nameMatch(methodRegex, m.getName()))
+						allInters.add(aops[0]);
+				}
 			}
-		
-		
-		
-		org.aopalliance.intercept.MethodInterceptor inter = ctx.getBean(inters.get(0));
-		if (inter != null)
-			return inter.invoke(new MtdInvoc(obj, m, args, mprxy, inters, ctx, 1));
-		return mprxy.invokeSuper(obj, args);
+		}
+
+		if (allInters.isEmpty())
+			return mprxy.invokeSuper(obj, args);
+		org.aopalliance.intercept.MethodInterceptor inter = ctx.getBean(allInters.get(0));
+		BeanBoxException.assureNotNull(inter);
+		return inter.invoke(new MtdInvoc(obj, m, args, mprxy, allInters, ctx, 1));
 	}
 
 	//@formatter:off

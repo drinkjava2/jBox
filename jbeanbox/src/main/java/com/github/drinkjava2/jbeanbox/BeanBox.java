@@ -60,7 +60,7 @@ public class BeanBox {
 
 	// ========== AOP About ===========
 	protected Map<Method, List<Object>> methodAops;// if not null, need create proxy bean
-	protected Map<String, List<Object>> methodAopRules;// if not null, need create proxy bean
+	protected List<Object[]> aopRules;// if not null, need create proxy bean
 
 	public BeanBox() { // Default constructor
 	}
@@ -100,7 +100,7 @@ public class BeanBox {
 		sb.append("beanClass=" + this.beanClass).append("\r\n");
 		sb.append("singleton=" + this.singleton).append("\r\n");
 		sb.append("methodAops=" + this.methodAops).append("\r\n");
-		sb.append("methodAopRules=" + this.methodAopRules).append("\r\n");
+		sb.append("methodAopRules=" + this.aopRules).append("\r\n");
 		sb.append("constructor=" + this.constructor).append("\r\n");
 		sb.append("constructorParams=" + this.constructorParams).append("\r\n");
 		sb.append("postConstructs=" + this.postConstruct).append("\r\n");
@@ -129,8 +129,8 @@ public class BeanBox {
 	}
 
 	protected void checkOrCreateMethodAopRules() { // no need explain
-		if (methodAopRules == null)
-			methodAopRules = new HashMap<String, List<Object>>();
+		if (aopRules == null)
+			aopRules = new ArrayList<Object[]>();
 	}
 
 	protected void belowAreJavaConfigMethods_______________() {// NOSONAR
@@ -221,7 +221,7 @@ public class BeanBox {
 	 * a @Tx annotation on method. But this method allow aop can be annotation class
 	 * or interceptor class for both
 	 */
-	public synchronized BeanBox addAopToMethod(Object aop, String methodName, Class<?>... paramTypes) {
+	public synchronized BeanBox addMethodAop(Object aop, String methodName, Class<?>... paramTypes) {
 		checkOrCreateMethodAops();
 		Method m = ReflectionUtils.findMethod(beanClass, methodName, paramTypes);
 		BeanBoxException.assureNotNull(m, "Not found method: '" + methodName + "'");
@@ -229,15 +229,9 @@ public class BeanBox {
 		return this;
 	}
 
-	public synchronized BeanBox addAopToMethods(Object aop, String methodNameRule) {
-		checkOrCreateMethodAopRules();
-		BeanBoxException.assureNotEmpty(methodNameRule, "methodNameRule can not be empty");
-		List<Object> aops = methodAopRules.get(methodNameRule);
-		if (aops == null) {
-			aops = new ArrayList<Object>();
-			methodAopRules.put(methodNameRule, aops);
-		}
-		aops.add(aop);
+	public synchronized BeanBox addBeanAop(Object aop, String methodNameRegex) {
+		checkOrCreateMethodAopRules();  
+		aopRules.add(new Object[] {aop, methodNameRegex});
 		return this;
 	}
 
@@ -416,12 +410,12 @@ public class BeanBox {
 		return this;
 	}
 
-	public Map<String, List<Object>> getAopRules() {
-		return methodAopRules;
+	public List<Object[]> getAopRules() {
+		return aopRules;
 	}
 
-	public BeanBox setAopRules(Map<String, List<Object>> aopRules) {
-		this.methodAopRules = aopRules;
+	public BeanBox setAopRules(List<Object[]> aopRules) {
+		this.aopRules = aopRules;
 		return this;
 	}
 

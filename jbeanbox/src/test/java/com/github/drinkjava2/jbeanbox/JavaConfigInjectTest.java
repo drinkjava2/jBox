@@ -15,14 +15,13 @@ import static com.github.drinkjava2.jbeanbox.JBEANBOX.autowired;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.inject;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.value;
 
-import javax.inject.Inject;
+import java.lang.reflect.Method;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.github.drinkjava2.jbeanbox.AnnotationInjectTest.Bar;
 import com.github.drinkjava2.jbeanbox.AnnotationInjectTest.HelloBox;
@@ -343,32 +342,36 @@ public class JavaConfigInjectTest {
 			this.name = name;
 		}
 
+		public void setEmail(String email) {
+			this.email = email;
+		}
+
 		public void setAddress(String address) {
 			this.address = address;
 		}
-
-		void init() {
-			System.out.println("init");
-		}
-
-		void close() {
-			System.out.println("close");
-		}
-
 	}
 
-	public static class Interceptor1 implements MethodInterceptor {
+	public static class MethodAOP implements MethodInterceptor {
 		@Override
 		public Object invoke(MethodInvocation invocation) throws Throwable {
+			System.out.println("This is Method AOP");
 			invocation.getArguments()[0] = "3";
 			return invocation.proceed();
 		}
 	}
 
-	public static class Interceptor2 implements MethodInterceptor {
+	public static class BeanAOP implements MethodInterceptor {
 		@Override
 		public Object invoke(MethodInvocation invocation) throws Throwable {
-			System.out.println("This is Interceptor2");
+			System.out.println("This is Bean AOP");
+			return invocation.proceed();
+		}
+	}
+
+	public static class GlobalAOP implements MethodInterceptor {
+		@Override
+		public Object invoke(MethodInvocation invocation) throws Throwable {
+			System.out.println("This is Global AOP");
 			return invocation.proceed();
 		}
 	}
@@ -376,24 +379,25 @@ public class JavaConfigInjectTest {
 	public static class AopDemo1Box extends BeanBox {
 		{
 			this.injectConstruct(AopDemo1.class, String.class, value("1"));
-			this.addAopToMethods(Interceptor1.class, "set*");
-			this.addAopToMethod(Interceptor1.class, "setName", String.class);
+			this.addMethodAop(MethodAOP.class, "setName", String.class);
+			this.addBeanAop(BeanAOP.class, "setAddr*");
 			this.injectMethod("setAddress", String.class, value("China"));
 			this.injectField("email", value("abc"));
-			this.setPostConstruct("init");
-			this.setPreDestroy("close");
 		}
 	}
 
 	@Test
 	public void aopTest1() {
-		// JBEANBOX.bctx().addAopToClasses(Interceptor1.class, "*", "put*");
+		JBEANBOX.bctx().bind("AOP3", GlobalAOP.class);
+		JBEANBOX.bctx().addGlobalAop("AOP3", AopDemo1.class, "set*");
 		AopDemo1 demo = JBEANBOX.getBean(AopDemo1Box.class);
-		demo.setName("2");
+		System.out.println("=================================");
+		demo.setName("--");
 		Assert.assertEquals("3", demo.name);
-		Assert.assertEquals("China", demo.address);
+		System.out.println("=================================");
+		demo.setAddress("---");
 		Assert.assertEquals("abc", demo.email);
-		JBEANBOX.reset();
-
+		System.out.println("=================================");
 	}
+
 }
