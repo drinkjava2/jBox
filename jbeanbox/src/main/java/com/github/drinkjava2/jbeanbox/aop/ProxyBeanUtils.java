@@ -23,7 +23,7 @@ import com.github.drinkjava2.jbeanbox.BeanBoxException;
  */
 public class ProxyBeanUtils {// NOSONAR
 
-	public static Object createProxyBean(Class<?> clazz, BeanBox box, BeanBoxContext ctx) {
+	public static Object createProxyBean(Class<?> clazz, BeanBox box, BeanBoxContext ctx) { 
 		BeanBoxException.assureNotNull(clazz, "To create a CGLib proxy, beanClass can not be null");
 		Enhancer enhancer = new Enhancer();
 		enhancer.setSuperclass(clazz);

@@ -211,8 +211,8 @@ public class BeanBoxContext {
 		boolean needChangeToProxy = false;// is AOP?
 		if (box.getAopRules() != null || box.getMethodAops() != null)
 			needChangeToProxy = true;
-		else if (this.getAopRules() != null)
-			for (Object[] aops : getAopRules())
+		else if (this.getAopRules() != null && box.getBeanClass()!=null)
+			for (Object[] aops : this.getAopRules()) // global AOP
 				if (BeanBoxUtils.nameMatch((String) aops[0], box.getBeanClass().getName())) {
 					needChangeToProxy = true;
 					break;

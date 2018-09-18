@@ -11,7 +11,9 @@ package com.github.drinkjava2.jbeanbox.aop;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.aopalliance.intercept.MethodInvocation;
 
@@ -21,6 +23,7 @@ import com.github.drinkjava2.cglib3_2_0.proxy.MethodProxy;
 import com.github.drinkjava2.jbeanbox.BeanBox;
 import com.github.drinkjava2.jbeanbox.BeanBoxContext;
 import com.github.drinkjava2.jbeanbox.BeanBoxException;
+import com.github.drinkjava2.jbeanbox.BeanBoxUtils;
 
 /**
  * ProxyBean to build a Invocation, Invocation call next invocation...
@@ -44,6 +47,25 @@ class ProxyBean implements MethodInterceptor, Callback {
 		List<Object> inters = box.getMethodAops().get(m);
 		if(inters==null || inters.size()==0)
 			return mprxy.invokeSuper(obj, args); 
+		List<Object> allInters=new ArrayList<Object>(inters);
+		if(box.getAopRules()!=null) //class aop rules, need add cache in future version
+			for (Entry<String, List<Object>> entry : box.getAopRules().entrySet()) {
+				String methodRegex=entry.getKey();
+				Object inter=entry.getValue();
+				if(BeanBoxUtils.nameMatch(methodRegex, m.getName()))
+					allInters.add( inter);
+			}
+		if(ctx.getAopRules()!=null)
+			for (Entry<String, List<Object>> entry : box.getAopRules().entrySet()) {
+				m.getc
+				String methodRegex=entry.getKey();
+				Object inter=entry.getValue();
+				if(BeanBoxUtils.nameMatch(methodRegex, m.getName()))
+					allInters.add( inter);
+			}
+		
+		
+		
 		org.aopalliance.intercept.MethodInterceptor inter = ctx.getBean(inters.get(0));
 		if (inter != null)
 			return inter.invoke(new MtdInvoc(obj, m, args, mprxy, inters, ctx, 1));

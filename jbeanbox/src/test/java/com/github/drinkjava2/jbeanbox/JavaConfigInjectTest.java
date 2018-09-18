@@ -311,7 +311,7 @@ public class JavaConfigInjectTest {
 		}
 
 		public void f(Object c) {
-			((CFdemo3)c).b = "2";
+			((CFdemo3) c).b = "2";
 		}
 	}
 
@@ -357,7 +357,7 @@ public class JavaConfigInjectTest {
 
 	}
 
-	public static class Interceptor implements MethodInterceptor {
+	public static class Interceptor1 implements MethodInterceptor {
 		@Override
 		public Object invoke(MethodInvocation invocation) throws Throwable {
 			invocation.getArguments()[0] = "3";
@@ -365,11 +365,19 @@ public class JavaConfigInjectTest {
 		}
 	}
 
+	public static class Interceptor2 implements MethodInterceptor {
+		@Override
+		public Object invoke(MethodInvocation invocation) throws Throwable {
+			System.out.println("This is Interceptor2");
+			return invocation.proceed();
+		}
+	}
+
 	public static class AopDemo1Box extends BeanBox {
 		{
 			this.injectConstruct(AopDemo1.class, String.class, value("1"));
-			// this.addAopToMethods(Interceptor1.class, "set*");
-			this.addAopToMethod(Interceptor.class, "setName", String.class);
+			this.addAopToMethods(Interceptor1.class, "set*");
+			this.addAopToMethod(Interceptor1.class, "setName", String.class);
 			this.injectMethod("setAddress", String.class, value("China"));
 			this.injectField("email", value("abc"));
 			this.setPostConstruct("init");
