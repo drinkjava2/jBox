@@ -43,12 +43,12 @@ public class HelloWorld {
 		BeanBoxContext ctx = new BeanBoxContext();
 		User u7 = ctx.bind(String.class, "7").bind("7", H7.class)
 				.getBean(ctx.getBeanBox(User.class).injectField("name", autowired()));
-		System.out.println(u1.name);
-		System.out.println(u2.name);
-		System.out.println(u3.name);
-		System.out.println(u4.name);
-		System.out.println(u5.name);
-		System.out.println(u6.name);
-		System.out.println(u7.name);
+		System.out.println(u1.name); //Result: User1
+		System.out.println(u2.name); //Result: User2
+		System.out.println(u3.name); //Result: User3
+		System.out.println(u4.name); //Result: User4
+		System.out.println(u5.name); //Result: User5
+		System.out.println(u6.name); //Result: User6
+		System.out.println(u7.name); //Result: User7
 	}
 }

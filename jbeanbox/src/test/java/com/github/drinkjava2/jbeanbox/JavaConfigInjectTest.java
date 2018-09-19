@@ -15,10 +15,6 @@ import static com.github.drinkjava2.jbeanbox.JBEANBOX.autowired;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.inject;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.value;
 
-import java.lang.reflect.Method;
-
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -321,79 +317,6 @@ public class JavaConfigInjectTest {
 		CFdemo3 c3 = JBEANBOX.getBean(CFdemo3Box.class);
 		Assert.assertEquals("1", c3.a);
 		Assert.assertEquals("2", c3.b);
-	}
-
-	protected void aopTests_______________() {
-	}
-
-	public static class AopDemo1 {
-		String name;
-		String address;
-		String email;
-
-		public AopDemo1() {
-		}
-
-		public AopDemo1(String s) {
-			name = s;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public void setEmail(String email) {
-			this.email = email;
-		}
-
-		public void setAddress(String address) {
-			this.address = address;
-		}
-	}
-
-	public static class MethodAOP implements MethodInterceptor {
-		@Override
-		public Object invoke(MethodInvocation invocation) throws Throwable { 
-			invocation.getArguments()[0] = "1";
-			return invocation.proceed();
-		}
-	}
-
-	public static class BeanAOP implements MethodInterceptor {
-		@Override
-		public Object invoke(MethodInvocation invocation) throws Throwable {
-			invocation.getArguments()[0] = "2";
-			return invocation.proceed();
-		}
-	}
-
-	public static class GlobalAOP implements MethodInterceptor {
-		@Override
-		public Object invoke(MethodInvocation invocation) throws Throwable { 
-			invocation.getArguments()[0] = "3";
-			return invocation.proceed();
-		}
-	}
-
-	public static class AopDemo1Box extends BeanBox {
-		{
-			this.injectConstruct(AopDemo1.class, String.class, value("0"));
-			this.addMethodAop(MethodAOP.class, "setName", String.class);
-			this.addBeanAop(BeanAOP.class, "setAddr*"); 
-		}
-	}
-
-	@Test
-	public void aopTest1() {
-		JBEANBOX.bctx().bind("3", GlobalAOP.class);
-		JBEANBOX.bctx().addGlobalAop("3", AopDemo1.class, "setEm*");
-		AopDemo1 demo = JBEANBOX.getBean(AopDemo1Box.class);
-		demo.setName("--");
-		Assert.assertEquals("1", demo.name); 
-		demo.setAddress("--");
-		Assert.assertEquals("2", demo.address); 
-		demo.setEmail("--");
-		Assert.assertEquals("3", demo.email); 
 	}
 
 }

@@ -11,23 +11,15 @@
  */
 package com.github.drinkjava2.jbeanbox;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.github.drinkjava2.jbeanbox.annotation.AOP;
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 import com.github.drinkjava2.jbeanbox.annotation.POSTCONSTRUCT;
 import com.github.drinkjava2.jbeanbox.annotation.PREDESTROY;
@@ -417,60 +409,4 @@ public class AnnotationInjectTest {
 		Assert.assertEquals(CA.class, bean.a.getClass());
 	}
 
-	protected void aopTests_______________() {
-	}
-
-	public static class Interceptor1 implements MethodInterceptor {
-		public Object invoke(MethodInvocation invocation) throws Throwable { 
-			invocation.getArguments()[0] = "1";
-			return invocation.proceed();
-		}
-	}
-
-	public static class Interceptor2 implements MethodInterceptor {
-		public Object invoke(MethodInvocation invocation) throws Throwable { 
-			invocation.getArguments()[0] = "2";
-			return invocation.proceed();
-		}
-	}
-
-	@Retention(RetentionPolicy.RUNTIME)
-	@Target({ ElementType.TYPE })
-	@AOP
-	public static @interface MyAop1 {
-		public Class<?> value() default Interceptor1.class;
-
-		public String method() default "setNa*";
-	}
-
-	@Retention(RetentionPolicy.RUNTIME)
-	@Target({ ElementType.METHOD })
-	@AOP
-	public static @interface MyAop2 {
-		public Class<?> value() default Interceptor2.class;
-	}
-
-	@MyAop1
-	public static class AopDemo1 {
-		String name;
-		String address;
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		@MyAop2
-		public void setAddress(String address) {
-			this.address = address;
-		}
-	}
-
-	@Test
-	public void aopTest1() {
-		AopDemo1 demo = JBEANBOX.getBean(AopDemo1.class);
-		demo.setName("--");
-		Assert.assertEquals("1", demo.name);
-		demo.setAddress("--");
-		Assert.assertEquals("2", demo.address);
-	}
 }

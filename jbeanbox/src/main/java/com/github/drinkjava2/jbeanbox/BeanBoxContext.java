@@ -176,9 +176,9 @@ public class BeanBoxContext {
 		} else if (target instanceof Class) { // is a class?
 			BeanBox box = BeanBoxUtils.getUniqueBeanBox(this, (Class<?>) target);
 			result = getBean(box, required, history);
-			// if (EMPTY.class != result && box.isSingleton()) {
-			// singletonCache.put(target, result);
-			// }
+			if (EMPTY.class != result && box.isSingleton()) {
+				singletonCache.put(target, result);
+			}
 		} else
 			result = notfoundOrException(target, required);
 		history.remove(target);
@@ -408,7 +408,7 @@ public class BeanBoxContext {
 			return method;
 	}
 
-	protected void getterAndSetters________________________() {// NOSONAR
+	protected void staticGetterAndSetters________________________() {// NOSONAR
 	}
 
 	public static BeanBoxContext getGlobalBeanBoxContext() {
@@ -459,86 +459,6 @@ public class BeanBoxContext {
 		BeanBoxContext.globalNextValueTranslator = globalNextParamTranslator;
 	}
 
-	public boolean isAllowAnnotation() {
-		return allowAnnotation;
-	}
-
-	public void setAllowAnnotation(boolean allowAnnotation) {
-		this.allowAnnotation = allowAnnotation;
-	}
-
-	public boolean isAllowSpringJsrAnnotation() {
-		return allowSpringJsrAnnotation;
-	}
-
-	public void setAllowSpringJsrAnnotation(boolean allowSpringJsrAnnotation) {
-		this.allowSpringJsrAnnotation = allowSpringJsrAnnotation;
-	}
-
-	public String getCreateMethodName() {
-		return createMethodName;
-	}
-
-	public void setCreateMethodName(String createMethodName) {
-		this.createMethodName = createMethodName;
-	}
-
-	public String getConfigMethodName() {
-		return configMethodName;
-	}
-
-	public void setConfigMethodName(String configMethodName) {
-		this.configMethodName = configMethodName;
-	}
-
-	public ValueTranslator getValueTranslator() {
-		return valueTranslator;
-	}
-
-	public void setValueTranslator(ValueTranslator valueTranslator) {
-		this.valueTranslator = valueTranslator;
-	}
-
-	public Map<Object, Object> getBindCache() {
-		return bindCache;
-	}
-
-	public void setBindCache(Map<Object, Object> bindCache) {
-		this.bindCache = bindCache;
-	}
-
-	public Map<Class<?>, BeanBox> getBeanBoxMetaCache() {
-		return beanBoxMetaCache;
-	}
-
-	public void setBeanBoxMetaCache(Map<Class<?>, BeanBox> beanBoxMetaCache) {
-		this.beanBoxMetaCache = beanBoxMetaCache;
-	}
-
-	public Map<Object, Object> getSingletonCache() {
-		return singletonCache;
-	}
-
-	public void setSingletonCache(Map<Object, Object> singletonCache) {
-		this.singletonCache = singletonCache;
-	}
-
-	public Map<Class<?>, Method> getCreateMethodCache() {
-		return createMethodCache;
-	}
-
-	public void setCreateMethodCache(Map<Class<?>, Method> createMethodCache) {
-		this.createMethodCache = createMethodCache;
-	}
-
-	public Map<Class<?>, Method> getConfigMethodCache() {
-		return configMethodCache;
-	}
-
-	public void setConfigMethodCache(Map<Class<?>, Method> configMethodCache) {
-		this.configMethodCache = configMethodCache;
-	}
-
 	public static Method getNotExistMethod() {
 		return NOT_EXIST_METHOD;
 	}
@@ -547,12 +467,106 @@ public class BeanBoxContext {
 		BeanBoxContext.NOT_EXIST_METHOD = notExistMethod;
 	}
 
+	protected void getterAndSetters________________________() {// NOSONAR
+	}
+
+	public boolean isAllowAnnotation() {
+		return allowAnnotation;
+	}
+
+	public BeanBoxContext setAllowAnnotation(boolean allowAnnotation) {
+		this.allowAnnotation = allowAnnotation;
+		return this;
+	}
+
+	public boolean isAllowSpringJsrAnnotation() {
+		return allowSpringJsrAnnotation;
+	}
+
+	public BeanBoxContext setAllowSpringJsrAnnotation(boolean allowSpringJsrAnnotation) {
+		this.allowSpringJsrAnnotation = allowSpringJsrAnnotation;
+		return this;
+	}
+
+	public String getCreateMethodName() {
+		return createMethodName;
+	}
+
+	public BeanBoxContext setCreateMethodName(String createMethodName) {
+		this.createMethodName = createMethodName;
+		return this;
+	}
+
+	public String getConfigMethodName() {
+		return configMethodName;
+	}
+
+	public BeanBoxContext setConfigMethodName(String configMethodName) {
+		this.configMethodName = configMethodName;
+		return this;
+	}
+
+	public ValueTranslator getValueTranslator() {
+		return valueTranslator;
+	}
+
+	public BeanBoxContext setValueTranslator(ValueTranslator valueTranslator) {
+		this.valueTranslator = valueTranslator;
+		return this;
+	}
+
+	public Map<Object, Object> getBindCache() {
+		return bindCache;
+	}
+
+	public BeanBoxContext setBindCache(Map<Object, Object> bindCache) {
+		this.bindCache = bindCache;
+		return this;
+	}
+
+	public Map<Class<?>, BeanBox> getBeanBoxMetaCache() {
+		return beanBoxMetaCache;
+	}
+
+	public BeanBoxContext setBeanBoxMetaCache(Map<Class<?>, BeanBox> beanBoxMetaCache) {
+		this.beanBoxMetaCache = beanBoxMetaCache;
+		return this;
+	}
+
+	public Map<Object, Object> getSingletonCache() {
+		return singletonCache;
+	}
+
+	public BeanBoxContext setSingletonCache(Map<Object, Object> singletonCache) {
+		this.singletonCache = singletonCache;
+		return this;
+	}
+
+	public Map<Class<?>, Method> getCreateMethodCache() {
+		return createMethodCache;
+	}
+
+	public BeanBoxContext setCreateMethodCache(Map<Class<?>, Method> createMethodCache) {
+		this.createMethodCache = createMethodCache;
+		return this;
+	}
+
+	public Map<Class<?>, Method> getConfigMethodCache() {
+		return configMethodCache;
+	}
+
+	public BeanBoxContext setConfigMethodCache(Map<Class<?>, Method> configMethodCache) {
+		this.configMethodCache = configMethodCache;
+		return this;
+	}
+
 	public List<Object[]> getAopRules() {
 		return aopRules;
 	}
 
-	public void setAopRules(List<Object[]> aopRules) {
+	public BeanBoxContext setAopRules(List<Object[]> aopRules) {
 		this.aopRules = aopRules;
+		return this;
 	}
 
 }

@@ -33,4 +33,4 @@ If you added jBeanBox in pom, no need add jBeanBoxDI again because jBeanBoxDI is
 No, jBeanBoxDI is the core fo jBeanBox, you can read jBeanBox's user manual, but skip over "AOP" chapter.
 
 ## Why I can not find any source code in jbeanboxdi folder? 
-You need run "JumpOutSourceCode.bat", then source code will jump out from ground.
+You need run "JumpOutSourceCode.bat", then source code will jump out.
