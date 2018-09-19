@@ -420,46 +420,57 @@ public class AnnotationInjectTest {
 	protected void aopTests_______________() {
 	}
 
+	public static class Interceptor1 implements MethodInterceptor {
+		public Object invoke(MethodInvocation invocation) throws Throwable { 
+			invocation.getArguments()[0] = "1";
+			return invocation.proceed();
+		}
+	}
+
+	public static class Interceptor2 implements MethodInterceptor {
+		public Object invoke(MethodInvocation invocation) throws Throwable { 
+			invocation.getArguments()[0] = "2";
+			return invocation.proceed();
+		}
+	}
+
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target({ ElementType.TYPE })
 	@AOP
 	public static @interface MyAop1 {
 		public Class<?> value() default Interceptor1.class;
 
-		public String method() default "";
+		public String method() default "setNa*";
 	}
 
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target({ ElementType.METHOD })
 	@AOP
 	public static @interface MyAop2 {
-		public Class<?> value() default Interceptor1.class;
+		public Class<?> value() default Interceptor2.class;
 	}
 
-	public static class Interceptor1 implements MethodInterceptor {
-		@Override
-		public Object invoke(MethodInvocation invocation) throws Throwable {
-			invocation.getArguments()[0] = "3";
-			return invocation.proceed();
-		}
-	}
-
-	// @MyAop1(value = Interceptor1.class, method = "set*")
+	@MyAop1
 	public static class AopDemo1 {
 		String name;
+		String address;
+
+		public void setName(String name) {
+			this.name = name;
+		}
 
 		@MyAop2
-		public void setName(String name) {
-			System.out.println("name=" + name);
-			this.name = name;
+		public void setAddress(String address) {
+			this.address = address;
 		}
 	}
 
 	@Test
 	public void aopTest1() {
-		// JBEANBOX.bctx().addAopToClasses(Interceptor1.class, "*", "put*");
 		AopDemo1 demo = JBEANBOX.getBean(AopDemo1.class);
-		demo.setName("1");
-		Assert.assertEquals("3", demo.name);
+		demo.setName("--");
+		Assert.assertEquals("1", demo.name);
+		demo.setAddress("--");
+		Assert.assertEquals("2", demo.address);
 	}
 }

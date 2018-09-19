@@ -353,9 +353,8 @@ public class JavaConfigInjectTest {
 
 	public static class MethodAOP implements MethodInterceptor {
 		@Override
-		public Object invoke(MethodInvocation invocation) throws Throwable {
-			System.out.println("This is Method AOP");
-			invocation.getArguments()[0] = "3";
+		public Object invoke(MethodInvocation invocation) throws Throwable { 
+			invocation.getArguments()[0] = "1";
 			return invocation.proceed();
 		}
 	}
@@ -363,41 +362,38 @@ public class JavaConfigInjectTest {
 	public static class BeanAOP implements MethodInterceptor {
 		@Override
 		public Object invoke(MethodInvocation invocation) throws Throwable {
-			System.out.println("This is Bean AOP");
+			invocation.getArguments()[0] = "2";
 			return invocation.proceed();
 		}
 	}
 
 	public static class GlobalAOP implements MethodInterceptor {
 		@Override
-		public Object invoke(MethodInvocation invocation) throws Throwable {
-			System.out.println("This is Global AOP");
+		public Object invoke(MethodInvocation invocation) throws Throwable { 
+			invocation.getArguments()[0] = "3";
 			return invocation.proceed();
 		}
 	}
 
 	public static class AopDemo1Box extends BeanBox {
 		{
-			this.injectConstruct(AopDemo1.class, String.class, value("1"));
+			this.injectConstruct(AopDemo1.class, String.class, value("0"));
 			this.addMethodAop(MethodAOP.class, "setName", String.class);
-			this.addBeanAop(BeanAOP.class, "setAddr*");
-			this.injectMethod("setAddress", String.class, value("China"));
-			this.injectField("email", value("abc"));
+			this.addBeanAop(BeanAOP.class, "setAddr*"); 
 		}
 	}
 
 	@Test
 	public void aopTest1() {
-		JBEANBOX.bctx().bind("AOP3", GlobalAOP.class);
-		JBEANBOX.bctx().addGlobalAop("AOP3", AopDemo1.class, "set*");
+		JBEANBOX.bctx().bind("3", GlobalAOP.class);
+		JBEANBOX.bctx().addGlobalAop("3", AopDemo1.class, "setEm*");
 		AopDemo1 demo = JBEANBOX.getBean(AopDemo1Box.class);
-		System.out.println("=================================");
 		demo.setName("--");
-		Assert.assertEquals("3", demo.name);
-		System.out.println("=================================");
-		demo.setAddress("---");
-		Assert.assertEquals("abc", demo.email);
-		System.out.println("=================================");
+		Assert.assertEquals("1", demo.name); 
+		demo.setAddress("--");
+		Assert.assertEquals("2", demo.address); 
+		demo.setEmail("--");
+		Assert.assertEquals("3", demo.email); 
 	}
 
 }

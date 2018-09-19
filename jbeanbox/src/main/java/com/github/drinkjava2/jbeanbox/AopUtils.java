@@ -7,12 +7,9 @@
  * OF ANY KIND, either express or implied. See the License for the specific
  * language governing permissions and limitations under the License.
  */
-package com.github.drinkjava2.jbeanbox.aop;
+package com.github.drinkjava2.jbeanbox;
 
 import com.github.drinkjava2.cglib3_2_0.proxy.Enhancer;
-import com.github.drinkjava2.jbeanbox.BeanBox;
-import com.github.drinkjava2.jbeanbox.BeanBoxContext;
-import com.github.drinkjava2.jbeanbox.BeanBoxException;
 
 /**
  * ProxyBeanUtils use Objenesis and Cglib to create AOP proxy bean
@@ -21,7 +18,7 @@ import com.github.drinkjava2.jbeanbox.BeanBoxException;
  * @since 2.4
  *
  */
-public class ProxyBeanUtils {// NOSONAR
+public class AopUtils {// NOSONAR
 
 	public static Object createProxyBean(Class<?> clazz, BeanBox box, BeanBoxContext ctx) { 
 		BeanBoxException.assureNotNull(clazz, "To create a CGLib proxy, beanClass can not be null");

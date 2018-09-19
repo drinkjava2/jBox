@@ -7,7 +7,7 @@
  * OF ANY KIND, either express or implied. See the License for the specific
  * language governing permissions and limitations under the License.
  */
-package com.github.drinkjava2.jbeanbox.aop;
+package com.github.drinkjava2.jbeanbox;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
@@ -20,10 +20,6 @@ import org.aopalliance.intercept.MethodInvocation;
 import com.github.drinkjava2.cglib3_2_0.proxy.Callback;
 import com.github.drinkjava2.cglib3_2_0.proxy.MethodInterceptor;
 import com.github.drinkjava2.cglib3_2_0.proxy.MethodProxy;
-import com.github.drinkjava2.jbeanbox.BeanBox;
-import com.github.drinkjava2.jbeanbox.BeanBoxContext;
-import com.github.drinkjava2.jbeanbox.BeanBoxException;
-import com.github.drinkjava2.jbeanbox.BeanBoxUtils;
 
 /**
  * ProxyBean to build a Invocation, Invocation call next invocation...

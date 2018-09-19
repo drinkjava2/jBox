@@ -20,7 +20,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.drinkjava2.jbeanbox.ValueTranslator.DefaultValueTranslator;
-import com.github.drinkjava2.jbeanbox.aop.ProxyBeanUtils;
 
 /**
  * BeanBoxContext is the Context to create beans
@@ -208,17 +207,17 @@ public class BeanBoxContext {
 				return notfoundOrException(box.getTarget(), box.isRequired());
 		}
 
-		boolean needChangeToProxy = false;// is AOP?
+		boolean aopFound = false;// is AOP?
 		if (box.getAopRules() != null || box.getMethodAops() != null)
-			needChangeToProxy = true;
+			aopFound = true;
 		else if (this.getAopRules() != null && box.getBeanClass() != null)
 			for (Object[] aops : this.getAopRules()) // global AOP
 				if (BeanBoxUtils.nameMatch((String) aops[1], box.getBeanClass().getName())) {
-					needChangeToProxy = true;
+					aopFound = true;
 					break;
 				}
-		if (needChangeToProxy)
-			bean = ProxyBeanUtils.createProxyBean(box.getBeanClass(), box, this);
+		if (aopFound)
+			bean = AopUtils.createProxyBean(box.getBeanClass(), box, this);
 		else if (box.getCreateMethod() != null) // if have create method?
 			try {
 				Method m = box.getCreateMethod();
@@ -257,7 +256,7 @@ public class BeanBoxContext {
 		} else
 			return notfoundOrException(null, required); // return null or throw EX
 
-		// ====== need change bean to AOP proxy bean if AOP setting exist
+		// Now Bean is ready
 
 		// Cache bean or proxy bean right now for circular dependency use
 		if (box.isSingleton()) {
@@ -327,7 +326,7 @@ public class BeanBoxContext {
 	}
 
 	public BeanBoxContext addGlobalAop(Object aop, Class<?> clazz, String methodNameRegex) {
-		return addGlobalAop(aop, clazz.getName()+"*", methodNameRegex);
+		return addGlobalAop(aop, clazz.getName() + "*", methodNameRegex);
 	}
 
 	public BeanBox getBeanBox(Class<?> clazz) {
