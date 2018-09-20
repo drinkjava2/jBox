@@ -40,8 +40,7 @@ public class BeanBoxUtils {// NOSONAR
 
 	/**
 	 * Translate a BeanBox class or normal class to a readOnly BeanBox instance
-	 */
-	@SuppressWarnings("unchecked")
+	 */ 
 	public static BeanBox getUniqueBeanBox(BeanBoxContext ctx, Class<?> clazz) {
 		BeanBoxException.assureNotNull(clazz, "Target class can not be null");
 		BeanBox box = ctx.beanBoxMetaCache.get(clazz);
@@ -52,14 +51,6 @@ public class BeanBoxUtils {// NOSONAR
 				box = (BeanBox) clazz.newInstance();
 				if (box.singleton == null)
 					box.singleton = true;
-				// ===== create method and config method
-				Method mthd = ctx.checkAndReturnCreateMethod((Class<BeanBox>) clazz);
-				if (mthd != null)
-					box.setCreateMethod(mthd);
-				mthd = ctx.checkAndReturnConifgMethod((Class<BeanBox>) clazz);
-				if (mthd != null)
-					box.setConfigMethod(mthd);
-
 			} catch (Exception e) {
 				BeanBoxException.throwEX(e);
 			}
@@ -331,8 +322,8 @@ public class BeanBoxUtils {// NOSONAR
 	 * "abc*def" matches "abcd.efg.ddef", "abcany*anydef"
 	 */
 	public static boolean nameMatch(String regex, String name) {
-//		System.out.println("reg"+regex);
-//		System.out.println("name"+name);
+		// System.out.println("reg"+regex);
+		// System.out.println("name"+name);
 		if (regex == null || regex.length() == 0 || name == null || name.length() == 0)
 			return false;
 		if ('*' == (regex.charAt(0))) {

@@ -15,6 +15,8 @@ import static com.github.drinkjava2.jbeanbox.JBEANBOX.autowired;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.inject;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.value;
 
+import java.lang.reflect.Constructor;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -166,8 +168,8 @@ public class JavaConfigInjectTest {
 		box.injectField("field1", inject(ClassA.class, false, true));
 		box.injectField("field2", inject(ClassA.class, false, false));
 		box.injectField("field3", inject(HelloBox.class));
-		box.injectField("field4", true);
-		box.injectField("field5", 5L);
+		box.injectValue("field4", true);
+		box.injectValue("field5", 5L);
 		box.injectField("field6", value("6"));
 		box.injectField("field7", inject(EMPTY.class, false, false));
 		box.injectField("field8", inject());
@@ -295,28 +297,32 @@ public class JavaConfigInjectTest {
 	public static class CFdemo3 {
 		String a;
 		String b;
+		String c;
 	}
 
 	public static class CFdemo3Box extends BeanBox {
+		{
+			injectValue("c", "3");
+		}
 
-		public Object c() {
+		public CFdemo3 create() {
 			CFdemo3 c = new CFdemo3();
 			c.a = "1";
 			return c;
 		}
 
-		public void f(Object c) {
+		public void config(Object c) {
 			((CFdemo3) c).b = "2";
 		}
+
 	}
 
 	@Test
 	public void createAndConfigMethodTest2() {
-		JBEANBOX.bctx().setCreateMethodName("c");
-		JBEANBOX.bctx().setConfigMethodName("f");
 		CFdemo3 c3 = JBEANBOX.getBean(CFdemo3Box.class);
 		Assert.assertEquals("1", c3.a);
 		Assert.assertEquals("2", c3.b);
+		Assert.assertEquals("3", c3.c);
 	}
 
 }

@@ -63,9 +63,9 @@ public class ReflectionUtilsTest {
 	public static class SonBox extends BeanBox {
 		{
 			this.setBeanClass(Son.class);
-			this.injectField("user", "user1");
-			this.injectField("userName", "user2");
-			this.injectField("age", 10);
+			this.injectValue("user", "user1");
+			this.injectValue("userName", "user2");
+			this.injectValue("age", 10);
 		}
 	}
 

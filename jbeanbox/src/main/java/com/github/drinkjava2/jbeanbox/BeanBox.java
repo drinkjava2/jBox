@@ -62,6 +62,28 @@ public class BeanBox {
 	protected Map<Method, List<Object>> methodAops;// if not null, need create proxy bean
 	protected List<Object[]> aopRules;// if not null, need create proxy bean
 
+	{// NOSONAR
+		if (!BeanBox.class.equals(this.getClass())) {
+			Method m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CREATE_METHOD);
+			if (m == null)
+				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CREATE_METHOD, Caller.class);
+			if (m != null) {
+				this.beanClass = m.getReturnType();
+				this.createMethod = m;
+				ReflectionUtils.makeAccessible(m);
+			}
+
+			m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class);
+			if (m == null)
+				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class,
+						Caller.class);
+			if (m != null) {
+				ReflectionUtils.makeAccessible(m);
+				this.configMethod = m;
+			}
+		}
+	}
+
 	public BeanBox() { // Default constructor
 	}
 
@@ -230,8 +252,8 @@ public class BeanBox {
 	}
 
 	public synchronized BeanBox addBeanAop(Object aop, String methodNameRegex) {
-		checkOrCreateMethodAopRules();  
-		aopRules.add(new Object[] {aop, methodNameRegex});
+		checkOrCreateMethodAopRules();
+		aopRules.add(new Object[] { aop, methodNameRegex });
 		return this;
 	}
 
@@ -256,7 +278,7 @@ public class BeanBox {
 		return this;
 	}
 
-	public BeanBox injectField(String fieldName, Object constValue) {
+	public BeanBox injectValue(String fieldName, Object constValue) {
 		checkOrCreateFieldInjects();
 		Field f = ReflectionUtils.findField(beanClass, fieldName);
 		BeanBox inject = new BeanBox();

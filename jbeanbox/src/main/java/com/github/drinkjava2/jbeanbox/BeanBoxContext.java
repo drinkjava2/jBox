@@ -29,24 +29,21 @@ import com.github.drinkjava2.jbeanbox.ValueTranslator.DefaultValueTranslator;
  *
  */
 public class BeanBoxContext {
+	public static String CREATE_METHOD = "create"; // as title
+	public static String CONFIG_METHOD = "config"; // as title
 
 	protected static boolean globalNextAllowAnnotation = true; // as title
 	protected static boolean globalNextAllowSpringJsrAnnotation = true; // as title
-	protected static String globalNextCreateMethodName = "create"; // as title
-	protected static String globalNextConfigMethodName = "config"; // as title
+
 	protected static ValueTranslator globalNextValueTranslator = new DefaultValueTranslator(); // see user manual
 
 	protected boolean allowAnnotation = globalNextAllowAnnotation;
 	protected boolean allowSpringJsrAnnotation = globalNextAllowSpringJsrAnnotation;
-	protected String createMethodName = globalNextCreateMethodName;
-	protected String configMethodName = globalNextConfigMethodName;
 	protected ValueTranslator valueTranslator = globalNextValueTranslator;
 
 	protected Map<Object, Object> bindCache = new ConcurrentHashMap<Object, Object>();// shortcuts cache
 	protected Map<Class<?>, BeanBox> beanBoxMetaCache = new ConcurrentHashMap<Class<?>, BeanBox>(); // as title
 	protected Map<Object, Object> singletonCache = new ConcurrentHashMap<Object, Object>(); // class or BeanBox as key
-	protected Map<Class<?>, Method> createMethodCache = new ConcurrentHashMap<Class<?>, Method>();// as title
-	protected Map<Class<?>, Method> configMethodCache = new ConcurrentHashMap<Class<?>, Method>();// as title
 
 	protected static BeanBoxContext globalBeanBoxContext = new BeanBoxContext();// Global BeanBox context
 
@@ -110,8 +107,6 @@ public class BeanBoxContext {
 		bindCache.clear();
 		beanBoxMetaCache.clear();
 		singletonCache.clear();
-		createMethodCache.clear();
-		configMethodCache.clear();
 	}
 
 	public <T> T getBean(Object obj) {
@@ -366,48 +361,6 @@ public class BeanBoxContext {
 		}
 	}
 
-	/** Find create method for BeanBox class */
-	protected Method checkAndReturnCreateMethod(Class<BeanBox> clazz) {
-		if (createMethodName == null)
-			return null;
-		Method method = createMethodCache.get(clazz);
-		if (method == null) {
-			method = ReflectionUtils.findMethod(clazz, createMethodName);
-			if (method == null)
-				method = ReflectionUtils.findMethod(clazz, createMethodName, Caller.class);
-			if (method != null) {
-				ReflectionUtils.makeAccessible(method);
-				createMethodCache.put(clazz, method);
-			} else
-				createMethodCache.put(clazz, NOT_EXIST_METHOD);
-			return method;
-		} else if (NOT_EXIST_METHOD.equals(method))
-			return null;
-		else
-			return method;
-	}
-
-	/** Find config method for BeanBox class */
-	protected Method checkAndReturnConifgMethod(Class<BeanBox> clazz) {
-		if (configMethodName == null)
-			return null;
-		Method method = configMethodCache.get(clazz);
-		if (method == null) {
-			method = ReflectionUtils.findMethod(clazz, configMethodName, Object.class);
-			if (method == null)
-				method = ReflectionUtils.findMethod(clazz, configMethodName, Object.class, Caller.class);
-			if (method != null) {
-				ReflectionUtils.makeAccessible(method);
-				configMethodCache.put(clazz, method);
-			} else
-				configMethodCache.put(clazz, NOT_EXIST_METHOD);
-			return method;
-		} else if (NOT_EXIST_METHOD.equals(method))
-			return null;
-		else
-			return method;
-	}
-
 	protected void staticGetterAndSetters________________________() {// NOSONAR
 	}
 
@@ -433,22 +386,6 @@ public class BeanBoxContext {
 
 	public static void setGlobalNextAllowSpringJsrAnnotation(boolean globalNextAllowSpringJsrAnnotation) {
 		BeanBoxContext.globalNextAllowSpringJsrAnnotation = globalNextAllowSpringJsrAnnotation;
-	}
-
-	public static String getGlobalNextCreateMethodName() {
-		return globalNextCreateMethodName;
-	}
-
-	public static void setGlobalNextCreateMethodName(String globalNextCreateMethodName) {
-		BeanBoxContext.globalNextCreateMethodName = globalNextCreateMethodName;
-	}
-
-	public static String getGlobalNextConfigMethodName() {
-		return globalNextConfigMethodName;
-	}
-
-	public static void setGlobalNextConfigMethodName(String globalNextConfigMethodName) {
-		BeanBoxContext.globalNextConfigMethodName = globalNextConfigMethodName;
 	}
 
 	public static ValueTranslator getGlobalNextParamTranslator() {
@@ -488,24 +425,6 @@ public class BeanBoxContext {
 		return this;
 	}
 
-	public String getCreateMethodName() {
-		return createMethodName;
-	}
-
-	public BeanBoxContext setCreateMethodName(String createMethodName) {
-		this.createMethodName = createMethodName;
-		return this;
-	}
-
-	public String getConfigMethodName() {
-		return configMethodName;
-	}
-
-	public BeanBoxContext setConfigMethodName(String configMethodName) {
-		this.configMethodName = configMethodName;
-		return this;
-	}
-
 	public ValueTranslator getValueTranslator() {
 		return valueTranslator;
 	}
@@ -539,24 +458,6 @@ public class BeanBoxContext {
 
 	public BeanBoxContext setSingletonCache(Map<Object, Object> singletonCache) {
 		this.singletonCache = singletonCache;
-		return this;
-	}
-
-	public Map<Class<?>, Method> getCreateMethodCache() {
-		return createMethodCache;
-	}
-
-	public BeanBoxContext setCreateMethodCache(Map<Class<?>, Method> createMethodCache) {
-		this.createMethodCache = createMethodCache;
-		return this;
-	}
-
-	public Map<Class<?>, Method> getConfigMethodCache() {
-		return configMethodCache;
-	}
-
-	public BeanBoxContext setConfigMethodCache(Map<Class<?>, Method> configMethodCache) {
-		this.configMethodCache = configMethodCache;
 		return this;
 	}
 

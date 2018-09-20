@@ -88,8 +88,8 @@ public abstract class ReflectionUtils {
 	 * @return the corresponding Field object, or {@code null} if not found
 	 */
 	public static Field findField(Class<?> clazz, String name, Class<?> type) {
-		BeanBoxException.assureNotNull(clazz, "Class must not be null");
-		BeanBoxException.assure(name != null || type != null, "Either name or type of the field must be specified");
+		BeanBoxException.assureNotNull(clazz, "Inject field need BeanClass be set first, can not be null");
+		BeanBoxException.assure(name != null || type != null, "Inject fields's name or type can not be null");
 		Class<?> searchType = clazz;
 		while (!Object.class.equals(searchType) && searchType != null) {
 			Field[] fields = searchType.getDeclaredFields();
