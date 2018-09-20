@@ -62,28 +62,6 @@ public class BeanBox {
 	protected Map<Method, List<Object>> methodAops;// if not null, need create proxy bean
 	protected List<Object[]> aopRules;// if not null, need create proxy bean
 
-	{// NOSONAR
-		if (!BeanBox.class.equals(this.getClass())) {
-			Method m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CREATE_METHOD);
-			if (m == null)
-				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CREATE_METHOD, Caller.class);
-			if (m != null) {
-				ReflectionUtils.makeAccessible(m);
-				this.beanClass = m.getReturnType();
-				this.createMethod = m;
-			}
-
-			m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class);
-			if (m == null)
-				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class,
-						Caller.class);
-			if (m != null) {
-				ReflectionUtils.makeAccessible(m);
-				this.configMethod = m;
-			}
-		}
-	}
-
 	public BeanBox() { // Default constructor
 	}
 
@@ -107,18 +85,13 @@ public class BeanBox {
 		return BeanBoxContext.globalBeanBoxContext.getBean(target);
 	}
 
-	/** Use default global BeanBoxContext to create a prototype bean */
-	public static <T> T getPrototypeBean(Class<?> beanClass) {
-		return new BeanBox(beanClass).getBean();
-	}
-
 	/** Use given BeanBoxContext to create bean */
 	public <T> T getBean(BeanBoxContext ctx) {
 		return ctx.getBean(this);
 	}
 
 	/** For debug only, will delete in future version */
-	public String getDebugInfo() {
+	protected String getDebugInfo() {
 		StringBuilder sb = new StringBuilder("\r\n========BeanBox Debug for " + this + "===========\r\n");
 		sb.append("target=" + this.target).append("\r\n");
 		sb.append("pureValue=" + this.pureValue).append("\r\n");
@@ -257,8 +230,8 @@ public class BeanBox {
 	}
 
 	public synchronized BeanBox addBeanAop(Object aop, String methodNameRegex) {
-		checkOrCreateMethodAopRules();
-		aopRules.add(new Object[] { aop, methodNameRegex });
+		checkOrCreateMethodAopRules();  
+		aopRules.add(new Object[] {aop, methodNameRegex});
 		return this;
 	}
 
@@ -282,13 +255,8 @@ public class BeanBox {
 		this.getFieldInjects().put(f, inject);
 		return this;
 	}
-	
-	//Compatible for old jBeanBox version 
-	public BeanBox setProperty(String fieldName, Object constValue) {
-		return injectValue(fieldName, constValue);
-	}
 
-	public BeanBox injectValue(String fieldName, Object constValue) {
+	public BeanBox injectField(String fieldName, Object constValue) {
 		checkOrCreateFieldInjects();
 		Field f = ReflectionUtils.findField(beanClass, fieldName);
 		BeanBox inject = new BeanBox();

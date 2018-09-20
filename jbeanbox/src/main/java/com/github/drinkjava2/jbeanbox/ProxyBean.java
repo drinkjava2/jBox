@@ -72,11 +72,11 @@ class ProxyBean implements MethodInterceptor, Callback {
 			return mprxy.invokeSuper(obj, args);
 		org.aopalliance.intercept.MethodInterceptor inter = ctx.getBean(allInters.get(0));
 		BeanBoxException.assureNotNull(inter);
-		return inter.invoke(new MtdInvoc(obj, m, args, mprxy, allInters, ctx, 1));
+		return inter.invoke(new MethodInvoc(obj, m, args, mprxy, allInters, ctx, 1));
 	}
 
 	//@formatter:off
-	public static class MtdInvoc implements MethodInvocation {// AOP alliance required
+	public static class MethodInvoc implements MethodInvocation {// AOP alliance required
 		private final Object obj;
 		private final Method m;
 		private final Object[] args;
@@ -85,7 +85,7 @@ class ProxyBean implements MethodInterceptor, Callback {
 		private final BeanBoxContext ctx;
 		private int count;
 
-		protected MtdInvoc(Object obj, Method m, Object[] args, MethodProxy mprxy, List<Object> inters, BeanBoxContext ctx,
+		protected MethodInvoc(Object obj, Method m, Object[] args, MethodProxy mprxy, List<Object> inters, BeanBoxContext ctx,
 				int count) {
 			this.obj = obj;	this.m = m;	this.args = args;	this.mprxy = mprxy;
 			this.inters = inters;	this.ctx = ctx;	this.count = count;
@@ -94,7 +94,7 @@ class ProxyBean implements MethodInterceptor, Callback {
 		public Object proceed() throws Throwable {
 			if (count <= (inters.size() - 1)) { 
 				org.aopalliance.intercept.MethodInterceptor inter = ctx.getBean(inters.get(count));
-			    return inter.invoke(new MtdInvoc(obj, m, args, mprxy, inters, ctx, count + 1));
+			    return inter.invoke(new MethodInvoc(obj, m, args, mprxy, inters, ctx, count + 1));
 			}
 			return mprxy.invokeSuper(obj, args);
 		} 
