@@ -68,9 +68,9 @@ public class BeanBox {
 			if (m == null)
 				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CREATE_METHOD, Caller.class);
 			if (m != null) {
-				this.beanClass = m.getReturnType();
-				this.createMethod = m;
 				ReflectionUtils.makeAccessible(m);
+				this.beanClass = m.getReturnType();
+				this.createMethod = m; 
 			}
 
 			m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class);
@@ -113,7 +113,7 @@ public class BeanBox {
 	}
 
 	/** For debug only, will delete in future version */
-	protected String getDebugInfo() {
+	public String getDebugInfo() {
 		StringBuilder sb = new StringBuilder("\r\n========BeanBox Debug for " + this + "===========\r\n");
 		sb.append("target=" + this.target).append("\r\n");
 		sb.append("pureValue=" + this.pureValue).append("\r\n");

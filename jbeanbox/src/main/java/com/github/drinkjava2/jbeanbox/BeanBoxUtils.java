@@ -64,9 +64,9 @@ public class BeanBoxUtils {// NOSONAR
 		try {
 			return clazz.getConstructor(paramTypes);
 		} catch (SecurityException e) {
-			throw new IllegalStateException("Security exception found for method: " + e.getMessage());
+			throw new IllegalStateException("Security exception found for Constructor: " + e.getMessage());
 		} catch (NoSuchMethodException e) {
-			throw new IllegalStateException("Method not found: " + e.getMessage());
+			throw new IllegalStateException("Constructor not found: " + e.getMessage());
 		}
 	}
 
