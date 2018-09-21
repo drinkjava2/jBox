@@ -1,7 +1,7 @@
 ## jBeanBoxDI
 **License:** [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)  
 
-jBeanBoxDI is a pure DI (dependency inject) tool, it does not support AOP, it's lightweight only few Java source code files and ~35kb jar size.  
+jBeanBoxDI is a pure DI (dependency inject) tool, it does not support AOP, it's lightweight only few Java source code files and ~49kb jar size.  
 jBeanBoxDI runs on JDK1.6 and above.
 
 ## How to use jBeanBoxDI:

@@ -1,453 +1,352 @@
-﻿(English instruction please see [README-English.md](README-English.md))  
-# jBeanBox 
+﻿# jBeanBox 
 **License:** [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)  
 
-jBeanBox是一个微形但功能较齐全的IOC/AOP工具，利用Java的初始化块实现的纯Java配置代替XML，运行于Java1.6或以上。  
-其他一些IOC/AOP框架的问题：  
-1）Spring，HiveMind及其他一些利用XML作为配置文件的IOC/AOP框架：XML不支持类名称拼写检查和IDE重构，很难在运行时更改配置。(从Spring3.0开始使用一种基于Java的配置来取代XML，但采用方法名作为Bean ID的设计方式，导致它不支持配置的继承重用、动态变更配置。)  
-2）Guice和其他完全依赖于注解的IOC/AOP项目：注解是一种拉式注入，必须依赖于源码，入侵性强，在没有源码的场合下无法运用。 
-
-### jBeanBox的特点：  
-1）简单，很少的代码(不到3000行)实现了所有的IOC/AOP功能，没有XML，只有2个注解(@InjectBox和@AopAround)，易学易用。 
-2）使用纯Java来代替XML，其实现比Spring或Guice的Java方式配置更简单，支持配置的继承重用、运行期动态创建和修改配置。  
-3) 与Spring内核的功能重叠面多，Spring配置可以很容易移植到jBeanBox上，Spring的一些服务如声明式事务可以抽取出来在jBeanBox上使用。  
-4) 启动讯速，详见本文未尾与其它工具的测试对比，对于需要反复启动的场合如单元测试最适合。  
-5) 是一个全功能的、支持Bean生命周期管理的IOC/AOP工具，而不仅仅只是一个DI工具，旨在项目中取代Spring IoC/AOP内核，其主要功能有：  
-*以Java初始块为基础的纯Java配置类（第一种配置方式）来代替XML，简单易用。  
-*以Java方法回调为基础的Java配置类(第二种配置方式), 实现完全的Java类型安全和IDE重构支持。  
-*基于注解的配置(第三种配置方式)，整个项目只有一个@InjectBox注解，易于学习。 以上三种配置各有特点，可以在同一个配置中混合使用。  
-*Bean实例延迟初始化（与Guice类似）  
-*单例/多例支持，默认情况下所有实例为单例（与Spring类似）; 单例缓存  
-*内置AOP支持,切点只有正则表达式一种方式，AOP环绕方法也可以用@AopAround标记在方法上注明  
-*多种注射机制：  
-推式注入:值注入，实例注入，构造方法注入，静态工厂注入，实例工厂注入 (与Spring传统XML注入类似)  
-拉式注入：利用@InjectBox注解 (与Guice和Spring的注解注入类似），支持域成员、构造函数参数和方法参数注入，可注入常量。  
-*以约定方式寻找配置，这是jBeanBox的一个主要特点  
-*多上下文支持（除了默认全局范围上下文外，支持创建多个上下文，类似于Spring中创建多个ApplicationContext实例）  
-*Bean生命周期管理（postConstruction和preDestory方法回调）  
-
-### jBeanBox的缺点：  
-比较新，缺少足够的测试和用户反馈。设计简单，只有CGLIB代理一种代理方式，切点定义只有正则表达式和注解两种方式。 
+jBeanBox是一个微形但功能较齐全的IOC/AOP工具，除了引入的第三方库之外，它的核心只有十多个类，源码只有1500行左右。它运用了“Box”编程模式，利用纯粹的Java类作为配置。jBeanBox运行于JDK1.6或以上。  
+jBeanBox的开发目的是要克服其它IOC/AOP工具的一些问题：   
+1. Spring: 源码臃肿，Java方式的配置不灵活，在动态配置、配置的继承上有问题、启动慢、非单例模式时性能极差。  
+2. Guice: 源码略臃肿(200个类)，使用不太方便，对Bean的生命周期支持不好。  
+3. Feather:源码极简(几百行)，但功能不全，只是一个DI工具，不支持AOP。  
+4. Dagger: 源码略臃肿(300个类)，编译期静态注入，使用略不便,不支持AOP。
+5. Genie: 这是ActFramework的内核，只是DI工具，不支持AOP。  
 
 ### 如何在项目中使用jBeanBox?  
-手工下载jbeanbox-2.4.6.jar放到项目的类目录，或在pom.xml中加入以下配置：  
+手工下载jbeanbox-2.4.8.jar放到项目的类目录，或在pom.xml中加入以下配置：  
 ```
 <dependency>
     <groupId>com.github.drinkjava2</groupId>
     <artifactId>jbeanbox</artifactId>
-    <version>2.4.6</version> <!--或Maven最新版-->
+    <version>2.4.8</version> <!--或Maven最新版-->
 </dependency>
 ``` 
-jBeanBox不依赖于任何第三方库，为避免包冲突，它已将用到的CGLIB、ASM、AopAlliance三个库以源码方式(前两个更改了包名)包含在项目内。  
+jBeanBox不依赖于任何第三方库，为避免包冲突，它将用到的CGLIB等第三方库以源码内嵌方式包含在项目中。
+jBeanBox的jar包尺寸较大，约为750K, 如果用不到AOP功能，可以只使用它的DI内核，称为"jBeanBoxDI", 只有49k大小，将上面artifactId中的jbeanbox改成jbeanboxdi即可。jBeanBoxDI项目详见jbeanboxdi子目录。
 
-### jBeanBox使用示例：  
-示例1 - HelloWorld 第一个IOC注入演示  
-  下面这个简单程序演示了jBeanBox最基本的两个特点:  
-  1)配置写在Java类初始块中。
-  2)以约定方式寻找配置, 通常是 "类名+Box", 配置类的查找方式有很多种，最常见的是将配置类放在写在目标类的相同目录下，或是干脆写在目标类的内部:
+### 第一个jBeanBox演示：  
+以下演示了9种不同的注入方式：
 ```
-import com.github.drinkjava2.BeanBox;
 public class HelloWorld {
-  private String field1;
-  public static class HelloWorldBox extends BeanBox {
-    {
-      this.setProperty("field1", "Hello World!");
-    }
+  public static class User {
+    String name;    
+    
+    public User() {   }    
+    
+    @VALUE("User1")  
+    public User(String name) { this.name = name; }   
+    
+    void setName(String name) { this.name = name; } 
+    
+    void init() {this.name = "User6";}    
+    
+    @PreDestroy 
+    void end() {this.name= "User9";}
   }
+
+  public static class UserBox extends BeanBox {
+     Object create() {return new User("User2");}
+  }
+
+  public static class H7 extends UserBox {{setAsValue("User7");}}
+ 
   public static void main(String[] args) {
-    HelloWorld h = BeanBox.getBean(HelloWorld.class);
-    System.out.println(h.field1); //print "Hello World!"
-  }
-}
-```
-
-示例2 - 基础的各种jBeanBox注入方式
-```
-public class Order{ //order类
-  private Company company  
-  //getters & setter ...
-}
-
-public class Company{ // Company类
-  private String name;  
- //getters & setters ...  
-}
-
-public class OrderBox extends BeanBox {//OrderBox为BeanBox子类，这是一个配置文件，用来代替XML
-  {   
-          //setPrototype(false);  //默认为单例类，如果设为true将每次创建一个新实例
-          //setClassOrValue(Order.class); //设定目标类，如用getBean()调用则可以省略此行
-          setProperty("company", CompanyBox.class); //设定要注入的对象,可以是目标类，也可以是一个BeanBox配置类   
-  }
-  
-    public static class CompanyBox1 extends BeanBox {
-        {
-            setClassOrValue(Company.class);
-            setProperty("name", "Pet Store1");
-        }
-    }
-
-    public static class CompanyBox extends CompanyBox1 {//配置的继承
-        {
-            setProperty("name", "Pet Store2");//属性的覆盖
-        }
-    } 
-}
-
-public class Tester {
-  public static void main(String[] args) {
-     Order order = BeanBox.getBean(Order.class); //获取实例, 默认为单例
-     System.out.println("Order bean is a SingleTon? " + (order == BeanBox.getBean(Order.class)));//true
+    User u1 = JBEANBOX.getInstance(User.class);
+    User u2 = JBEANBOX.getBean(UserBox.class);
+    User u3 = JBEANBOX.getBean(new BeanBox().injectConstruct(User.class, String.class, value("User3")));
+    User u4 = JBEANBOX.getBean(new BeanBox(User.class).injectValue("name", "User4" ));
+    User u5 = JBEANBOX
+        .getBean(new BeanBox(User.class).injectMethod("setName", String.class, value("User5")));
+    User u6 = JBEANBOX.getBean(new BeanBox().setBeanClass(User.class).setPostConstruct("init"));
+    
+    BeanBoxContext ctx = new BeanBoxContext(); 
+    Interceptor aop=new MethodInterceptor() { 
+      public Object invoke(MethodInvocation invocation) throws Throwable { 
+        invocation.getArguments()[0]="User8";
+        return invocation.proceed();
+      }
+    };
+    User u7 = ctx.bind(String.class, "7").bind("7", H7.class)
+      .getBean(ctx.getBeanBox(User.class).addMethodAop(aop, "setName",String.class).injectField("name", autowired())); 
+    System.out.println(u1.name); //Result: User1
+    System.out.println(u2.name); //Result: User2
+    System.out.println(u3.name); //Result: User3
+    System.out.println(u4.name); //Result: User4
+    System.out.println(u5.name); //Result: User5
+    System.out.println(u6.name); //Result: User6
+    System.out.println(u7.name); //Result: User7
+    u7.setName("");
+    System.out.println(u7.name); //Result: User8
+    ctx.close();
+    System.out.println(u7.name); //Result: User9 
   }
 } 
 ```
-为节省篇幅，一些java类以及静态工厂、实例工厂演示未在此示例中列出，请自行翻看项目演示源码，下同。  
-另外关于构造器注入，方式为:  
-new BeanBox().setConstructor(SomeClass.class, new B()).setConstructorTypes(A.class).getBean()  
-其中setConstructorTypes()方法可选，用于需要明确指定构造函数的参数类型时。
+这个例子的输出结果是依次打印出“User1” 、“User2”...到“User9”。下面遂一解说：
+1. 利用了@VALUE("User1")注解，进行了构造器注入
+2. UserBox是一个纯jBeanBox的Java配置类，它的create方法手工生成了一个User对象。
+3. 第三个是动态生成一个BeanBox配置，动态配置它的构造器注入，注入值为"User3"。
+4. 第四个也是动态配置，演示了字段注入，注入值为常量"User4".
+5. 第五个是方法注入的演示，注入参数依次为：方法名、参数类型们、实际参数们。
+6. 第六个是setPostConstruct注入，等效于@PostConstruct注解，即Bean生成后立即执行的方法为init()方法。
+7. 第七个比较复杂，ctx是一个新的上下文实例，它先获取User.class的固定配置，然后给它的setName方法添加一个AOP切面，然后注入"name"字段为autowired类型，也就是说String类型，不过在此之前String类被绑定到字符串"7",字符串"7"又绑定到H2.class，H7又继承于UserBox，UserBox又返回"User2"，然而都是浮云，因为H7本身被配置成一个值类型"User7"，于是最后输出结果是“User7”。
+8. 第八个比较简单，因为setName方法被添加了一个AOP拦截器，参数被改成了"User8"。
+9. 第九个是因为ctx这个上下文结束，所有单例被@PreDestroy标注的方法会执行，这是一个标准JSR330注解。
 
-示例3： AOP演示，此项目已内嵌了AOP联盟接口支持，但是切点只支持Java正则表达式一种方式。
-("AOPLogAdvice源码略,详见测试目录）
+上例除了一头一尾外，主要演示了jBeanBox的Java方法配置，Java方法即可以动态执行，也可以在定义好的BeanBox类中作为固定配置执行，固定的配置可以打下配置的基调，当固定配置需要变动时可以用同样的Java方法来进行调整(因为本来就是同一个BeanBox对象)甚至临时创建出新的配置，所以jBeanBox同时具有了固定配置和动态配置的优点。  
+
+### jBeanBox注解方式配置
+jBeanBox不光支持Java方式配置，还支持注解方式配置,它支持以下注解：
+@INJECT  类似于JSR中的@Inject注解，但允许添加目标类作为参数， 
+@POSTCONSTRUCT  等同于JSR中的@PostConstruct注解  
+@PREDESTROY  等同于JSR中的@PreDestroy注解  
+@VALUE  类似于Spring中的@Value注解  
+@PROTOTYPE  等同于Spring中的@Prototype注解  
+@AOP 用于自定义AOP注解，详见AOP一节  
+
+jBeanBox还能自动识别并支持以下JSR及Spring的注解：  
+JSR的注解：@PostConstruct, @PreDestroy, @Inject, @Singleton, @scope(“prototype”), @scope(“singleton”)  
+Spring的注解：@Autowired @Prototype  
+
+因为注解方式配置大家都非常熟悉，这里就不作详细介绍了，在jBeanBox\test目录下能找到一个"AnnotationInjectTest.java"文件，演示了各种注解方式配置的使用。另外还可以调用BeanBoxContext.setGlobalNextAllowSpringJsrAnnotation(false)去禁用JSR、Spring注解，可以调用BeanBoxContext.setGlobalNextAllowAnnotation(false)去禁用所有注解(也就是说只允许Java方式配置了)。
+
+关于注解方式配置，jBeanBox与其它IOC工具不同点在于：它不支持@Qualifer、@Name、@Provider这三个JSR330注解，这是因为作者认为这3个注解是一种反模式，在jBeanBox中可以用更简单的方式替代，例如：  
 ```
-public class Tester {
-    private Iitem item;
-	public void setItem(Iitem item) {
-		this.item = item;
+@Inject @Named("JDBC-URL")  private String url;
+在jBeanBox中可以用以下方式替代:
+@INJECT(JDBC_URL.class)  private String url; //其中JDBC_URL.class是一个BeanBox类
+
+又如：
+@Named("p") public class Person {}
+在jBeanBox中看来，Person类已经有了唯一的ID: Person.class, 无需再定义一个多余的“P”作为ID，所有静态定义的类，它的类本身就是唯一的ID。jBeanBox对于静态定义的类，默认均为单例类，所以每次ctx.getBean(Person.class)都会获得同一个单例对象。  
+```
+@Named的问题是它是字符串类型的，无法利用IDE快速定位到配置文件，当项目配置很多时，不利于维护。  
+要注意的是，如果是手工动态创建的BeanBox配置，默认均为非单例类，如果用setSingleton(true)方法硬改成单例，问题来了，它的ID是什么? 很简单，它的唯一ID就是这个动态创建的配置本身。BeanBox box1=new BeanBox(A.class).setSingeton(true), 则每次ctx.getBeanBox(box1)就会获得同一个A类型的单例对象。jBeanBox是一个无需定义Bean ID的IOC工具。当然，也可以用ctx.bind("id1",box1)，则相当于手工给它绑定了一个ID。jBeanBox没有自动扫描、预装配之类的功能，所以它的启动非常快速。但是如果有人需要自动扫描、预装配单例之类的功能，必须手工编写这样的工具类，并利用bind方法来给这些单例赋予ID，ID可以为任意对象类型，但必须全局唯一。 
+
+### jBeanBox的Java方式配置
+示例一只是笼统演示了一下jBeanBox的Java方式配置，现在再回过头来详细介绍一下它的Java方式配置：
+* setAsValue(Object) 将当前BeanBox配置成一个常量值，等同于setTarget(Obj)+setPureVale(true)
+* setPrototype(boolean) 如参数为true时表示它是一个非单例，与setSingleton方法作用相反
+* injectConstruct(Class<?>, Object...) 设定构造器注入，参数分别是类、构造器参数类型们、参数们
+* injectMethod(String, Object...) 设定某个方法注入，参数分别是方法名、参数类型们、参数们
+* addAopToMethod(Object, Method) 对某个方法添加AOP，参数分别是AOP类或实例、方法
+* addMethodAop(Object, String, Class<?>...) 对某个方法添加AOP，参数分别是AOP类或实例、方法名、参数类型们
+* addBeanAop(Object, String) 对整个Bean添加AOP,参数分别是AOP类或实例、方法规则(如"setUser*")，
+* setPostConstruct(String) 设定一个PostConstruct方法名，效果等同与@PostConstruct注解
+* setPreDestroy(String) 设定一个PreDestroy方法名，效果等同与@PreDestroy注解
+* injectField(String, BeanBox) 注入一个字段，参数是字段名、BeanBox实例，它的等效注解是@INJECT 
+* setProperty(String, Object) 等同于injectValue方法
+* injectValue(String, Object) 注入一个字段，参数是字段名、对象实例，可与它类比的注解是@VALUE 
+* setTarget(Object) 注定当前Bean的目标，另外当bind("7",User.class)时，setTarget("7")就等同于setTarget(User.class)
+* setPureValue(boolean) 表示target不再是目标了，而是作为纯值返回，上行的"7"就会返回字符串"7"
+* setBeanClass(Class<?>) 设定当前BeanBox的最终目标类，所有的配置都是基于这个类展开
+* setSingleton(Boolean) 与setPrototype作用相反
+* setConstructor(Constructor<?>) 设定一个构造器
+* setConstructorParams(BeanBox[]) 设定构造器的参数，与上行联用
+* setPostConstruct(Method) 设定一个PostConstruct方法，效果等同与@PostConstruct注解
+* setPreDestroy(Method) 设定一个PreDestroy方法名，效果等同与@PreDestroy注解 
+
+Java方式配置，对于BeanBox来说，还有两个特殊的方法create和config，如下示例：
+```
+public static class DemoBox extends BeanBox {
+
+		public Object create(Caller v) {
+			A a = new A();
+			a.field1 = v.getBean(B.class);
+			return c2;
+		}
+
+		public void config(Object o, Caller v) {
+			(A) c).field2 = v.getBean(C.class);
+		}
+	}
+```
+上例表示DemoBox中创建的Bean是由create方法来生成，由config方法来修改。上例中的两个Caller参数可以省略，如果不需要利用这个Caller参数进行加载其它Bean的话。
+
+
+### jBeanBox的AOP
+jBeanBox功能大都可以用Java配置或注解配置两种方式来实现，同样地，它对AOP的支持也有两种方式：
+
+#### Java方式AOP配置
+someBeanBox.addMethodAop(Object, String, Class<?>...) 对某个方法添加AOP，参数分别是AOP类或实例、方法名、参数类型们
+someBeanBox.addBeanAop(Object, String) 对整个Bean添加AOP,参数分别是AOP类或实例、方法规则(如"setUser*")
+someBeanBoxContext.addGlobalAop(Object, Object, String);对整个上下文添加AOP规则，参数分别是AOP类或实例、类或类名规则、方法名规则。
+以上三个方法分别对应三种不同级别的AOP规则，第一个方法只针对方法，第二个方法针对整个类，第三个方法针对整个上下文。以下是一个AOP的Java配置示例：
+```
+public static class AopDemo1 {
+		String name;
+		String address;
+		String email;
+        //getter & setters...
 	}
 
-	public void doPrintItem() {
-		item.doPrint();
+	public static class MethodAOP implements MethodInterceptor { 
+		public Object invoke(MethodInvocation invocation) throws Throwable {
+			invocation.getArguments()[0] = "1";
+			return invocation.proceed();
+		}
+	}
+
+	public static class BeanAOP implements MethodInterceptor { 
+		public Object invoke(MethodInvocation invocation) throws Throwable {
+			invocation.getArguments()[0] = "2";
+			return invocation.proceed();
+		}
+	}
+
+	public static class GlobalAOP implements MethodInterceptor {
+		@Override
+		public Object invoke(MethodInvocation invocation) throws Throwable {
+			invocation.getArguments()[0] = "3";
+			return invocation.proceed();
+		}
+	}
+
+	public static class AopDemo1Box extends BeanBox {
+		{
+			this.injectConstruct(AopDemo1.class, String.class, value("0"));
+			this.addMethodAop(MethodAOP.class, "setName", String.class);
+			this.addBeanAop(BeanAOP.class, "setAddr*");
+		}
 	}
 
 	@Test
-	public void doTest() {
-		BeanBox advice = new BeanBox(AOPLogAdvice.class).setProperty("name", "AOP Logger"); 
-		//setAOPAround()方法的最后一个参数如果是"invoke"则可以省略
-		BeanBox.defaultContext.setAOPAround("test.test2_aop.\\w*", "doPrint\\w*", advice, "doAround");
-		BeanBox.defaultContext.setAOPBefore("test.test2_aop.\\w*", "doPrint\\w*", advice, "doBefore");
-		BeanBox.defaultContext.setAOPAfterReturning("test.test2_aop.\\w*", "doPrint\\w*", advice, "doAfterReturning");
-		BeanBox.defaultContext.setAOPAfterThrowing("test.test2_aop.\\w*", "doPrint\\w*", advice, "doAfterThrowing");
-		
-  		Tester t = new BeanBox(Tester.class) {
-		}.setProperty("item", ItemImpl.class).getBean();
-		t.doPrintItem();
+	public void aopTest1() {
+		JBEANBOX.bctx().bind("3", GlobalAOP.class);
+		JBEANBOX.bctx().addGlobalAop("3", AopDemo1.class, "setEm*");
+		AopDemo1 demo = JBEANBOX.getBean(AopDemo1Box.class);
+		demo.setName("--");
+		Assert.assertEquals("1", demo.name);
+		demo.setAddress("--");
+		Assert.assertEquals("2", demo.address);
+		demo.setEmail("--");
+		Assert.assertEquals("3", demo.email);
+	}
+```
+#### 注解方式AOP配置
+注解方式AOP只有两种类型，针对方法的和针对类的，没有针对上下文的。
+注解方式需要用到一个特殊的注解@AOP，它是用来自定义自已的注解用的，使用示例如下：
+```
+public static class Interceptor1 implements MethodInterceptor {
+		public Object invoke(MethodInvocation invocation) throws Throwable {
+			invocation.getArguments()[0] = "1";
+			return invocation.proceed();
+		}
 	}
 
-	public static void main(String[] args) {
-		new Tester().doTest();
+	public static class Interceptor2 implements MethodInterceptor {
+		public Object invoke(MethodInvocation invocation) throws Throwable {
+			invocation.getArguments()[0] = "2";
+			return invocation.proceed();
+		}
 	}
-}
+
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target({ ElementType.TYPE })
+	@AOP
+	public static @interface MyAop1 {
+		public Class<?> value() default Interceptor1.class;
+
+		public String method() default "setNa*";
+	}
+
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target({ ElementType.METHOD })
+	@AOP
+	public static @interface MyAop2 {
+		public Class<?> value() default Interceptor2.class;
+	}
+
+	@MyAop1
+	public static class AopDemo1 {
+		String name;
+		String address;
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		@MyAop2
+		public void setAddress(String address) {
+			this.address = address;
+		}
+	}
+
+	@Test
+	public void aopTest1() {
+		AopDemo1 demo = JBEANBOX.getBean(AopDemo1.class);
+		demo.setName("--");
+		Assert.assertEquals("1", demo.name);
+		demo.setAddress("--");
+		Assert.assertEquals("2", demo.address);
+	}
 ```
-BeanBox.defaultContext是个单例类全局变量，对于无需创建多个上下文实例的小型项目可以直接使用这个全局实例变量以简化编码，实际上整个当前JAVA命名空间就等同于jBeanBox的缺省容器。 如果用BeanBox.getBean(XX.class)而不是用某个上下文context.getBean(xx.class)来获取一个Bean实例时，就等同于defaultContext.getBean()。
+本文所说的AOP是针对Aop alliance联盟标准的接口来说的，它已经被包含在jBeanBox中，无需再单独引入(当然重复引入也不会有问题)。Aop alliance联盟标准是比较有用的一个接口，实现了各种AOP实现之间的互换性，基于它，jBeanBox可以替换掉Spring的内核而使用它的声明式事务，这种互换性能够实现的前提就是因为Spring的声明式事务实现(TransactionInterceptor)也实现了Aop alliance联盟标准接口。
 
-示例4: @injectBox注解和上下文演示  
- 此项目有且仅有一个注解@injectBox，注入1到7为注解注入，属于拉式注入，注入8和9为传统无侵入的推式注入(拉式和推式是我自创的称谓，比较形象） 。可以看出，注解的引入可简化源码，提高开发效率，但代价是难以理解和增加维护困难，且不支持无源码的第三方库。此示例可能比较难理解，因为配置文件比较多而且这里没有列出，请详见jbeanbox-example/src/main/java/examples/example3_annotation目录。基本原理是在注入时，首先在类的内外部、配置文件中先找到对应的BeanBox配置类并注入，如找不到配置将默认按无参构造子创建实例，配置类的寻找方式有点绕人，但一般常用的就那几种。
+### 关于循环依赖
+jBeanBox具备循环依赖检测功能，如果发现循环依赖注入(如A构造器中注入B,B的构造器中又需要注入A），将会抛出运行时异常。
+但是，以下这种字段或方法中出现的循环依赖注入在jBeanBox中是支持的：
 ```
-public class Tester {
-  @InjectBox(A.StrBox.class)
-  String s1;// Use StrBox.class, 推荐
+public static class A {
+		@Inject
+		public B b;
+	}
 
-  @InjectBox(A.class)
-  String s2;// Use A.StringBox.class (or A.StringBox2.class, 2 to 8 depends context setting)
+public static class B {
+		@Inject
+		public A a;
+	}
 
-  @InjectBox(B.class)
-  String s3;// Use B$S3Box.class
-
-  @InjectBox
-  C c4;// Use CBox.class, 推荐, 一个类配一个Box
-
-  @InjectBox
-  String s5;// Use TesterBox$StringBox.class
-
-  @InjectBox(required = false)
-  D d6;// Use Config$DBox.class (or Config2$DBox2)
-
-  @InjectBox(required = false)
-  E e7;// Use Config$E7Box.class (or Config2$E7Box2)
-
-  private String s8; // injected by field, not suitable for Proxy bean
-
-  private String s9; // injected by setter method, 推荐
-
-  public void setS9(String s9) {
-    this.s9 = s9;
-  }
-
-  public void print() {
-    System.out.println(s1);
-    System.out.println(s2);
-    System.out.println(s3);
-    System.out.println((c4 == null) ? null : c4.value);
-    System.out.println(s5);
-    System.out.println((d6 == null) ? null : d6.value);
-    System.out.println((e7 == null) ? null : e7.value);
-    System.out.println(s8);
-    System.out.println(s9);
-    System.out.println(this);
-  }
-
-  public static void main(String[] args) {
-    Tester t = BeanBox.getBean(Tester.class);
-    t.print();
-
-    BeanBoxContext ctx = new BeanBoxContext(Config2.class).setBoxIdentity("Box2");
-    Tester t3 = ctx.getBean(Tester.class);
-    t3.print();//不同的配置输出内容不同
-  }
-}
-```
-
-示例5: Bean的生命周期管理(PostConstructor和PreDestory方法回调)  
-```
-public class Tester {
-  private String name;
-
-  public void init() {
-    name = "Sam";
-  }
-
-  public void destory() {
-    System.out.println("Bye " + name);
-  }
-
-  public static class TesterBox extends BeanBox {
-    {
-      setPostConstructor("init");
-      setPreDestory("destory");
-    }
-  }
-
-  public static void main(String[] args) {
-    BeanBox.getBean(Tester.class);
-    BeanBox.defaultContext.close();// 打印 Bye Sam
-  }
-}
+A a = JBEANBOX.getBean(A.class);
+Assert.assertTrue(a == a.b.a);//true
 ```
 
-示例6: 利用jBeanBox取代Spring内核实现无XML的声明式事务  
- 声明式事务是AOP的典型运用场合，基本原理是利用线程局部变量来管理连接，AOP的特点就是服务和内核是插拔式设计，内核和服务可以单独使用。Spring中提供的一些业务支持理论上都可以抽取出来在其它IOC/AOP工具上使用，如果抽取不出来，说明它绑死在Spring内核上了，这与它的设计理念是不符的。本着不重新发明轮子的原则，此示例将Spring中的声明式事务服务抽取出来，与jBeanBox整合，也就是说这一次的整合只利用了Spring的事务服务，而不使用它的IOC/AOP内核 ，很诡异的组合，但目的很明确：取消XML配置。以下是jBeanBox整合了c3p0数据池+JDBCTemplate+Spring声明式事务的一个例子，实测通过:
-
+### jBeanBox的性能
+以下为jBeanBox的性能与其它IOC工具的对比(只对比DI注入功能，搭建一个由6个对象组成的实例树），可见jBeanBox创建非单例的速度大约为Guice的一半，但依然要比Spring快得多，是Spring的45倍左右。测试程序详见：[di-benchmark]（https://github.com/drinkjava2/di-benchmark)
 ```
-public class TesterBox extends BeanBox {//用于取代XML的JAVA配置类
-  static {//在默认全局单例上下文上设置AOP事务切面
-    BeanBox.defaultContext.setAOPAround("examples.example5_transaction.Test\\w*", "insert\\w*", 
-new TxInterceptorBox(), "invoke");
-  }
-
-  static class DSPoolBeanBox extends BeanBox {//C3P0数据池配置，为单例，下同
-    {
-      setClassOrValue(ComboPooledDataSource.class);
-      setProperty("jdbcUrl", "jdbc:mysql://127.0.0.1:3306/test?user=root&password=你的密码&
-characterEncoding=UTF-8");
-      setProperty("driverClass", "com.mysql.jdbc.Driver");// your jdbc driver name
-      setProperty("maxPoolSize", 10);
-    }
-  }
-
-  static class TxManagerBox extends BeanBox {//事务管理器配置，从Spring中抽取的
-    {
-      setClassOrValue(DataSourceTransactionManager.class);
-      setProperty("dataSource", DSPoolBeanBox.class);
-    }
-  }
-
-  static class TxInterceptorBox extends BeanBox {//AOP事务切面处理类，从Spring中抽取的
-    {
-      Properties props = new Properties();
-      props.put("insert*", "PROPAGATION_REQUIRED");
-      setConstructor(TransactionInterceptor.class, TxManagerBox.class, props);
-    }
-  }
-
-  public static class JdbcTemplateBox extends BeanBox {//JdbcTemplate模板配置，可换成dbUtils等
-    {
-      setConstructor(JdbcTemplate.class, DSPoolBeanBox.class);
-    }
-  }
-}
-
-public class Tester {//测试类
-  @InjectBox
-  private JdbcTemplate dao;//注入JdbcTemplateBox配置类生成的实例
-
-  public void insertUser() {
-    dao.execute("insert into users values ('User1')");
-    int i = 1 / 0; //抛出运行期错误，导致事务回滚
-    dao.execute("insert into users values ('User2')");
-  }
-
-  public static void main(String[] args) {
-    Tester tester = BeanBox.getBean(Tester.class);//从默认上下文获取类实例
-    tester.insertUser();
-  }
-}
-```
-此示例中需要额外用到C3P0、Mysql驱动(须安装MySQL并配置)以及Spring的一些包，运行"mvn test"可自动下载并测试。  
-
-示例7: 利用Java方法来手工生成实例。这种方式和Spring的Java配置类似，优点是实现了传统注入方式不支持的方法名重构，缺点是灵活性略差，在根据参数动态创建、修改配置和配置的继承重用上有局限性。jBeanBox支持Java方法回调和普通注入配置方式的混用。下面示例与示例5一样实现了同样的功能，但是用create回调方法来手工创建实例，用config回调方法来手工注入属性，(如运行在JAVA8下，强制类型转换可以省略)：
-```
-public class TesterBox extends BeanBox {
-  static {
-    BeanBox.defaultBeanBoxContext.close();// clean up
-    BeanBox.defaultBeanBoxContext.setAOPAround("examples.example6_type_safe.Test\\w*", "insert\\w*",
-        new TxInterceptorBox(), "invoke");
-  }
-
-  static class DSPoolBeanBox extends BeanBox {// Type-unsafe and type-safe configurations can mixed use.
-    public DataSource create() {
-      ComboPooledDataSource ds = new ComboPooledDataSource();
-      ds.setUser("root");
-      return ds;
-    }
-
-    public void config(ComboPooledDataSource ds) {
-      ds.setJdbcUrl("jdbc:mysql://127.0.0.1:3306/test");
-      ds.setPassword("root888");// change to your PWD
-      ds.setCheckoutTimeout(2000);
-    }
-
-    {    setProperty("driverClass", "com.mysql.jdbc.Driver");
-    }
-
-  }
-
-  static class TxManagerBox extends BeanBox {
-    public DataSourceTransactionManager create() {
-      DataSourceTransactionManager dm = new DataSourceTransactionManager();
-      dm.setDataSource((DataSource) context.getBean(DSPoolBeanBox.class));
-      return dm;
-    }
-  }
-
-  static class TxInterceptorBox extends BeanBox {// Advice
-    public TransactionInterceptor create() {
-      Properties props = new Properties();
-      props.put("insert*", "PROPAGATION_REQUIRED");
-      return new TransactionInterceptor((DataSourceTransactionManager) context.getBean(TxManagerBox.class),
-          props);
-    }
-  }
-
-  public static class JdbcTemplateBox extends BeanBox {
-    public JdbcTemplate create() {
-      return new JdbcTemplate((DataSource) context.getBean(DSPoolBeanBox.class));
-    }
-  }
-}
-
-```
-示例8 演示用注解来注入属性、构造函数参数和方法参数  
-目前jBeanBox有三种配置方式，初始块、Java方法、注解，这三种方式各有特点，初始块最灵活，可完全替代XML，但不支持方法名重构;Java方法回调是类型安全但灵活性差，对配置的继承和动态修改有问题;注解最简洁但仅适用于有源码的场合。这三种配置方法可以同时混合使用，互相补充。 参数用代号加数字指定，从1开始，如s1表示第一个String参数, i2表示第二个Integer参数,box3表示第三个BeanBox参数 (注： 从v2.4.2起下标改成从1开始而不是从0开始，更符合通常习惯)
-```
-public class Tester {
-  String name1;
-  String name2;
-
-  @InjectBox(s = "name3")
-  String name3;
-
-  AA a4, a5;
-
-  @InjectBox(s1 = "name1")
-  public Tester(String name1, AA a4) {//a4将自动找到配置类AABox
-    this.name1 = name1;
-    this.a4 = a4;
-  }
-
-  @InjectBox(s1 = "name2", box2 = A5Box.class)
-  public void injectBymethod(String name2, AA a5) {
-    this.name2 = name2;
-    this.a5 = a5;
-  }
-
-  public static class AA {
-    public String name;
-  }
-
-  public static class AABox extends BeanBox {
-    {
-      this.setProperty("name", "name4");
-    }
-  }
-
-  public static class A5Box extends BeanBox {
-    public AA create() {
-      AA aa = new AA();
-      aa.name = "name5";
-      return aa;
-    }
-  }
-
-  public static void main(String[] args) {
-    Tester t = BeanBox.getBean(Tester.class);
-    System.out.println("name1=" + t.name1); // name1=name1
-    System.out.println("name2=" + t.name2); // name2=name2
-    System.out.println("name3=" + t.name3); // name3=name3
-    System.out.println("name4=" + t.a4.name); // name4=name4
-    System.out.println("name5=" + t.a5.name); // name5=name5
-  }
-}
-```
-
-示例9 是一个简单的构造一个对象图的Benchmark测试，详细的测试已移到新项目[di-benchmark](https://github.com/drinkjava2/di-benchmark) 中，简单测试了一下，以下是测试结果：
-```
-Split Starting up DI containers & instantiating a dependency graph 100 times:
+Runtime benchmark, fetch new bean for 500000 times:
+---------------------------------------------------------
+                     Vanilla|    31ms
+                       Guice|  1154ms
+                     Feather|   624ms
+                      Dagger|   312ms
+                       Genie|   609ms
+                        Pico|  4555ms
+              jBeanBoxNormal|  2075ms
+            jBeanBoxTypeSafe|  2371ms
+          jBeanBoxAnnotation|  2059ms
+     SpringJavaConfiguration| 92149ms
+     SpringAnnotationScanned| 95504ms
+     
+     
+Split Starting up DI containers & instantiating a dependency graph 4999 times:
 -------------------------------------------------------------------------------
-                                      Vanilla| start:     1ms   fetch:     6ms
-                                        Guice| start:   727ms   fetch:   747ms
-                                      Feather| start:     6ms   fetch:    39ms
-                                       Dagger| start:    74ms   fetch:    48ms
-                                         Pico| start:   115ms   fetch:   127ms
-                                        Genie| start:   658ms   fetch:    89ms
-                               jBeanBoxNormal| start:     3ms   fetch:   123ms
-                             jBeanBoxTypeSafe| start:     1ms   fetch:    40ms
-                           jBeanBoxAnnotation| start:     1ms   fetch:   106ms
-                      SpringJavaConfiguration| start:  4542ms   fetch:   621ms
-                      SpringAnnotationScanned| start:  4668ms   fetch:   757ms
-```
+                     Vanilla| start:     0ms   fetch:     0ms
+                       Guice| start:  1046ms   fetch:  1560ms
+                     Feather| start:     0ms   fetch:   109ms
+                      Dagger| start:    46ms   fetch:   173ms
+                        Pico| start:   376ms   fetch:   217ms
+                       Genie| start:   766ms   fetch:   247ms
+              jBeanBoxNormal| start:    79ms   fetch:   982ms
+            jBeanBoxTypeSafe| start:     0ms   fetch:   998ms
+          jBeanBoxAnnotation| start:     0ms   fetch:   468ms
+     SpringJavaConfiguration| start: 51831ms   fetch:  1834ms
+     SpringAnnotationScanned| start: 70712ms   fetch:  4155ms
 
-Runtime benchmark
+Runtime benchmark, fetch singleton bean for 5000000 times:
+---------------------------------------------------------
+                     Vanilla|    47ms
+                       Guice|  1950ms
+                     Feather|   624ms
+                      Dagger|  2746ms
+                       Genie|   327ms
+                        Pico|  3385ms
+              jBeanBoxNormal|   188ms
+            jBeanBoxTypeSafe|   187ms
+          jBeanBoxAnnotation|   171ms
+     SpringJavaConfiguration|  1061ms
+     SpringAnnotationScanned|  1045ms
+```
+虽然IOC工具大多应用在单例场合，性能大家都差不多（因为从缓存中取)，但是如果遇到必须生成非单例的场合，例如每次访问生成一个新的页面实例，这时候Spring就不够看了, 至于启动速度，则更是慢到离谱了。
 
-```
-Runtime benchmark, fetch bean for 10000 times (Prototype):
---------------------------------------------------
-                                      Vanilla|    11ms
-                                        Guice|   153ms
-                                      Feather|    59ms
-                                       Dagger|    43ms
-                                        Genie|    52ms
-                                         Pico|   430ms
-                               jBeanBoxNormal|  3791ms
-                             jBeanBoxTypeSafe|   950ms
-                           jBeanBoxAnnotation|  4603ms
-                      SpringJavaConfiguration|  5003ms
-                      SpringAnnotationScanned|  6331ms
-```
 
-配置为单例后的测试结果(只比较jBeanBox和Spring):
-```
-Runtime benchmark, fetch bean for 100000 times:
---------------------------------------------------
-                               jBeanBoxNormal|    47ms
-                             jBeanBoxTypeSafe|    31ms
-                           jBeanBoxAnnotation|    78ms
-                      SpringJavaConfiguration|    94ms
-                      SpringAnnotationScanned|    78ms
-```
+以上就是对jBeanBox的介绍，没有别的文档了，因为毕竟它的核心源码也只有1千多行，有问题去看看它的源码可能更简单一些。  
 
-示例10 新添加了一个@AopAround注解，在需要AOP环绕回调的方法上加上这个注解即可，参数为Advice类或BeanBox类，例如标记Spring的声明式事务，可以简化为如下方式：
-```
-	@AopAround(TxInterceptorBox.class)
-	public void insertUser() {
-		insertUser1();
-		int count = dao.queryForObject("select count(*) from users", Integer.class);
-		System.out.println(count + " record inserted");
-		Assert.assertEquals(1, count);
-		System.out.println(1 / 0);// Throw a runtime Exception to roll back transaction
-		insertUser2();
-	}
-```
-AopAround注解的使用详见目录test.test9_aop_annotation。  
-另外从v2.4.6开始，jBeanBox支持自定义AOP环绕注解，只要用BeanBox.regAopAroundAnnotation(自定义注解.class, xxxBox.class);方法登记一下即可，后一个参数为AOP环绕回调的切面处理类。
-
-以上即为jBeanBox全部文档，如有疑问，请下载示例运行或查看源码。
+更多关于jBeanBox的用法还可以在jSqlBox项目中看到它的运用(数据源的配置、声明式事务示例等)。
