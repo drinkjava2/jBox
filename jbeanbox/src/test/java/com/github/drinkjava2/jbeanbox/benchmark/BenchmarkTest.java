@@ -26,7 +26,7 @@ public class BenchmarkTest {
 			REPEAT_TIMES = 3;// warm up
 			runTestMethods();
 			PRINT_TIMEUSED = true;
-			REPEAT_TIMES = 5000000;// change to 5000000 to do real test
+			REPEAT_TIMES = 5000;// change to 5000000 to do real test
 			System.out.println("Benchmark test for repeat " + REPEAT_TIMES + " times:");
 			runTestMethods();
 		} finally {

@@ -3,6 +3,12 @@ package com.github.drinkjava2.jbeanbox;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.autowired;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.value;
 
+import javax.annotation.PreDestroy;
+
+import org.aopalliance.intercept.Interceptor;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+
 import com.github.drinkjava2.jbeanbox.annotation.VALUE;
 
 /**
@@ -24,6 +30,9 @@ public class HelloWorld {
 		void setName(String name) {	this.name = name;}
 		
 		void init() {this.name = "User6";}
+		
+		@PreDestroy
+		void end() {this.name= "User9";}
 	}
 
 	public static class UserBox extends BeanBox {
@@ -38,11 +47,18 @@ public class HelloWorld {
 		User u3 = JBEANBOX.getBean(new BeanBox().injectConstruct(User.class, String.class, value("User3")));
 		User u4 = JBEANBOX.getBean(new BeanBox(User.class).injectValue("name", "User4" ));
 		User u5 = JBEANBOX
-				.getBean(new BeanBox().setBeanClass(User.class).injectMethod("setName", String.class, value("User5")));
+				.getBean(new BeanBox(User.class).injectMethod("setName", String.class, value("User5")));
 		User u6 = JBEANBOX.getBean(new BeanBox().setBeanClass(User.class).setPostConstruct("init"));
-		BeanBoxContext ctx = new BeanBoxContext();
+		
+		BeanBoxContext ctx = new BeanBoxContext(); 
+		Interceptor aop=new MethodInterceptor() { 
+			public Object invoke(MethodInvocation invocation) throws Throwable { 
+				invocation.getArguments()[0]="User8";
+				return invocation.proceed();
+			}
+		};
 		User u7 = ctx.bind(String.class, "7").bind("7", H7.class)
-				.getBean(ctx.getBeanBox(User.class).injectField("name", autowired()));
+				.getBean(ctx.getBeanBox(User.class).addMethodAop(aop, "setName",String.class).injectField("name", autowired())); 
 		System.out.println(u1.name); //Result: User1
 		System.out.println(u2.name); //Result: User2
 		System.out.println(u3.name); //Result: User3
@@ -50,5 +66,9 @@ public class HelloWorld {
 		System.out.println(u5.name); //Result: User5
 		System.out.println(u6.name); //Result: User6
 		System.out.println(u7.name); //Result: User7
+		u7.setName("");
+		System.out.println(u7.name); //Result: User8
+		ctx.close();
+		System.out.println(u7.name); //Result: User9 
 	}
 }

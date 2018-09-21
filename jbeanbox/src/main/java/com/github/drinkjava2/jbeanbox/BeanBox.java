@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.aopalliance.intercept.MethodInterceptor;
+
 /**
  * BeanBox is a virtual model tell system how to build or lookup bean instance
  *
@@ -237,7 +239,10 @@ public class BeanBox {
 			aops = new ArrayList<Object>();
 			methodAops.put(method, aops);
 		}
-		aops.add(aop);
+		if (aop != null && aop instanceof MethodInterceptor)
+			aops.add(new BeanBox().setTarget(aop).setPureValue(true).setRequired(true));
+		else
+			aops.add(aop);
 		return this;
 	}
 
@@ -282,8 +287,8 @@ public class BeanBox {
 		this.getFieldInjects().put(f, inject);
 		return this;
 	}
-	
-	//Compatible for old jBeanBox version 
+
+	// Compatible for old jBeanBox version
 	public BeanBox setProperty(String fieldName, Object constValue) {
 		return injectValue(fieldName, constValue);
 	}

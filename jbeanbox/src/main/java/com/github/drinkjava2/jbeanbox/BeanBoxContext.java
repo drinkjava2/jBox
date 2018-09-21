@@ -34,7 +34,6 @@ public class BeanBoxContext {
 
 	protected static boolean globalNextAllowAnnotation = true; // as title
 	protected static boolean globalNextAllowSpringJsrAnnotation = true; // as title
-
 	protected static ValueTranslator globalNextValueTranslator = new DefaultValueTranslator(); // see user manual
 
 	protected boolean allowAnnotation = globalNextAllowAnnotation;
@@ -83,7 +82,12 @@ public class BeanBoxContext {
 	public static void reset() {
 		globalBeanBoxContext.close();
 		globalNextAllowAnnotation = true;
+		globalNextAllowSpringJsrAnnotation = true;
+		globalNextValueTranslator = new DefaultValueTranslator();
+		CREATE_METHOD = "create";
+		CONFIG_METHOD = "config";
 		globalBeanBoxContext = new BeanBoxContext();
+
 	}
 
 	/**
