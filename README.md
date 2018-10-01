@@ -1,6 +1,6 @@
 # jBeanBox 
 **License:** [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)  
-(注：中文介绍请见[README-CH.md](README-CH.md)
+(注：中文介绍请见[README-CH.md](README-CH.md) )  
 
 jBeanBox is a micro-shaped but full-featured IOC/AOP tool. In addition to the imported third-party library, its core has only a dozen classes, and the source code is only about 1500 lines. It uses the "Box" programming model, using pure Java classes as a configuration. jBeanBox runs on JDK 1.6 or above.  
 The purpose of jBeanBox development is to overcome some of the problems of other IOC/AOP tools:  
@@ -236,7 +236,7 @@ public static class AopDemo1 {
 The above naming rules use "*" as a fuzzy matching character, representing any length, any character.
 
 #### Annotation mode AOP configuration
-The annotation method AOP has only two types, for the method and for the class, there is no context.
+The annotation method AOP has only two types, for method and for class.
 The annotation method requires a special annotation @AOP, which is used to customize the AOP annotations. The usage examples are as follows:
 ```
 public static class Interceptor1 implements MethodInterceptor {
