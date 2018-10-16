@@ -32,14 +32,20 @@ public class HelloWorld {
 		void init() {this.name = "User6";}
 		
 		@PreDestroy
-		void end() {this.name= "User9";}
+		void end() {this.name= "User10";}
 	}
 
 	public static class UserBox extends BeanBox {
 		Object create() {return new User("User2");}
 	}
+	
+	public static class UserBox7 extends BeanBox {
+		{   setBeanClass(User.class);
+			setProperty("name", "User7");
+		} 
+	}
 
-	public static class H7 extends UserBox {{setAsValue("User7");}}
+	public static class H8 extends UserBox {{setAsValue("User8");}}
  
 	public static void main(String[] args) {
 		User u1 = JBEANBOX.getInstance(User.class);
@@ -49,15 +55,16 @@ public class HelloWorld {
 		User u5 = JBEANBOX
 				.getBean(new BeanBox(User.class).injectMethod("setName", String.class, value("User5")));
 		User u6 = JBEANBOX.getBean(new BeanBox().setBeanClass(User.class).setPostConstruct("init"));
+		User u7 = new UserBox7().getBean();
 		
 		BeanBoxContext ctx = new BeanBoxContext(); 
 		Interceptor aop=new MethodInterceptor() { 
 			public Object invoke(MethodInvocation invocation) throws Throwable { 
-				invocation.getArguments()[0]="User8";
+				invocation.getArguments()[0]="User9";
 				return invocation.proceed();
 			}
 		};
-		User u7 = ctx.bind(String.class, "7").bind("7", H7.class)
+		User u8 = ctx.bind(String.class, "8").bind("8", H8.class)
 				.getBean(ctx.getBeanBox(User.class).addMethodAop(aop, "setName",String.class).injectField("name", autowired())); 
 		System.out.println(u1.name); //Result: User1
 		System.out.println(u2.name); //Result: User2
@@ -66,9 +73,10 @@ public class HelloWorld {
 		System.out.println(u5.name); //Result: User5
 		System.out.println(u6.name); //Result: User6
 		System.out.println(u7.name); //Result: User7
-		u7.setName("");
-		System.out.println(u7.name); //Result: User8
+		System.out.println(u8.name); //Result: User8
+		u8.setName("");
+		System.out.println(u8.name); //Result: User9
 		ctx.close();
-		System.out.println(u7.name); //Result: User9 
+		System.out.println(u8.name); //Result: User10 
 	}
 }

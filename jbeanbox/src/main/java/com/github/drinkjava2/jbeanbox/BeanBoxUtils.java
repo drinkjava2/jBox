@@ -21,6 +21,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 
+import org.aopalliance.intercept.MethodInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.github.drinkjava2.jbeanbox.annotation.AOP;
@@ -40,7 +41,7 @@ public class BeanBoxUtils {// NOSONAR
 
 	/**
 	 * Translate a BeanBox class or normal class to a readOnly BeanBox instance
-	 */ 
+	 */
 	public static BeanBox getUniqueBeanBox(BeanBoxContext ctx, Class<?> clazz) {
 		BeanBoxException.assureNotNull(clazz, "Target class can not be null");
 		BeanBox box = ctx.beanBoxMetaCache.get(clazz);
@@ -181,7 +182,7 @@ public class BeanBoxUtils {// NOSONAR
 					Map<String, Object> annoMap = changeAnnotationValuesToMap(anno);
 					Object aop = annoMap.get("value");
 					if (aop != null)
-						box.addAopToMethod(aop, m);
+						box.addMethodAop(aop, m);
 				}
 
 			// =========== method inject annotation ==============
@@ -322,8 +323,6 @@ public class BeanBoxUtils {// NOSONAR
 	 * "abc*def" matches "abcd.efg.ddef", "abcany*anydef"
 	 */
 	public static boolean nameMatch(String regex, String name) {
-		// System.out.println("reg"+regex);
-		// System.out.println("name"+name);
 		if (regex == null || regex.length() == 0 || name == null || name.length() == 0)
 			return false;
 		if ('*' == (regex.charAt(0))) {
@@ -331,11 +330,36 @@ public class BeanBoxUtils {// NOSONAR
 		} else if (regex.endsWith("*")) {
 			return name.startsWith(regex.substring(0, regex.length() - 1));
 		} else {
-			int starPos = regex.indexOf("*");
+			int starPos = regex.indexOf('*');
 			if (-1 == starPos)
 				return regex.equals(name);
 			return name.startsWith(regex.substring(0, starPos)) && name.endsWith(regex.substring(starPos + 1));
 		}
+	}
+
+	/**
+	 * If aop is a instance of Aop alliance Interceptor, wrap it to a BeanBox and
+	 * set as purevalue, otherwise direct return it (class or BeanBox)
+	 */
+	protected static Object checkAOP(Object aop) {
+		if (aop != null && aop instanceof MethodInterceptor)
+			return new BeanBox().setTarget(aop).setPureValue(true);
+		else
+			return aop;
+	}
+
+	/**
+	 * If param is class, wrap it to BeanBox, if param is BeanBox instance, direct
+	 * return it, otherwise wrap it as pure Value BeanBox
+	 */
+	protected static BeanBox wrapParamToBox(Object param) {
+		if (param != null) {
+			if (param instanceof Class)
+				return new BeanBox().setTarget(param);
+			if (param instanceof BeanBox)
+				return (BeanBox) param;
+		}
+		return new BeanBox().setAsValue(param);
 	}
 
 }

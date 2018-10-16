@@ -78,7 +78,7 @@ public class JavaAopTest {
 		}
 	}
 
-	public static class GlobalAOP implements MethodInterceptor {
+	public static class ContextAOP implements MethodInterceptor {
 		@Override
 		public Object invoke(MethodInvocation invocation) throws Throwable {
 			invocation.getArguments()[0] = "3";
@@ -96,8 +96,7 @@ public class JavaAopTest {
 
 	@Test
 	public void aopTest1() {
-		JBEANBOX.bctx().bind("3", GlobalAOP.class);
-		JBEANBOX.bctx().addGlobalAop("3", AopDemo1.class, "setEm*");
+		JBEANBOX.bctx().addContextAop(ContextAOP.class, AopDemo1.class, "setEm*");
 		AopDemo1 demo = JBEANBOX.getBean(AopDemo1Box.class);
 		demo.setName("--");
 		Assert.assertEquals("1", demo.name);

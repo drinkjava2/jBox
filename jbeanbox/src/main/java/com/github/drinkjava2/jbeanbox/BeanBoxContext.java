@@ -317,15 +317,15 @@ public class BeanBoxContext {
 		return this;
 	}
 
-	public BeanBoxContext addGlobalAop(Object aop, String classNameRegex, String methodNameRegex) {
+	public BeanBoxContext addContextAop(Object aop, String classNameRegex, String methodNameRegex) {
 		if (aopRules == null)
 			aopRules = new ArrayList<Object[]>();
-		aopRules.add(new Object[] { aop, classNameRegex, methodNameRegex });
+		aopRules.add(new Object[] { BeanBoxUtils.checkAOP(aop), classNameRegex, methodNameRegex });
 		return this;
 	}
 
-	public BeanBoxContext addGlobalAop(Object aop, Class<?> clazz, String methodNameRegex) {
-		return addGlobalAop(aop, clazz.getName() + "*", methodNameRegex);
+	public BeanBoxContext addContextAop(Object aop, Class<?> clazz, String methodNameRegex) {
+		return addContextAop(aop, clazz.getName() + "*", methodNameRegex);
 	}
 
 	public BeanBox getBeanBox(Class<?> clazz) {

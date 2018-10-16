@@ -70,6 +70,7 @@ class ProxyBean implements MethodInterceptor, Callback {
 
 		if (allInters.isEmpty())
 			return mprxy.invokeSuper(obj, args);
+		// inters can be AOP class, AOP instance, BeanBox class, BeanBox instance
 		org.aopalliance.intercept.MethodInterceptor inter = ctx.getBean(allInters.get(0));
 		BeanBoxException.assureNotNull(inter);
 		return inter.invoke(new MethodInvoc(obj, m, args, mprxy, allInters, ctx, 1));

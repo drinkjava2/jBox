@@ -15,15 +15,13 @@ import static com.github.drinkjava2.jbeanbox.JBEANBOX.autowired;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.inject;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.value;
 
-import java.lang.reflect.Constructor;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.drinkjava2.jbeanbox.AnnotationInjectTest.Bar;
-import com.github.drinkjava2.jbeanbox.AnnotationInjectTest.HelloBox;
-import com.github.drinkjava2.jbeanbox.annotation.INJECT;
+import com.github.drinkjava2.jbeanbox.AnnotationInjectTest.Single;
+import com.github.drinkjava2.jbeanbox.AnnotationInjectTest.SingleBox1;
+import com.github.drinkjava2.jbeanbox.AnnotationInjectTest.SingleBox2;
 
 /**
  * BeanBoxContextTest
@@ -40,6 +38,100 @@ public class JavaConfigInjectTest {
 		BeanBoxContext.reset();
 	}
 
+	public static class Foo {
+		int i = 1;
+	}
+
+	public static class Bar extends Foo {
+	}
+
+	public static class HelloBox extends BeanBox {
+		{
+			this.setAsValue("Hello");
+		}
+	}
+
+	protected void BasicTest__________________() {
+	}
+
+	@Test
+	public void getBean() {
+		// test pure value
+		Assert.assertEquals("Hello", new BeanBox().setAsValue("Hello").getBean());
+
+		JBEANBOX.bind("A", new BeanBox().setAsValue("Hello"));
+		Assert.assertEquals("Hello", JBEANBOX.getBean("A"));
+
+		// bind pure value
+		JBEANBOX.bind("D", "C").bind("C", "B").bind("B", "A");
+		Assert.assertEquals("Hello", JBEANBOX.getBean("D"));
+
+		BeanBox box1 = new BeanBox().setAsValue("Hello");
+		BeanBox box2 = new BeanBox().setTarget(box1);
+		Assert.assertEquals("Hello", box2.getBean());
+	}
+
+	@Test
+	public void getBeanByTarget1() { // Test target
+		Assert.assertEquals("Hello", new BeanBox().setTarget(HelloBox.class).getBean());
+		BeanBox a = new BeanBox().setTarget(new HelloBox());
+		Assert.assertEquals("Hello", a.getBean());
+
+		BeanBox b = new BeanBox().setTarget(a);
+		JBEANBOX.bind("C", "B").bind("B", b);
+		Assert.assertEquals("Hello", new BeanBox().setTarget("C").getBean());
+	}
+
+	@Test(expected = BeanBoxException.class)
+	public void getBeanByTarget2() { // Test target not found
+		JBEANBOX.getBean(new BeanBox().setTarget("AAA"));
+	}
+
+	@Test(expected = BeanBoxException.class)
+	public void getBeanByTarget3() { // Test target is String.class
+		JBEANBOX.getBean(new BeanBox().setTarget(String.class));
+	}
+
+	@Test
+	public void getBean4() {
+		Assert.assertNotEquals(JBEANBOX.getBean(Foo.class), JBEANBOX.getBean(Bar.class));
+
+		BeanBoxContext.reset();
+		BeanBox box = JBEANBOX.getBeanBox(Foo.class);
+		box.setTarget(Bar.class);
+		Assert.assertEquals(JBEANBOX.getBean(box), JBEANBOX.getBean(Bar.class));
+
+		BeanBoxContext.reset();
+		JBEANBOX.bind(Foo.class, Bar.class);
+		Assert.assertEquals(JBEANBOX.getBean(Foo.class), JBEANBOX.getBean(Bar.class));
+	}
+
+	@Test
+	public void bindTest() {
+		// Test
+		Assert.assertEquals("Hello", JBEANBOX.getBean(HelloBox.class));
+		Assert.assertEquals("Hello", JBEANBOX.getBean(new HelloBox()));
+
+		BeanBox a = new HelloBox();
+		JBEANBOX.bind("A", a);
+		Assert.assertEquals("Hello", JBEANBOX.getBean("A"));
+
+		JBEANBOX.bind("C", "B").bind("B", "A");
+		Assert.assertEquals("Hello", JBEANBOX.getBean("C"));
+
+		Object o = new BeanBox().setTarget(new BeanBox().setTarget(a)).getBean();
+		Assert.assertEquals("Hello", o);
+	}
+
+	@Test
+	public void singletonTest() {
+		Assert.assertTrue(JBEANBOX.getBean(Single.class) == JBEANBOX.getBean(Single.class));
+		Assert.assertTrue(JBEANBOX.getBean(SingleBox1.class) == JBEANBOX.getBean(SingleBox1.class));
+		Assert.assertTrue(JBEANBOX.getBean(SingleBox2.class) == JBEANBOX.getBean(SingleBox2.class));
+		JBEANBOX.bind("s1", Single.class);
+		Assert.assertTrue(JBEANBOX.getBean("s1") == JBEANBOX.getBean(Single.class));
+	}
+
 	protected void ClassInject_____________________() {
 	}
 
@@ -52,10 +144,6 @@ public class JavaConfigInjectTest {
 	@Test
 	public void classInjectTest1() {
 		Assert.assertEquals("Foo", JBEANBOX.getBean(ConstBox.class));
-	}
-
-	public static class Foo {
-		int i = 1;
 	}
 
 	public static class FooBox extends BeanBox {
@@ -89,8 +177,8 @@ public class JavaConfigInjectTest {
 	public static class C1 { int i = 0;   public C1() { i = 2; } } 
 	public static class C2 { int i = 0;   public C2(  int a) { i = a; } } 
 	public static class C4 { int i = 0;  public C4( Integer a,  byte b ) { i = b; } }
-	public static class C5 { Object o ; @INJECT(value=Bar.class, pureValue=true) public C5(Object a) { o = a; } }
-	public static class C6 { Object o1,o2 ; @INJECT public C6(CA a, CB b) { o1 = a; o2=b; } }
+	public static class C5 { Object o;   public C5(Object a) { o = a; } }
+	public static class C6 { Object o1, o2 ;  public C6(CA a, CB b) { o1 = a; o2=b; } }
 	//@formatter:on
 
 	@Test
@@ -98,11 +186,11 @@ public class JavaConfigInjectTest {
 		C1 bean = JBEANBOX.getInstance(C1.class);
 		Assert.assertEquals(2, bean.i);
 
-		BeanBox box = new BeanBox().injectConstruct(C2.class, int.class, value(2));
+		BeanBox box = new BeanBox().injectConstruct(C2.class, int.class, 2);
 		C2 bean2 = JBEANBOX.getBean(box);
 		Assert.assertEquals(2, bean2.i);
 
-		box = new BeanBox().injectConstruct(C4.class, Integer.class, byte.class, value("2"), value("2"));
+		box = new BeanBox().injectConstruct(C4.class, Integer.class, byte.class, "2", "2");
 		C4 bean4 = JBEANBOX.getBean(box);
 		Assert.assertEquals(2, bean4.i);
 
@@ -165,9 +253,9 @@ public class JavaConfigInjectTest {
 	public void fieldInjectTest1() {
 		BeanBox box = new BeanBox().setBeanClass(FieldInject2.class);
 		box.injectField("field0", inject(false, false, false));
-		box.injectField("field1", inject(ClassA.class, false, true));
-		box.injectField("field2", inject(ClassA.class, false, false));
-		box.injectField("field3", inject(HelloBox.class));
+		box.injectField("field1", inject(ClassA.class));
+		box.injectField("field2", ClassA.class);
+		box.injectField("field3", HelloBox.class);
 		box.injectValue("field4", true);
 		box.injectValue("field5", 5L);
 		box.injectField("field6", value("6"));
@@ -224,9 +312,9 @@ public class JavaConfigInjectTest {
 	@Test
 	public void methodInjectTest() {
 		BeanBox box = new BeanBox().setBeanClass(MethodInject1.class);
-		box.injectMethod("method1", String.class, inject(HelloBox.class));
-		box.injectMethod("method3", long.class, value("3"));
-		box.injectMethod("method4", boolean.class, value("true"));
+		box.injectMethod("method1", String.class, HelloBox.class);
+		box.injectMethod("method3", long.class, "3");
+		box.injectMethod("method4", boolean.class, "true");
 		box.injectMethod("method5", String.class, Byte.class, inject(HelloBox.class), value("5"));
 		box.injectMethod("method6", CA.class, autowired());
 

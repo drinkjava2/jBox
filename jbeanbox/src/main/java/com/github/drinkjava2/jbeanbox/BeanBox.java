@@ -17,8 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.aopalliance.intercept.MethodInterceptor;
-
 /**
  * BeanBox is a virtual model tell system how to build or lookup bean instance
  *
@@ -194,7 +192,7 @@ public class BeanBox {
 			for (int i = 0; i < mid; i++)
 				paramTypes[i] = (Class<?>) configs[i];
 			for (int i = mid; i < configs.length; i++) {
-				params[i - mid] = (BeanBox) configs[i];
+				params[i - mid] = BeanBoxUtils.wrapParamToBox(configs[i]);
 				params[i - mid].setType(paramTypes[i - mid]);
 			}
 			this.constructor = BeanBoxUtils.getConstructor(clazz, paramTypes);
@@ -215,7 +213,7 @@ public class BeanBox {
 		for (int i = 0; i < mid; i++)
 			paramTypes[i] = (Class<?>) configs[i];
 		for (int i = mid; i < configs.length; i++) {
-			params[i - mid] = (BeanBox) configs[i];
+			params[i - mid] = BeanBoxUtils.wrapParamToBox(configs[i]);
 			params[i - mid].setType(paramTypes[i - mid]);
 		}
 		Method m = ReflectionUtils.findMethod(beanClass, methodName, paramTypes);
@@ -232,17 +230,14 @@ public class BeanBox {
 	 * a @Tx annotation on method. But this method allow aop can be annotation class
 	 * or interceptor class for both
 	 */
-	public synchronized BeanBox addAopToMethod(Object aop, Method method) {
+	public synchronized BeanBox addMethodAop(Object aop, Method method) {
 		checkOrCreateMethodAops();
 		List<Object> aops = methodAops.get(method);
 		if (aops == null) {
 			aops = new ArrayList<Object>();
 			methodAops.put(method, aops);
 		}
-		if (aop != null && aop instanceof MethodInterceptor)
-			aops.add(new BeanBox().setTarget(aop).setPureValue(true).setRequired(true));
-		else
-			aops.add(aop);
+		aops.add(BeanBoxUtils.checkAOP(aop));
 		return this;
 	}
 
@@ -257,13 +252,21 @@ public class BeanBox {
 		checkOrCreateMethodAops();
 		Method m = ReflectionUtils.findMethod(beanClass, methodName, paramTypes);
 		BeanBoxException.assureNotNull(m, "Not found method: '" + methodName + "'");
-		addAopToMethod(aop, m);
+		addMethodAop(aop, m);
 		return this;
 	}
 
+	/**
+	 * Add an AOP to Bean
+	 * 
+	 * @param aop
+	 *            An AOP alliance interceptor class or instance
+	 * @param methodNameRegex
+	 * @return
+	 */
 	public synchronized BeanBox addBeanAop(Object aop, String methodNameRegex) {
 		checkOrCreateMethodAopRules();
-		aopRules.add(new Object[] { aop, methodNameRegex });
+		aopRules.add(new Object[] { BeanBoxUtils.checkAOP(aop), methodNameRegex });
 		return this;
 	}
 
@@ -279,20 +282,25 @@ public class BeanBox {
 		return this;
 	}
 
-	public BeanBox injectField(String fieldName, BeanBox inject) {
+	/** 
+	 * Inject class, BeanBox class or instance, 
+	 */
+	public BeanBox injectField(String fieldName, Object inject) {
+		BeanBox box = BeanBoxUtils.wrapParamToBox(inject);
 		checkOrCreateFieldInjects();
 		Field f = ReflectionUtils.findField(beanClass, fieldName);
-		inject.setType(f.getType());
+		box.setType(f.getType());
 		ReflectionUtils.makeAccessible(f);
-		this.getFieldInjects().put(f, inject);
+		this.getFieldInjects().put(f, box);
 		return this;
 	}
 
-	// Compatible for old jBeanBox version
+	/** Compatible for old jBeanBox version, Inject a pure value to Field */
 	public BeanBox setProperty(String fieldName, Object constValue) {
-		return injectValue(fieldName, constValue);
+		return injectField(fieldName, constValue);
 	}
 
+	/** Inject a pure value to Field */
 	public BeanBox injectValue(String fieldName, Object constValue) {
 		checkOrCreateFieldInjects();
 		Field f = ReflectionUtils.findField(beanClass, fieldName);

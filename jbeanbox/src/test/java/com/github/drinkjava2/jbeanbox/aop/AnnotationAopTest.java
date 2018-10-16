@@ -57,7 +57,7 @@ public class AnnotationAopTest {
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target({ ElementType.TYPE })
 	@AOP
-	public static @interface MyAop1 {
+	public static @interface BeanAop {
 		public Class<?> value() default Interceptor1.class;
 
 		public String method() default "setNa*";
@@ -66,11 +66,11 @@ public class AnnotationAopTest {
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target({ ElementType.METHOD })
 	@AOP
-	public static @interface MyAop2 {
+	public static @interface MethodAop {
 		public Class<?> value() default Interceptor2.class;
 	}
 
-	@MyAop1
+	@BeanAop
 	public static class AopDemo1 {
 		String name;
 		String address;
@@ -79,7 +79,7 @@ public class AnnotationAopTest {
 			this.name = name;
 		}
 
-		@MyAop2
+		@MethodAop
 		public void setAddress(String address) {
 			this.address = address;
 		}

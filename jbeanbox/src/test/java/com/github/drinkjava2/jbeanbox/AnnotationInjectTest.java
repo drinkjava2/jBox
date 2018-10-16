@@ -58,15 +58,6 @@ public class AnnotationInjectTest {
 		}
 	}
 
-	@Test
-	public void singletonTest() {
-		Assert.assertTrue(JBEANBOX.getBean(Single.class) == JBEANBOX.getBean(Single.class));
-		Assert.assertTrue(JBEANBOX.getBean(SingleBox1.class) == JBEANBOX.getBean(SingleBox1.class));
-		Assert.assertTrue(JBEANBOX.getBean(SingleBox2.class) == JBEANBOX.getBean(SingleBox2.class));
-		JBEANBOX.bind("s1", Single.class);
-		Assert.assertTrue(JBEANBOX.getBean("s1") == JBEANBOX.getBean(Single.class));
-	}
-
 	@PROTOTYPE
 	public static class Proto {
 	}
@@ -84,86 +75,16 @@ public class AnnotationInjectTest {
 		Assert.assertTrue(JBEANBOX.getBean(Proto2.class) != JBEANBOX.getBean(Proto2.class));
 	}
 
-	protected void BindTest_____________________() {
-	}
-
-	//@formatter:off
-	public static class HelloBox extends BeanBox {{this.setAsValue("Hello"); }} 
-	//@formatter:on
-
-	@Test
-	public void getBean() {
-		// test pure value
-		Assert.assertEquals("Hello", new BeanBox().setAsValue("Hello").getBean());
-
-		JBEANBOX.bind("A", new BeanBox().setAsValue("Hello"));
-		Assert.assertEquals("Hello", JBEANBOX.getBean("A"));
-
-		// bind pure value
-		JBEANBOX.bind("D", "C").bind("C", "B").bind("B", "A");
-		Assert.assertEquals("Hello", JBEANBOX.getBean("D"));
-
-		BeanBox box1 = new BeanBox().setAsValue("Hello");
-		BeanBox box2 = new BeanBox().setTarget(box1);
-		Assert.assertEquals("Hello", box2.getBean());
-	}
-
-	@Test
-	public void getBeanByTarget1() { // Test target
-		Assert.assertEquals("Hello", new BeanBox().setTarget(HelloBox.class).getBean());
-		BeanBox a = new BeanBox().setTarget(new HelloBox());
-		Assert.assertEquals("Hello", a.getBean());
-
-		BeanBox b = new BeanBox().setTarget(a);
-		JBEANBOX.bind("C", "B").bind("B", b);
-		Assert.assertEquals("Hello", new BeanBox().setTarget("C").getBean());
-	}
-
-	@Test(expected = BeanBoxException.class)
-	public void getBeanByTarget2() { // Test target not found
-		JBEANBOX.getBean(new BeanBox().setTarget("AAA"));
-	}
-
-	@Test(expected = BeanBoxException.class)
-	public void getBeanByTarget3() { // Test target is String.class
-		JBEANBOX.getBean(new BeanBox().setTarget(String.class));
-	}
-
-	@Test
-	public void bindTest() {
-		// Test
-		Assert.assertEquals("Hello", JBEANBOX.getBean(HelloBox.class));
-		Assert.assertEquals("Hello", JBEANBOX.getBean(new HelloBox()));
-
-		BeanBox a = new HelloBox();
-		JBEANBOX.bind("A", a);
-		Assert.assertEquals("Hello", JBEANBOX.getBean("A"));
-
-		JBEANBOX.bind("C", "B").bind("B", "A");
-		Assert.assertEquals("Hello", JBEANBOX.getBean("C"));
-
-		Object o = new BeanBox().setTarget(new BeanBox().setTarget(a)).getBean();
-		Assert.assertEquals("Hello", o);
+	public static class HelloBox extends BeanBox {
+		{
+			this.setAsValue("Hello");
+		}
 	}
 
 	public static class Foo {
 	}
 
 	public static class Bar extends Foo {
-	}
-
-	@Test
-	public void getBean4() {
-		Assert.assertNotEquals(JBEANBOX.getBean(Foo.class), JBEANBOX.getBean(Bar.class));
-
-		BeanBoxContext.reset();
-		BeanBox box = JBEANBOX.getBeanBox(Foo.class);
-		box.setTarget(Bar.class);
-		Assert.assertEquals(JBEANBOX.getBean(box), JBEANBOX.getBean(Bar.class));
-
-		BeanBoxContext.reset();
-		JBEANBOX.bind(Foo.class, Bar.class);
-		Assert.assertEquals(JBEANBOX.getBean(Foo.class), JBEANBOX.getBean(Bar.class));
 	}
 
 	protected void ClassInject_____________________() {

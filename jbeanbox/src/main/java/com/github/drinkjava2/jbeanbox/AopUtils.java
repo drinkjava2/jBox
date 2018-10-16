@@ -12,7 +12,7 @@ package com.github.drinkjava2.jbeanbox;
 import com.github.drinkjava2.cglib3_2_0.proxy.Enhancer;
 
 /**
- * ProxyBeanUtils use Objenesis and Cglib to create AOP proxy bean
+ * AopUtils create AOP proxy bean
  * 
  * @author Yong Zhu
  * @since 2.4
@@ -20,8 +20,19 @@ import com.github.drinkjava2.cglib3_2_0.proxy.Enhancer;
  */
 public class AopUtils {// NOSONAR
 
-	public static Object createProxyBean(Class<?> clazz, BeanBox box, BeanBoxContext ctx) { 
-		BeanBoxException.assureNotNull(clazz, "To create a CGLib proxy, beanClass can not be null");
+	/**
+	 * Create a ProxyBean
+	 * 
+	 * @param clazz
+	 *            The target class
+	 * @param box
+	 *            The BeanBox of target class
+	 * @param ctx
+	 *            The BeanBoxContext
+	 * @return A Proxy Bean with AOP support
+	 */
+	public static Object createProxyBean(Class<?> clazz, BeanBox box, BeanBoxContext ctx) {
+		BeanBoxException.assureNotNull(clazz, "Try to create a proxy bean, but beanClass not found.");
 		Enhancer enhancer = new Enhancer();
 		enhancer.setSuperclass(clazz);
 		if (box.getConstructorParams() != null && box.getConstructorParams().length > 0) {
