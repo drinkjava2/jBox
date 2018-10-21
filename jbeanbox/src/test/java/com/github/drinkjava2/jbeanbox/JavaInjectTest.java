@@ -31,7 +31,7 @@ import com.github.drinkjava2.jbeanbox.AnnotationInjectTest.SingleBox2;
  *
  */
 @SuppressWarnings("unused")
-public class JavaConfigInjectTest {
+public class JavaInjectTest {
 
 	@Before
 	public void init() {

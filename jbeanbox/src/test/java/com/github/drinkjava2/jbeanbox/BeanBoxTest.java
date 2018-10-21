@@ -1,8 +1,6 @@
 package com.github.drinkjava2.jbeanbox;
 
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
 
 /**
  * BeanBoxTest
@@ -14,12 +12,6 @@ public class BeanBoxTest {
 	@Before
 	public void init() {
 		BeanBoxContext.reset();
-	}
-
-	@Test
-	public void getDebugInfo() {
-		BeanBox box = new BeanBox();
-		Assert.assertNotNull(box.getDebugInfo());
 	}
 
 }

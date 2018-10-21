@@ -30,8 +30,7 @@ import java.util.regex.Pattern;
  
 
 /**
- * This class is copied from Spring 3.2.16, only change is removed declaredMethodsCache
- * Simple utility class for working with the reflection API and handling reflection exceptions.
+ * This class is copied from Spring 3.2.16, but made some little change
  *
  * <p>
  * Only intended for internal use.
@@ -42,7 +41,7 @@ import java.util.regex.Pattern;
  * @author Costin Leau
  * @author Sam Brannen
  * @author Chris Beams 
- * @author Yong Zhu
+ * @author Yong Zhu 
  * @since 1.2.2
  */
 public abstract class ReflectionUtils {
@@ -468,10 +467,7 @@ public abstract class ReflectionUtils {
 	 * @see java.lang.reflect.Field#setAccessible
 	 */
 	public static void makeAccessible(Field field) {
-		if ((!Modifier.isPublic(field.getModifiers()) || !Modifier.isPublic(field.getDeclaringClass().getModifiers())
-				|| Modifier.isFinal(field.getModifiers())) && !field.isAccessible()) {
-			field.setAccessible(true);
-		}
+		field.setAccessible(true);//YongZ Changed
 	}
 
 	/**
@@ -484,10 +480,7 @@ public abstract class ReflectionUtils {
 	 * @see java.lang.reflect.Method#setAccessible
 	 */
 	public static void makeAccessible(Method method) {
-		if ((!Modifier.isPublic(method.getModifiers()) || !Modifier.isPublic(method.getDeclaringClass().getModifiers()))
-				&& !method.isAccessible()) {
-			method.setAccessible(true);
-		}
+		method.setAccessible(true);//YongZ Changed
 	}
 
 	/**
@@ -500,10 +493,7 @@ public abstract class ReflectionUtils {
 	 * @see java.lang.reflect.Constructor#setAccessible
 	 */
 	public static void makeAccessible(Constructor<?> ctor) {
-		if ((!Modifier.isPublic(ctor.getModifiers()) || !Modifier.isPublic(ctor.getDeclaringClass().getModifiers()))
-				&& !ctor.isAccessible()) {
-			ctor.setAccessible(true);
-		}
+		ctor.setAccessible(true);//YongZ Changed
 	}
 
 	/**
@@ -767,4 +757,21 @@ public abstract class ReflectionUtils {
 		}
 	};
 
+	/** Get all fields of a class includes its super class's fields */
+	public static List<Field> getSelfAndSuperClassFields(Class<?> clazz) {//YongZ added this method
+		List<Field> fields = new ArrayList<Field>();
+		for (Field field : clazz.getDeclaredFields())
+			fields.add(field);
+
+		Class<?> superclass = clazz.getSuperclass();
+		while (superclass != null) {
+			if (Object.class.equals(superclass)) {
+				break;
+			}
+			for (Field field : superclass.getDeclaredFields())
+				fields.add(field);
+			superclass = superclass.getSuperclass();
+		}
+		return fields;
+	} 
 }

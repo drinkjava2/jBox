@@ -144,8 +144,8 @@ public class BeanBoxUtils {// NOSONAR
 		}
 
 		// =================Field inject=================
-		// @INJECT and values, for annotations, no need care about parent class's method
-		for (Field f : clazz.getDeclaredFields()) {
+		// @INJECT annotations on fields include super class's
+		for (Field f : ReflectionUtils.getSelfAndSuperClassFields(clazz)) {
 			v = getInjectAnnotationAsArray(f, allowSpringJsrAnno);
 			if (v != null) {
 				box.checkOrCreateFieldInjects();
@@ -159,8 +159,9 @@ public class BeanBoxUtils {// NOSONAR
 			}
 		}
 
-		Method[] methods = clazz.getDeclaredMethods();// no need care about parent class's method
-		for (Method m : methods) {
+		// @INJECT annotations on methods include super class's
+		Method[] methods = ReflectionUtils.getAllDeclaredMethods(clazz); 
+		for (Method m : methods) { 
 			// ========== @PostConstruct and @PreDestory
 			if (m.getAnnotation(POSTCONSTRUCT.class) != null || m.getAnnotation(PostConstruct.class) != null) {
 				if (m.getParameterTypes().length > 0)
@@ -361,5 +362,7 @@ public class BeanBoxUtils {// NOSONAR
 		}
 		return new BeanBox().setAsValue(param);
 	}
+
+ 
 
 }
