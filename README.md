@@ -95,7 +95,7 @@ public class HelloWorld {
 	}
 }
 ```
-这个例子的输出结果是依次打印出“User1” 、“User2”...到“User9”。下面遂一解释：
+这个例子的输出结果是依次打印出“User1” 、“User2”...到“User10”。下面遂一解释：
 1. 每一个利用了@VALUE("User1")注解，进行了构造器注入
 2. 每二个利用一个jBeanBox的纯Java配置类UserBox，这是一个纯粹的Java类（不象Spring中的Java配置类是一个非常特殊的类，它在运行期会产生一个代理类）, 在这个示例里它的create方法手工生成了一个User("User2")对象。
 3. 第三个是动态生成一个BeanBox配置，动态配置它的构造器注入，注入值为"User3"。
@@ -103,9 +103,9 @@ public class HelloWorld {
 5. 第五个是方法注入的演示，注入参数依次为：方法名、参数类型们、实际参数们。
 6. 第六个是setPostConstruct注入，等效于@PostConstruct注解，即Bean生成后立即执行的方法为init()方法。
 7. 第七个UserBox7是一个普通的BeanBox配置类，它设定了Bean类型，这种方式将调用它的无参构造器生成实例，然后注入它的name属性为"User7"。
-7. 第八个比较复杂，ctx是一个新的上下文实例，它先获取User.class的固定配置，然后给它的setName方法添加一个AOP切面，然后注入"name"字段为autowired类型，也就是说String类型，不过在此之前String类被绑定到字符串"7",字符串"7"又绑定到H2.class，H7又继承于UserBox，UserBox又返回"User2"，然而都是浮云，因为H7本身被配置成一个值类型"User7"，于是最后输出结果是“User7”。
-8. 第九个比较简单，因为setName方法被添加了一个AOP拦截器，参数被改成了"User9"。
-9. 第十个是因为ctx这个上下文结束，所有单例被@PreDestroy标注的方法会执行，这是一个标准JSR250注解。
+8. 第八个比较复杂，ctx是一个新的上下文实例，它先获取User.class的固定配置，然后给它的setName方法添加一个AOP切面，然后注入"name"字段为autowired类型，也就是说String类型，不过在此之前String类被绑定到字符串"7",字符串"7"又绑定到H2.class，H7又继承于UserBox，UserBox又返回"User2"，然而都是浮云，因为H7本身被配置成一个值类型"User7"，于是最后输出结果是“User7”。
+9. 第九个比较简单，因为setName方法被添加了一个AOP拦截器，参数被改成了"User9"。
+10. 第十个是因为ctx这个上下文结束，所有单例被@PreDestroy标注的方法会执行
 
 上例除了一头一尾外，主要演示了jBeanBox的Java方法配置，Java方法即可以动态执行，也可以在定义好的BeanBox类中作为固定配置执行，固定的配置可以打下配置的基调，当固定配置需要变动时可以用同样的Java方法来进行调整(因为本来就是同一个BeanBox对象)甚至临时创建出新的配置，所以jBeanBox同时具有了固定配置和动态配置的优点。另外当没有源码时，例如配置第三方库的实例，这时所有的注解方式配置都用不上，唯一能用的只有Java配置方式。
 
@@ -197,10 +197,10 @@ public static class FieldInject2 {
 	@Autowired(required = false)
 	public String field7 = "7"; //如果找不到String类型的绑定，不报错
 
-	@Inject
+	@Inject       //演示兼容JSR的@Inject注解
 	public CA ca; //返回CA.class的实例
 
-	@Autowired
+	@Autowired    //演示兼容Spring的@Autowired注解
 	public CB cb; //返回CB.class的实例
 }
 
@@ -241,7 +241,7 @@ public static class MethodInject1 {
 	}
 
 	@INJECT
-	private void method6(CA a) {
+	private void method6(CA a) { //没有配置的参数，按类型自动注入
 		this.a = a;
 	}
 }

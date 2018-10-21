@@ -11,12 +11,12 @@ The purpose of jBeanBox development is to overcome some of the problems of other
 5. Genie: This is the kernel of ActFramework, just a DI tool, not support AOP.  
 
 ### How to use jBeanBox?  
-Manually download jbeanbox-2.4.8.jar put into the project's class path, or add the following configuration to pom.xml:
+Manually download jbeanbox-2.4.9.jar put into the project's class path, or add the following configuration to pom.xml:
 ```
 <dependency>
     <groupId>com.github.drinkjava2</groupId>
     <artifactId>jbeanbox</artifactId>
-    <version>2.4.9</version> <!--Or newest-->
+    <version>2.4.9</version> <!--or newest-->
 </dependency>
 ``` 
 jBeanBox does not depend on any third-party libraries. To avoid package conflicts, third-party libraries such as CGLIB that it uses are included in jBeanBox by source code.  
@@ -25,78 +25,87 @@ jBeanBox jar size is large, about 750K, if you do not need AOP feature, you can 
 <dependency>
     <groupId>com.github.drinkjava2</groupId>
     <artifactId>jbeanboxdi</artifactId>
-    <version>2.4.9</version> <!--Or newest-->
+    <version>2.4.9</version> <!--or newest-->
 </dependency>
 ``` 
 
 ### First jBeanBox demo£º  
-The demo shows 9 different injection methods:  
+The demo shows 10 different injection methods:  
 ```
 public class HelloWorld {
-  public static class User {
-    String name;    
-    
-    public User() {   }    
-    
-    @VALUE("User1")  
-    public User(String name) { this.name = name; }   
-    
-    void setName(String name) { this.name = name; } 
-    
-    void init() {this.name = "User6";}    
-    
-    @PreDestroy 
-    void end() {this.name= "User9";}
-  }
+	public static class User {
+		String name;
+		
+		public User() {}
+		
+		@VALUE("User1")
+		public User(String name) {	this.name = name;}
+		
+		void setName(String name) {	this.name = name;}
+		
+		void init() {this.name = "User6";}
+		
+		@PreDestroy
+		void end() {this.name= "User10";}
+	}
 
-  public static class UserBox extends BeanBox {
-     Object create() {return new User("User2");}
-  }
+	public static class UserBox extends BeanBox {
+		Object create() {return new User("User2");}
+	}
+	
+	public static class UserBox7 extends BeanBox {
+		{   setBeanClass(User.class);
+			setProperty("name", "User7");
+		} 
+	}
 
-  public static class H7 extends UserBox {{setAsValue("User7");}}
+	public static class H8 extends UserBox {{setAsValue("User8");}}
  
-  public static void main(String[] args) {
-    User u1 = JBEANBOX.getInstance(User.class);
-    User u2 = JBEANBOX.getBean(UserBox.class);
-    User u3 = JBEANBOX.getBean(new BeanBox().injectConstruct(User.class, String.class, value("User3")));
-    User u4 = JBEANBOX.getBean(new BeanBox(User.class).injectValue("name", "User4" ));
-    User u5 = JBEANBOX
-        .getBean(new BeanBox(User.class).injectMethod("setName", String.class, value("User5")));
-    User u6 = JBEANBOX.getBean(new BeanBox().setBeanClass(User.class).setPostConstruct("init"));
-    
-    BeanBoxContext ctx = new BeanBoxContext(); 
-    Interceptor aop=new MethodInterceptor() { 
-      public Object invoke(MethodInvocation invocation) throws Throwable { 
-        invocation.getArguments()[0]="User8";
-        return invocation.proceed();
-      }
-    };
-    User u7 = ctx.bind(String.class, "7").bind("7", H7.class)
-      .getBean(ctx.getBeanBox(User.class).addMethodAop(aop, "setName",String.class).injectField("name", autowired())); 
-    System.out.println(u1.name); //Result: User1
-    System.out.println(u2.name); //Result: User2
-    System.out.println(u3.name); //Result: User3
-    System.out.println(u4.name); //Result: User4
-    System.out.println(u5.name); //Result: User5
-    System.out.println(u6.name); //Result: User6
-    System.out.println(u7.name); //Result: User7
-    u7.setName("");
-    System.out.println(u7.name); //Result: User8
-    ctx.close();
-    System.out.println(u7.name); //Result: User9 
-  }
-} 
+	public static void main(String[] args) {
+		User u1 = JBEANBOX.getInstance(User.class);
+		User u2 = JBEANBOX.getBean(UserBox.class);
+		User u3 = JBEANBOX.getBean(new BeanBox().injectConstruct(User.class, String.class, value("User3")));
+		User u4 = JBEANBOX.getBean(new BeanBox(User.class).injectValue("name", "User4" ));
+		User u5 = JBEANBOX
+				.getBean(new BeanBox(User.class).injectMethod("setName", String.class, value("User5")));
+		User u6 = JBEANBOX.getBean(new BeanBox().setBeanClass(User.class).setPostConstruct("init"));
+		User u7 = new UserBox7().getBean();
+		
+		BeanBoxContext ctx = new BeanBoxContext(); 
+		Interceptor aop=new MethodInterceptor() { 
+			public Object invoke(MethodInvocation invocation) throws Throwable { 
+				invocation.getArguments()[0]="User9";
+				return invocation.proceed();
+			}
+		};
+		User u8 = ctx.bind(String.class, "8").bind("8", H8.class)
+				.getBean(ctx.getBeanBox(User.class).addMethodAop(aop, "setName",String.class).injectField("name", autowired())); 
+		System.out.println(u1.name); //Result: User1
+		System.out.println(u2.name); //Result: User2
+		System.out.println(u3.name); //Result: User3
+		System.out.println(u4.name); //Result: User4
+		System.out.println(u5.name); //Result: User5
+		System.out.println(u6.name); //Result: User6
+		System.out.println(u7.name); //Result: User7
+		System.out.println(u8.name); //Result: User8
+		u8.setName("");
+		System.out.println(u8.name); //Result: User9
+		ctx.close();
+		System.out.println(u8.name); //Result: User10 
+	}
+}
 ```
-The output of this example is to print out "User1", "User2"... to "User9" in sequence. Here is explanation:  
-1. Constructor injection using the @VALUE("User1") annotation.  
-2. UserBox is a pure Java configuration class of jBeanBox. This Java class is a pure Java class (unlike the Java configuration class in Spring is a very special class, it will generate a proxy class at runtime), which can be used. Common design patterns such as class inheritance and method rewriting. In this example its create method manually generates a User("User2") object.  
-3. The third is to dynamically generate a BeanBox configuration, dynamically configure its constructor injection, and inject the value "User3".  
-4. The fourth is also a dynamic configuration that demonstrates the field injection, with the injected value being the constant "User4".  
-5. The fifth is a demonstration of method injection. The injection parameters are: method name, parameter type, and actual parameters.  
-6. The sixth is setPostConstruct injection, equivalent to the @PostConstruct annotation, that is, the method executed immediately after the bean is generated is the init() method.  
-7. The seventh is more complicated. ctx is a new context instance. It first gets the fixed configuration of User.class, then adds an AOP aspect to its setName method, and then injects the "name" field into autowired type.   String type, but before this String class is bound to the string "7", the string "7" is bound to H2.class, H7 inherits from UserBox, UserBox returns "User2", but Since H7 itself is configured as a value type "User7", the final output is "User7".  
-8. The eighth is relatively simple, because the setName method has been added an AOP interceptor and the parameter has been changed to "User8".  
-9. The ninth is because the ctx context ends, all singletons are executed by @PreDestroy, which is a standard JSR330 annotation.  
+The output of this example is to print out "User1", "User2"... to "User10" in sequence. Here is the explanation:  
+1. First demo use the @VALUE("User1") annotation for constructor injection
+2. Use Java configuration class UserBox using a jBeanBox, this is a pure Java class (unlike the Java configuration class in Spring will create a proxy in runtime), in this example, the create method manually generates a User("User2") object.
+3. The third demo is to dynamically generate a BeanBox configuration, dynamically configure its constructor injection, and inject the value "User3".
+4. The fourth is also a dynamic configuration that demonstrates the field injection, with the injected value being the constant "User4".
+5. The fifth is a demonstration of method injection. The injection parameters are: method name, parameter type, and actual parameters.
+6. The sixth is setPostConstruct injection, equivalent to the @PostConstruct annotation, that is, the method executed immediately after the bean is generated is the init() method.
+7. The seventh UserBox7 is a generic BeanBox configuration class that sets the bean type. This method will call its no-argument constructor to generate the instance, and then inject its name attribute to "User7".
+8. The eighth is more complicated. ctx is a new context instance. It first gets the fixed configuration of User.class, then adds an AOP aspect to its setName method, and then injects the "name" field into autowired type. String type, but before this String class is bound to the string "7", the string "7" is bound to H2.class, H7 inherits from UserBox, UserBox returns "User2", but they are all clouds, Since H7 itself is configured as a value type "User7", the final output is "User7".
+9. The ninth is relatively simple, because the setName method has been added an AOP interceptor and the parameter has been changed to "User9".
+10. The tenth is because the ctx context closes, method in singletons be marked with @PreDestroy will be called.
 
 Above example mainly demonstrates the Java method configuration of jBeanBox. The Java method can be executed dynamically, or it can be executed as a fixed configuration in the defined BeanBox class. The fixed configuration can lay down the configuration keynote. When you need to change, you can use the same Java method to adjust (because it is the same BeanBox object) or even temporarily create a new configuration, so jBeanBox has the advantages of fixed configuration and dynamic configuration. In addition, when there is no source code, for example, to configure an instance of a third-party library, all annotation methods are not used at this time, and the only Java configuration method that can be used is the only one.  
 
