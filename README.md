@@ -96,16 +96,16 @@ public class HelloWorld {
 }
 ```
 这个例子的输出结果是依次打印出“User1” 、“User2”...到“User10”。下面遂一解释：
-1. 每一个利用了@VALUE("User1")注解，进行了构造器注入
-2. 每二个利用一个jBeanBox的纯Java配置类UserBox，这是一个纯粹的Java类（不象Spring中的Java配置类是一个非常特殊的类，它在运行期会产生一个代理类）, 在这个示例里它的create方法手工生成了一个User("User2")对象。
-3. 第三个是动态生成一个BeanBox配置，动态配置它的构造器注入，注入值为"User3"。
-4. 第四个也是动态配置，演示了字段注入，注入值为常量"User4".
-5. 第五个是方法注入的演示，注入参数依次为：方法名、参数类型们、实际参数们。
-6. 第六个是setPostConstruct注入，等效于@PostConstruct注解，即Bean生成后立即执行的方法为init()方法。
-7. 第七个UserBox7是一个普通的BeanBox配置类，它设定了Bean类型，这种方式将调用它的无参构造器生成实例，然后注入它的name属性为"User7"。
-8. 第八个比较复杂，ctx是一个新的上下文实例，它先获取User.class的固定配置，然后给它的setName方法添加一个AOP切面，然后注入"name"字段为autowired类型，也就是说String类型，不过在此之前String类被绑定到字符串"7",字符串"7"又绑定到H2.class，H7又继承于UserBox，UserBox又返回"User2"，然而都是浮云，因为H7本身被配置成一个值类型"User7"，于是最后输出结果是“User7”。
-9. 第九个比较简单，因为setName方法被添加了一个AOP拦截器，参数被改成了"User9"。
-10. 第十个是因为ctx这个上下文结束，所有单例被@PreDestroy标注的方法会执行
+1. 第一个利用了@VALUE("User1")注解，进行了构造器注入。  
+2. 第二个利用一个jBeanBox的纯Java配置类UserBox，这是一个纯粹的Java类（不象Spring中的Java配置类是一个非常特殊的类，它在运行期会产生一个代理类）, 在这个示例里它的create方法手工生成了一个User("User2")对象。  
+3. 第三个是动态生成一个BeanBox配置，动态配置它的构造器注入，注入值为"User3"。  
+4. 第四个也是动态配置，演示了字段注入，注入值为常量"User4"。  
+5. 第五个是方法注入的演示，注入参数依次为：方法名、参数类型们、实际参数们。  
+6. 第六个是setPostConstruct注入，等效于@PostConstruct注解，即Bean生成后立即执行的方法为init()方法。  
+7. 第七个UserBox7是一个普通的BeanBox配置类，它设定了Bean类型，这种方式将调用它的无参构造器生成实例，然后注入它的name属性为"User7"。  
+8. 第八个比较复杂，ctx是一个新的上下文实例，它先获取User.class的固定配置，然后给它的setName方法添加一个AOP切面，然后注入"name"字段为autowired类型，也就是说String类型，不过在此之前String类被绑定到字符串"8",字符串"8"又绑定到H8.class，H8又继承于UserBox，UserBox又返回"User2"，然而都是浮云，因为H8本身被配置成一个值类型"User8"，于是最后输出结果是“User8”。  
+9. 第九个比较简单，因为setName方法被添加了一个AOP拦截器，参数被改成了"User9"。  
+10.第十个是因为ctx这个上下文结束，所有单例被@PreDestroy标注的方法会执行。  
 
 上例除了一头一尾外，主要演示了jBeanBox的Java方法配置，Java方法即可以动态执行，也可以在定义好的BeanBox类中作为固定配置执行，固定的配置可以打下配置的基调，当固定配置需要变动时可以用同样的Java方法来进行调整(因为本来就是同一个BeanBox对象)甚至临时创建出新的配置，所以jBeanBox同时具有了固定配置和动态配置的优点。另外当没有源码时，例如配置第三方库的实例，这时所有的注解方式配置都用不上，唯一能用的只有Java配置方式。
 
@@ -113,10 +113,10 @@ public class HelloWorld {
 
 ### jBeanBox注解方式配置
 jBeanBox不光支持Java方式配置，还支持注解方式配置,它自带以下注解(全是大写)：  
-@INJECT  类似JSR中的@Inject注解，但允许添加可选的目标类或BeanBox类作为参数，如@INJECT(Foo.class) 或 @INJECT(FooBox.class) 
+@INJECT  类似JSR中的@Inject注解，但允许添加可选的目标类或BeanBox类作为参数，如@INJECT(Foo.class) 或 @INJECT(FooBox.class)  
 @POSTCONSTRUCT  等同于JSR中的@PostConstruct注解  
 @PREDESTROY  等同于JSR中的@PreDestroy注解  
-@VALUE 类似Spring中的@Value注解, 参数将被解析为对应的值类型, 如@VALUE("3") int a; 参数将被解析为整数3, @VALUE("3") String b; 参数将被解析为字符串"3".
+@VALUE 类似Spring中的@Value注解, 参数将被解析为对应的值类型, 如@VALUE("3") int a; 参数将被解析为整数3, @VALUE("3") String b; 参数将被解析为字符串"3"  
 @PROTOTYPE  等同于Spring中的@Prototype注解  
 @AOP 用于自定义AOP注解，详见AOP一节  
 
@@ -140,6 +140,7 @@ Spring的注解：@Autowired @Prototype
 @Named的问题是它是字符串类型的，不支持重构，无法利用IDE快速定位到配置文件，当项目配置很多时，不利于维护。  
 jBeanBox是一个无需定义Bean ID的IOC工具，所有静态定义的类默认都是单例。   
 注意：当手工动态创建BeanBox配置时，默认BeanBox的设定为非单例类。如果BeanBox box=new BeanBox(A.class).setSingleton(true),强行设定box为单例，那问题来了，它的ID是什么? 很简单，它的唯一ID就是这个动态创建的配置实例本身box, 每次ctx.getBeanBox(box)就会获得同一个A类型的单例对象。  
+  
 另外也可以用ctx.bind("id",box)方法手工给它绑定一个ID值"id",可以用getBean("id")来获取它。jBeanBox没有自动扫描、预创建单例之类的功能，所以它的启动非常快速。如果有人有自动扫描、预创建单例、预绑定ID名之类的需求，必须手工编写一个工具类来实现这个目的(jBeanBox暂不提供)，例如在程序运行开始时调用一下ctx.getBean(A.class)就会在上下文中暂存一个A的单例类，下次访问时会直接从缓存中取。
 
 因为注解方式配置大家比较熟悉，与Spring/Guice/JSR标准中的命名和用法类似，这里就不作详细介绍了，在jBeanBox\test目录下能找到一个"AnnotationInjectTest.java"文件，演示了各种注解方式配置的使用, 以下只是简单列出一些用法： 

@@ -97,13 +97,13 @@ public class HelloWorld {
 ```
 The output of this example is to print out "User1", "User2"... to "User10" in sequence. Here is the explanation:  
 1. First demo use the @VALUE("User1") annotation for constructor injection
-2. Use Java configuration class UserBox using a jBeanBox, this is a pure Java class (unlike the Java configuration class in Spring will create a proxy in runtime), in this example, the create method manually generates a User("User2") object.
+2. UserBox is a pure Java configuration class, in this example, the create method manually generates a User("User2") object.
 3. The third demo is to dynamically generate a BeanBox configuration, dynamically configure its constructor injection, and inject the value "User3".
 4. The fourth is also a dynamic configuration that demonstrates the field injection, with the injected value being the constant "User4".
 5. The fifth is a demonstration of method injection. The injection parameters are: method name, parameter type, and actual parameters.
 6. The sixth is setPostConstruct injection, equivalent to the @PostConstruct annotation, that is, the method executed immediately after the bean is generated is the init() method.
 7. The seventh UserBox7 is a generic BeanBox configuration class that sets the bean type. This method will call its no-argument constructor to generate the instance, and then inject its name attribute to "User7".
-8. The eighth is more complicated. ctx is a new context instance. It first gets the fixed configuration of User.class, then adds an AOP aspect to its setName method, and then injects the "name" field into autowired type. String type, but before this String class is bound to the string "7", the string "7" is bound to H2.class, H7 inherits from UserBox, UserBox returns "User2", but they are all clouds, Since H7 itself is configured as a value type "User7", the final output is "User7".
+8. The eighth is more complicated. ctx is a new context instance. It first gets the fixed configuration of User.class, then adds an AOP aspect to its setName method, and then injects the "name" field into autowired type. String type, but before this String class is bound to the string "8", the string "8" is bound to H8.class, H8 inherits from UserBox, UserBox returns "User2", but they are all clouds, Since H8 itself is configured as a value type "User8", the final output is "User8".
 9. The ninth is relatively simple, because the setName method has been added an AOP interceptor and the parameter has been changed to "User9".
 10. The tenth is because the ctx context closes, method in singletons be marked with @PreDestroy will be called.
 
