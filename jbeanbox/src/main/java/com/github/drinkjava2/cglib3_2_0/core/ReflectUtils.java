@@ -15,15 +15,28 @@
  */
 package com.github.drinkjava2.cglib3_2_0.core;
 
-import java.beans.*;
-import java.lang.reflect.*;
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Member;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import com.github.drinkjava2.asm5_0_3.Attribute;
-import com.github.drinkjava2.asm5_0_3.Type;
+import com.github.drinkjava2.asm7_0.Attribute;
+import com.github.drinkjava2.asm7_0.Type;
 
 /**
  * @version $Id: ReflectUtils.java,v 1.30 2009/01/11 19:47:49 herbyderby Exp $

@@ -15,15 +15,15 @@
  */
 package com.github.drinkjava2.cglib3_2_0.core;
 
-import com.github.drinkjava2.asm5_0_3.ClassVisitor;
-import com.github.drinkjava2.asm5_0_3.FieldVisitor;
-import com.github.drinkjava2.asm5_0_3.MethodVisitor;
-import com.github.drinkjava2.asm5_0_3.Opcodes;
-import com.github.drinkjava2.asm5_0_3.Type;
-import com.github.drinkjava2.cglib3_2_0.transform.ClassTransformer;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import com.github.drinkjava2.asm7_0.ClassVisitor;
+import com.github.drinkjava2.asm7_0.FieldVisitor;
+import com.github.drinkjava2.asm7_0.MethodVisitor;
+import com.github.drinkjava2.asm7_0.Opcodes;
+import com.github.drinkjava2.asm7_0.Type;
+import com.github.drinkjava2.cglib3_2_0.transform.ClassTransformer;
 
 /**
  * @author Juozas Baliuka, Chris Nokleberg

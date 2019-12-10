@@ -18,8 +18,8 @@ package com.github.drinkjava2.cglib3_2_0.transform.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.drinkjava2.asm5_0_3.Label;
-import com.github.drinkjava2.asm5_0_3.Type;
+import com.github.drinkjava2.asm7_0.Label;
+import com.github.drinkjava2.asm7_0.Type;
 import com.github.drinkjava2.cglib3_2_0.core.CodeEmitter;
 import com.github.drinkjava2.cglib3_2_0.core.CodeGenerationException;
 import com.github.drinkjava2.cglib3_2_0.core.Constants;

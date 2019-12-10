@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import com.github.drinkjava2.asm5_0_3.ClassReader;
+import com.github.drinkjava2.asm7_0.ClassReader;
 
 /**
  * Abstract class for all code-generating CGLIB utilities.

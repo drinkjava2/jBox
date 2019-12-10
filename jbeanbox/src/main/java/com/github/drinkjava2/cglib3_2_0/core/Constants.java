@@ -15,14 +15,15 @@
  */
 package com.github.drinkjava2.cglib3_2_0.core;
 
-import com.github.drinkjava2.asm5_0_3.Type;
+import com.github.drinkjava2.asm7_0.Opcodes;
+import com.github.drinkjava2.asm7_0.Type;
 
 /**
  * @author Juozas Baliuka <a href="mailto:baliuka@mwm.lt">baliuka@mwm.lt</a>
  * @version $Id: Constants.java,v 1.21 2006/03/05 02:43:19 herbyderby Exp $
  */
 @SuppressWarnings({"rawtypes"})  
-public interface Constants extends com.github.drinkjava2.asm5_0_3.Opcodes {
+public interface Constants extends  Opcodes {
     public static final Class[] EMPTY_CLASS_ARRAY = {};
     public static final Type[] TYPES_EMPTY = {};
 

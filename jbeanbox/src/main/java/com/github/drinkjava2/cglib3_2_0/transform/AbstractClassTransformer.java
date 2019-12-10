@@ -15,8 +15,8 @@
  */
 package com.github.drinkjava2.cglib3_2_0.transform;
 
-import com.github.drinkjava2.asm5_0_3.ClassVisitor;
-import com.github.drinkjava2.asm5_0_3.Opcodes;
+import com.github.drinkjava2.asm7_0.ClassVisitor;
+import com.github.drinkjava2.asm7_0.Opcodes;
 
 abstract public class AbstractClassTransformer extends ClassTransformer {
     protected AbstractClassTransformer() {

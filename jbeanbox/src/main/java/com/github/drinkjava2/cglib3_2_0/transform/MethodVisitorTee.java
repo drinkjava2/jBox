@@ -15,13 +15,13 @@
  */
 package com.github.drinkjava2.cglib3_2_0.transform;
 
-import com.github.drinkjava2.asm5_0_3.AnnotationVisitor;
-import com.github.drinkjava2.asm5_0_3.Attribute;
-import com.github.drinkjava2.asm5_0_3.Handle;
-import com.github.drinkjava2.asm5_0_3.Label;
-import com.github.drinkjava2.asm5_0_3.MethodVisitor;
-import com.github.drinkjava2.asm5_0_3.Opcodes;
-import com.github.drinkjava2.asm5_0_3.TypePath;
+import com.github.drinkjava2.asm7_0.AnnotationVisitor;
+import com.github.drinkjava2.asm7_0.Attribute;
+import com.github.drinkjava2.asm7_0.Handle;
+import com.github.drinkjava2.asm7_0.Label;
+import com.github.drinkjava2.asm7_0.MethodVisitor;
+import com.github.drinkjava2.asm7_0.Opcodes;
+import com.github.drinkjava2.asm7_0.TypePath;
  
 public class MethodVisitorTee extends MethodVisitor {
     private final MethodVisitor mv1;

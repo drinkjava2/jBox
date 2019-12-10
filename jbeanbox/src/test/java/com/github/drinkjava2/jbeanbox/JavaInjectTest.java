@@ -99,11 +99,15 @@ public class JavaInjectTest {
 		BeanBoxContext.reset();
 		BeanBox box = JBEANBOX.getBeanBox(Foo.class);
 		box.setTarget(Bar.class);
-		Assert.assertEquals(JBEANBOX.getBean(box), JBEANBOX.getBean(Bar.class));
+		Bar b1=JBEANBOX.getBean(box);
+		Bar b2=JBEANBOX.getBean(Bar.class);
+		Assert.assertEquals(b1, b2);
 
 		BeanBoxContext.reset();
 		JBEANBOX.bind(Foo.class, Bar.class);
-		Assert.assertEquals(JBEANBOX.getBean(Foo.class), JBEANBOX.getBean(Bar.class));
+		Foo f=JBEANBOX.getBean(box);
+		Bar b=JBEANBOX.getBean(Bar.class); 
+		Assert.assertEquals(f, b);
 	}
 
 	@Test
@@ -226,7 +230,9 @@ public class JavaInjectTest {
 		P p = JBEANBOX.getBean(box);
 		JBEANBOX.reset();
 		Assert.assertEquals(2, p.count);
-		Assert.assertEquals(JBEANBOX.getBean(box), JBEANBOX.getBean(box));
+		Object o1=JBEANBOX.getBean(box);
+		Object o2=JBEANBOX.getBean(box); 
+		Assert.assertEquals(o1, o2); 
 	}
 
 	protected void FieldInject_______________() {

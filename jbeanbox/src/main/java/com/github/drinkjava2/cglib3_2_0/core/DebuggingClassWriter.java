@@ -23,10 +23,10 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 
-import com.github.drinkjava2.asm5_0_3.ClassReader;
-import com.github.drinkjava2.asm5_0_3.ClassVisitor;
-import com.github.drinkjava2.asm5_0_3.ClassWriter;
-import com.github.drinkjava2.asm5_0_3.Opcodes;
+import com.github.drinkjava2.asm7_0.ClassReader;
+import com.github.drinkjava2.asm7_0.ClassVisitor;
+import com.github.drinkjava2.asm7_0.ClassWriter;
+import com.github.drinkjava2.asm7_0.Opcodes;
 @SuppressWarnings({"rawtypes","unchecked"})  
 public class DebuggingClassWriter extends ClassVisitor {
     

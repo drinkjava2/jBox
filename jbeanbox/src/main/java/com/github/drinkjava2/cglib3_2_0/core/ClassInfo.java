@@ -15,7 +15,7 @@
  */
 package com.github.drinkjava2.cglib3_2_0.core;
 
-import com.github.drinkjava2.asm5_0_3.Type;
+import com.github.drinkjava2.asm7_0.Type;
 
 abstract public class ClassInfo {
 

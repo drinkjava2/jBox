@@ -17,7 +17,7 @@ package com.github.drinkjava2.cglib3_2_0.util;
 
 import java.util.Comparator;
 
-import com.github.drinkjava2.asm5_0_3.ClassVisitor;
+import com.github.drinkjava2.asm7_0.ClassVisitor;
 import com.github.drinkjava2.cglib3_2_0.core.AbstractClassGenerator;
 import com.github.drinkjava2.cglib3_2_0.core.ClassesKey;
 import com.github.drinkjava2.cglib3_2_0.core.ReflectUtils;

@@ -15,14 +15,14 @@
  */
 package com.github.drinkjava2.cglib3_2_0.transform;
 
-import com.github.drinkjava2.asm5_0_3.Attribute;
-import com.github.drinkjava2.asm5_0_3.ClassReader;
-import com.github.drinkjava2.asm5_0_3.ClassWriter;
+import java.io.IOException;
+
+import com.github.drinkjava2.asm7_0.Attribute;
+import com.github.drinkjava2.asm7_0.ClassReader;
+import com.github.drinkjava2.asm7_0.ClassWriter;
 import com.github.drinkjava2.cglib3_2_0.core.ClassGenerator;
 import com.github.drinkjava2.cglib3_2_0.core.CodeGenerationException;
 import com.github.drinkjava2.cglib3_2_0.core.DebuggingClassWriter;
-
-import java.io.IOException;
 @SuppressWarnings({"rawtypes","unchecked" })  
 abstract public class AbstractClassLoader extends ClassLoader {
     private ClassFilter filter;

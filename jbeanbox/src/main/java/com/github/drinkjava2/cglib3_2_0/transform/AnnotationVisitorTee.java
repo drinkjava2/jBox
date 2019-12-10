@@ -15,8 +15,8 @@
  */
 package com.github.drinkjava2.cglib3_2_0.transform;
 
-import com.github.drinkjava2.asm5_0_3.AnnotationVisitor;
-import com.github.drinkjava2.asm5_0_3.Opcodes;
+import com.github.drinkjava2.asm7_0.AnnotationVisitor;
+import com.github.drinkjava2.asm7_0.Opcodes;
 
 public class AnnotationVisitorTee extends AnnotationVisitor {
     private AnnotationVisitor av1, av2;

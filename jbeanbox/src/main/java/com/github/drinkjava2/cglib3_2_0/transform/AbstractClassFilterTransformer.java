@@ -15,11 +15,11 @@
  */
 package com.github.drinkjava2.cglib3_2_0.transform;
 
-import com.github.drinkjava2.asm5_0_3.AnnotationVisitor;
-import com.github.drinkjava2.asm5_0_3.Attribute;
-import com.github.drinkjava2.asm5_0_3.ClassVisitor;
-import com.github.drinkjava2.asm5_0_3.FieldVisitor;
-import com.github.drinkjava2.asm5_0_3.MethodVisitor;
+import com.github.drinkjava2.asm7_0.AnnotationVisitor;
+import com.github.drinkjava2.asm7_0.Attribute;
+import com.github.drinkjava2.asm7_0.ClassVisitor;
+import com.github.drinkjava2.asm7_0.FieldVisitor;
+import com.github.drinkjava2.asm7_0.MethodVisitor;
 
 abstract public class AbstractClassFilterTransformer extends AbstractClassTransformer {
     private ClassTransformer pass;

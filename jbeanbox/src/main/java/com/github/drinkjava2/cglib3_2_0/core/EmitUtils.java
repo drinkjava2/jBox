@@ -17,10 +17,18 @@ package com.github.drinkjava2.cglib3_2_0.core;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import com.github.drinkjava2.asm5_0_3.Label;
-import com.github.drinkjava2.asm5_0_3.Type;
+import com.github.drinkjava2.asm7_0.Label;
+import com.github.drinkjava2.asm7_0.Type;
 @SuppressWarnings({"rawtypes","unchecked","static-access" })  
 public class EmitUtils {
     private static final Signature CSTRUCT_NULL =

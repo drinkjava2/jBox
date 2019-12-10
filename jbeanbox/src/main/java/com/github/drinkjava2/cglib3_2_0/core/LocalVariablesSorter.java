@@ -29,10 +29,10 @@
  */
 package com.github.drinkjava2.cglib3_2_0.core;
 
-import com.github.drinkjava2.asm5_0_3.Label;
-import com.github.drinkjava2.asm5_0_3.MethodVisitor;
-import com.github.drinkjava2.asm5_0_3.Opcodes;
-import com.github.drinkjava2.asm5_0_3.Type;
+import com.github.drinkjava2.asm7_0.Label;
+import com.github.drinkjava2.asm7_0.MethodVisitor;
+import com.github.drinkjava2.asm7_0.Opcodes;
+import com.github.drinkjava2.asm7_0.Type;
 
 /**
  * A {@link MethodVisitor} that renumbers local variables in their order of

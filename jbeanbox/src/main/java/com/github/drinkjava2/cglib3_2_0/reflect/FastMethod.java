@@ -18,7 +18,7 @@ package com.github.drinkjava2.cglib3_2_0.reflect;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import com.github.drinkjava2.asm5_0_3.Type;
+import com.github.drinkjava2.asm7_0.Type;
 import com.github.drinkjava2.cglib3_2_0.core.Signature;
 @SuppressWarnings({"rawtypes" })
 public class FastMethod extends FastMember

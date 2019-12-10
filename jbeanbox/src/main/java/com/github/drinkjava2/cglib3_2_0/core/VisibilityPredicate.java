@@ -15,9 +15,10 @@
  */
 package com.github.drinkjava2.cglib3_2_0.core;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Member;
+import java.lang.reflect.Modifier;
 
-import com.github.drinkjava2.asm5_0_3.Type;
+import com.github.drinkjava2.asm7_0.Type; 
 @SuppressWarnings({"rawtypes" })
 public class VisibilityPredicate implements Predicate {
     private boolean protectedOk;

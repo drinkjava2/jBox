@@ -15,11 +15,12 @@
  */
 package com.github.drinkjava2.cglib3_2_0.core;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.github.drinkjava2.asm5_0_3.ClassReader;
-import com.github.drinkjava2.asm5_0_3.ClassVisitor;
-import com.github.drinkjava2.asm5_0_3.Opcodes;
+import com.github.drinkjava2.asm7_0.ClassReader;
+import com.github.drinkjava2.asm7_0.ClassVisitor;
+import com.github.drinkjava2.asm7_0.Opcodes;
 
 // TODO: optimize (ClassReader buffers entire class before accept)
 @SuppressWarnings({"rawtypes","unchecked"})    
