@@ -17,9 +17,9 @@ import java.util.Map.Entry;
 
 import org.aopalliance.intercept.MethodInvocation;
 
-import com.github.drinkjava2.cglib3_2_0.proxy.Callback;
-import com.github.drinkjava2.cglib3_2_0.proxy.MethodInterceptor;
-import com.github.drinkjava2.cglib3_2_0.proxy.MethodProxy;
+import com.github.drinkjava2.cglib.proxy.Callback;
+import com.github.drinkjava2.cglib.proxy.MethodInterceptor;
+import com.github.drinkjava2.cglib.proxy.MethodProxy;
 
 /**
  * ProxyBean to build a Invocation, Invocation call next invocation...

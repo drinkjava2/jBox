@@ -9,7 +9,7 @@
  */
 package com.github.drinkjava2.jbeanbox;
 
-import com.github.drinkjava2.cglib3_2_0.proxy.Enhancer;
+import com.github.drinkjava2.cglib.proxy.Enhancer;
 
 /**
  * AopUtils create AOP proxy bean
