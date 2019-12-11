@@ -51,7 +51,7 @@ class ProxyBean implements MethodInterceptor, Callback {
 
 		if (box.getAopRules() != null) // box methods aops, need add cache in future
 			for (Object[] entry : box.getAopRules()) {
-				if (BeanBoxUtils.nameMatch((String) entry[1], m.getName()))
+				if (NameMatchUtil.nameMatch((String) entry[1], m.getName()))
 					allInters.add(entry[0]);
 			}
 
@@ -60,9 +60,9 @@ class ProxyBean implements MethodInterceptor, Callback {
 
 			for (Object[] aops : ctx.getAopRules()) {
 				String classReg = (String) aops[1];
-				if (BeanBoxUtils.nameMatch(classReg, thisClassName)) {
+				if (NameMatchUtil.nameMatch(classReg, thisClassName)) {
 					String methodRegex = (String) aops[2];
-					if (BeanBoxUtils.nameMatch(methodRegex, m.getName()))
+					if (NameMatchUtil.nameMatch(methodRegex, m.getName()))
 						allInters.add(aops[0]);
 				}
 			}

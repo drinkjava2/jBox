@@ -211,7 +211,7 @@ public class BeanBoxContext {
 			aopFound = true;
 		else if (this.getAopRules() != null && box.getBeanClass() != null)
 			for (Object[] aops : this.getAopRules()) // global AOP
-				if (BeanBoxUtils.nameMatch((String) aops[1], box.getBeanClass().getName())) {
+				if (NameMatchUtil.nameMatch((String) aops[1], box.getBeanClass().getName())) {
 					aopFound = true;
 					break;
 				}

@@ -32,7 +32,7 @@ import com.github.drinkjava2.jbeanbox.annotation.PROTOTYPE;
 import com.github.drinkjava2.jbeanbox.annotation.VALUE;
 
 /**
- * BeanBoxUtils translate class to BeanBox instance and cache them
+ * BeanBoxUtils store public static methods used inside of this project
  * 
  * @author Yong Zhu
  * @since 2.4.7
@@ -160,8 +160,8 @@ public class BeanBoxUtils {// NOSONAR
 		}
 
 		// @INJECT annotations on methods include super class's
-		Method[] methods = ReflectionUtils.getAllDeclaredMethods(clazz); 
-		for (Method m : methods) { 
+		Method[] methods = ReflectionUtils.getAllDeclaredMethods(clazz);
+		for (Method m : methods) {
 			// ========== @PostConstruct and @PreDestory
 			if (m.getAnnotation(POSTCONSTRUCT.class) != null || m.getAnnotation(PostConstruct.class) != null) {
 				if (m.getParameterTypes().length > 0)
@@ -316,27 +316,7 @@ public class BeanBoxUtils {// NOSONAR
 			}
 		return result;
 	}
-
-	/**
-	 * A simple matcher for class and method name, only 1 * allowed <br/>
-	 * "*abc.ef" matches "any.abc.ef", "anymoreabc.ef" ... <br/>
-	 * "abc.ef*" matches "abc.efg", "abc.efg.hj" ... <br/>
-	 * "abc*def" matches "abcd.efg.ddef", "abcany*anydef"
-	 */
-	public static boolean nameMatch(String regex, String name) {
-		if (regex == null || regex.length() == 0 || name == null || name.length() == 0)
-			return false;
-		if ('*' == (regex.charAt(0))) {
-			return name.endsWith(regex.substring(1));
-		} else if (regex.endsWith("*")) {
-			return name.startsWith(regex.substring(0, regex.length() - 1));
-		} else {
-			int starPos = regex.indexOf('*');
-			if (-1 == starPos)
-				return regex.equals(name);
-			return name.startsWith(regex.substring(0, starPos)) && name.endsWith(regex.substring(starPos + 1));
-		}
-	}
+ 
 
 	/**
 	 * If aop is a instance of Aop alliance Interceptor, wrap it to a BeanBox and
@@ -362,7 +342,5 @@ public class BeanBoxUtils {// NOSONAR
 		}
 		return new BeanBox().setAsValue(param);
 	}
-
- 
 
 }
