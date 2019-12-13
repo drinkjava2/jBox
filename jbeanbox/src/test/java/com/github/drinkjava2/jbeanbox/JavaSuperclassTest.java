@@ -37,6 +37,7 @@ public class JavaSuperclassTest extends BeanBoxTest {
 			this.setBeanClass(Child.class);
 			this.injectField("field", new A());
 			this.injectMethod("setField", A.class, new A());
+			this.injectMtd("setField", new A()); // this is the shortcut usage if type same
 		}
 	}
 

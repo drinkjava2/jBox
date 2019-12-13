@@ -28,11 +28,11 @@ public class AopUtils {// NOSONAR
 	 * @param box
 	 *            The BeanBox of target class
 	 * @param ctx
-	 *            The BeanBoxContext
+	 *            The BeanContext
 	 * @return A Proxy Bean with AOP support
 	 */
-	public static Object createProxyBean(Class<?> clazz, BeanBox box, BeanBoxContext ctx) {
-		BeanBoxException.assureNotNull(clazz, "Try to create a proxy bean, but beanClass not found.");
+	public static Object createProxyBean(Class<?> clazz, BeanBox box, BeanContext ctx) {
+		BeanException.assureNotNull(clazz, "Try to create a proxy bean, but beanClass not found.");
 		Enhancer enhancer = new Enhancer();
 		enhancer.setSuperclass(clazz);
 		if (box.getConstructorParams() != null && box.getConstructorParams().length > 0) {

@@ -29,7 +29,7 @@ import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 public class CircularDependencyTest {
 	@Before
 	public void init() {
-		BeanBoxContext.reset();
+		BeanContext.reset();
 	}
 
 	public void _______________________() {
@@ -95,7 +95,7 @@ public class CircularDependencyTest {
 	}
 
 	/** Constructor circular dependency will throw exception */
-	@Test(expected = BeanBoxException.class)
+	@Test(expected = BeanException.class)
 	public void badCircularTest() {
 		JBEANBOX.getBean(C.class);
 	}
@@ -128,7 +128,7 @@ public class CircularDependencyTest {
 	}
 
 	/** Create method circular dependency will throw exception */
-	@Test(expected = BeanBoxException.class)
+	@Test(expected = BeanException.class)
 	public void badCircularTest2() {
 		JBEANBOX.bind(E.class, Ebox.class);
 		JBEANBOX.getBean(E.class);

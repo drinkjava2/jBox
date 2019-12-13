@@ -24,7 +24,7 @@ import com.github.drinkjava2.jbeanbox.AnnotationInjectTest.SingleBox1;
 import com.github.drinkjava2.jbeanbox.AnnotationInjectTest.SingleBox2;
 
 /**
- * BeanBoxContextTest
+ * Java Inject Test
  * 
  * @author Yong Zhu
  * @since 2.4.7
@@ -35,7 +35,7 @@ public class JavaInjectTest {
 
 	@Before
 	public void init() {
-		BeanBoxContext.reset();
+		BeanContext.reset();
 	}
 
 	public static class Foo {
@@ -82,12 +82,12 @@ public class JavaInjectTest {
 		Assert.assertEquals("Hello", new BeanBox().setTarget("C").getBean());
 	}
 
-	@Test(expected = BeanBoxException.class)
+	@Test(expected = BeanException.class)
 	public void getBeanByTarget2() { // Test target not found
 		JBEANBOX.getBean(new BeanBox().setTarget("AAA"));
 	}
 
-	@Test(expected = BeanBoxException.class)
+	@Test(expected = BeanException.class)
 	public void getBeanByTarget3() { // Test target is String.class
 		JBEANBOX.getBean(new BeanBox().setTarget(String.class));
 	}
@@ -96,17 +96,17 @@ public class JavaInjectTest {
 	public void getBean4() {
 		Assert.assertNotEquals(JBEANBOX.getBean(Foo.class), JBEANBOX.getBean(Bar.class));
 
-		BeanBoxContext.reset();
+		BeanContext.reset();
 		BeanBox box = JBEANBOX.getBeanBox(Foo.class);
 		box.setTarget(Bar.class);
-		Bar b1=JBEANBOX.getBean(box);
-		Bar b2=JBEANBOX.getBean(Bar.class);
+		Bar b1 = JBEANBOX.getBean(box);
+		Bar b2 = JBEANBOX.getBean(Bar.class);
 		Assert.assertEquals(b1, b2);
 
-		BeanBoxContext.reset();
+		BeanContext.reset();
 		JBEANBOX.bind(Foo.class, Bar.class);
-		Foo f=JBEANBOX.getBean(box);
-		Bar b=JBEANBOX.getBean(Bar.class); 
+		Foo f = JBEANBOX.getBean(box);
+		Bar b = JBEANBOX.getBean(Bar.class);
 		Assert.assertEquals(f, b);
 	}
 
@@ -179,7 +179,7 @@ public class JavaInjectTest {
 	public static class CA {}
 	public static class CB {}
 	public static class C1 { int i = 0;   public C1() { i = 2; } } 
-	public static class C2 { int i = 0;   public C2(  int a) { i = a; } } 
+	public static class C2 { int i = 0;   public C2(  Integer a) { i = a; } } 
 	public static class C4 { int i = 0;  public C4( Integer a,  byte b ) { i = b; } }
 	public static class C5 { Object o;   public C5(Object a) { o = a; } }
 	public static class C6 { Object o1, o2 ;  public C6(CA a, CB b) { o1 = a; o2=b; } }
@@ -190,7 +190,7 @@ public class JavaInjectTest {
 		C1 bean = JBEANBOX.getInstance(C1.class);
 		Assert.assertEquals(2, bean.i);
 
-		BeanBox box = new BeanBox().injectConstruct(C2.class, int.class, 2);
+		BeanBox box = new BeanBox().injectConstr(C2.class, 2);
 		C2 bean2 = JBEANBOX.getBean(box);
 		Assert.assertEquals(2, bean2.i);
 
@@ -230,9 +230,9 @@ public class JavaInjectTest {
 		P p = JBEANBOX.getBean(box);
 		JBEANBOX.reset();
 		Assert.assertEquals(2, p.count);
-		Object o1=JBEANBOX.getBean(box);
-		Object o2=JBEANBOX.getBean(box); 
-		Assert.assertEquals(o1, o2); 
+		Object o1 = JBEANBOX.getBean(box);
+		Object o2 = JBEANBOX.getBean(box);
+		Assert.assertEquals(o1, o2);
 	}
 
 	protected void FieldInject_______________() {
@@ -265,7 +265,7 @@ public class JavaInjectTest {
 		box.injectValue("field4", true);
 		box.injectValue("field5", 5L);
 		box.injectField("field6", value("6"));
-		box.injectField("field7", inject(EMPTY.class, false, false));
+		box.injectField("field7", inject(Void.class, false, false));
 		box.injectField("field8", inject());
 		box.injectField("field9", autowired());
 

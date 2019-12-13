@@ -64,19 +64,18 @@ public class BeanBox {
 
 	{// NOSONAR
 		if (!BeanBox.class.equals(this.getClass())) {
-			Method m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CREATE_METHOD);
+			Method m = ReflectionUtils.findMethod(this.getClass(), BeanContext.CREATE_METHOD);
 			if (m == null)
-				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CREATE_METHOD, Caller.class);
+				m = ReflectionUtils.findMethod(this.getClass(), BeanContext.CREATE_METHOD, Caller.class);
 			if (m != null) {
 				ReflectionUtils.makeAccessible(m);
 				this.beanClass = m.getReturnType();
 				this.createMethod = m;
 			}
 
-			m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class);
+			m = ReflectionUtils.findMethod(this.getClass(), BeanContext.CONFIG_METHOD, Object.class);
 			if (m == null)
-				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class,
-						Caller.class);
+				m = ReflectionUtils.findMethod(this.getClass(), BeanContext.CONFIG_METHOD, Object.class, Caller.class);
 			if (m != null) {
 				ReflectionUtils.makeAccessible(m);
 				this.configMethod = m;
@@ -97,23 +96,23 @@ public class BeanBox {
 		return this;
 	}
 
-	/** Use default global BeanBoxContext to create bean */
+	/** Use default global BeanContext to create bean */
 	public <T> T getBean() {
-		return BeanBoxContext.globalBeanBoxContext.getBean(this);
+		return BeanContext.globalBeanContext.getBean(this);
 	}
 
-	/** Use default global BeanBoxContext to create bean */
+	/** Use default global BeanContext to create bean */
 	public static <T> T getBean(Object target) {
-		return BeanBoxContext.globalBeanBoxContext.getBean(target);
+		return BeanContext.globalBeanContext.getBean(target);
 	}
 
-	/** Use default global BeanBoxContext to create a prototype bean */
+	/** Use default global BeanContext to create a prototype bean */
 	public static <T> T getPrototypeBean(Class<?> beanClass) {
 		return new BeanBox(beanClass).getBean();
 	}
 
-	/** Use given BeanBoxContext to create bean */
-	public <T> T getBean(BeanBoxContext ctx) {
+	/** Use given BeanContext to create bean */
+	public <T> T getBean(BeanContext ctx) {
 		return ctx.getBean(this);
 	}
 
@@ -202,6 +201,19 @@ public class BeanBox {
 	}
 
 	/**
+	 * This is shortcut inject for method parameter type is same as parameter
+	 * itself, usage example: injectMtd("setName", "Sam");
+	 */
+	public BeanBox injectConstr(Class<?> clazz, Object... configs) {
+		Object[] newConfigs = new Object[configs.length * 2];
+		for (int i = 0; i < configs.length; i++) {
+			newConfigs[i * 2] = configs[i].getClass();
+			newConfigs[i * 2 + 1] = configs[i];
+		}
+		return injectConstruct(clazz, newConfigs);
+	}
+
+	/**
 	 * This is Java configuration method equal to put @INJECT on a class's method, a
 	 * usage example: injectMethod("setName", String.class, JBEANBOX.value("Sam"));
 	 */
@@ -221,6 +233,19 @@ public class BeanBox {
 			ReflectionUtils.makeAccessible(m);
 		this.getMethodInjects().put(m, params);
 		return this;
+	}
+
+	/**
+	 * This is shortcut inject for method parameter type is same as parameter
+	 * itself, usage example: injectMtd("setName", "Sam");
+	 */
+	public BeanBox injectMtd(String methodName, Object... configs) {
+		Object[] newConfigs = new Object[configs.length * 2];
+		for (int i = 0; i < configs.length; i++) {
+			newConfigs[i * 2] = configs[i].getClass();
+			newConfigs[i * 2 + 1] = configs[i];
+		}
+		return injectMethod(methodName, newConfigs);
 	}
 
 	/**
@@ -251,7 +276,7 @@ public class BeanBox {
 	public synchronized BeanBox addMethodAop(Object aop, String methodName, Class<?>... paramTypes) {
 		checkOrCreateMethodAops();
 		Method m = ReflectionUtils.findMethod(beanClass, methodName, paramTypes);
-		BeanBoxException.assureNotNull(m, "Not found method: '" + methodName + "'");
+		BeanException.assureNotNull(m, "Not found method: '" + methodName + "'");
 		addMethodAop(aop, m);
 		return this;
 	}
@@ -282,11 +307,11 @@ public class BeanBox {
 		return this;
 	}
 
-	/** 
-	 * Inject class, BeanBox class or instance, 
+	/**
+	 * Inject class, BeanBox class or instance,
 	 */
-	public BeanBox injectField(String fieldName, Object inject) {
-		BeanBox box = BeanBoxUtils.wrapParamToBox(inject);
+	public BeanBox injectField(String fieldName, Object object) {
+		BeanBox box = BeanBoxUtils.wrapParamToBox(object);
 		checkOrCreateFieldInjects();
 		Field f = ReflectionUtils.findField(beanClass, fieldName);
 		box.setType(f.getType());
@@ -296,8 +321,8 @@ public class BeanBox {
 	}
 
 	/** Compatible for old jBeanBox version, Inject a pure value to Field */
-	public BeanBox setProperty(String fieldName, Object constValue) {
-		return injectField(fieldName, constValue);
+	public BeanBox setProperty(String fieldName, Object object) {
+		return injectField(fieldName, object);
 	}
 
 	/** Inject a pure value to Field */

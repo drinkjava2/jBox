@@ -42,8 +42,8 @@ public class BeanBoxUtils {// NOSONAR
 	/**
 	 * Translate a BeanBox class or normal class to a readOnly BeanBox instance
 	 */
-	public static BeanBox getUniqueBeanBox(BeanBoxContext ctx, Class<?> clazz) {
-		BeanBoxException.assureNotNull(clazz, "Target class can not be null");
+	public static BeanBox getUniqueBeanBox(BeanContext ctx, Class<?> clazz) {
+		BeanException.assureNotNull(clazz, "Target class can not be null");
 		BeanBox box = ctx.beanBoxMetaCache.get(clazz);
 		if (box != null)
 			return box;
@@ -53,7 +53,7 @@ public class BeanBoxUtils {// NOSONAR
 				if (box.singleton == null)
 					box.singleton = true;
 			} catch (Exception e) {
-				BeanBoxException.throwEX(e);
+				BeanException.throwEX(e);
 			}
 		else
 			box = doCreateBeanBox(ctx, clazz);
@@ -75,7 +75,7 @@ public class BeanBoxUtils {// NOSONAR
 	}
 
 	/** Read Bean annotations to build a BeanBox instance */
-	private static BeanBox doCreateBeanBox(BeanBoxContext ctx, Class<?> clazz) {// NOSONAR
+	private static BeanBox doCreateBeanBox(BeanContext ctx, Class<?> clazz) {// NOSONAR
 		BeanBox box = new BeanBox();
 		box.setBeanClass(clazz);
 		box.setSingleton(true);// Annotated class, default is singleton
@@ -97,7 +97,7 @@ public class BeanBoxUtils {// NOSONAR
 						else if ("singleton".equalsIgnoreCase(String.valueOf(entry.getValue())))
 							box.setSingleton(true);
 						else
-							BeanBoxException.throwEX("'prototype' or 'singleton' required in @Scope annotation");
+							BeanException.throwEX("'prototype' or 'singleton' required in @Scope annotation");
 					}
 		}
 
@@ -127,7 +127,7 @@ public class BeanBoxUtils {// NOSONAR
 			v = getInjectAnnotationAsArray(constr, allowSpringJsrAnno);
 			if (v != null) {
 				box.setBeanClass(clazz);// anyway set beanClass first
-				if (v[0] != null && EMPTY.class != v[0]) {// 1 parameter only
+				if (v[0] != null && Void.class != v[0]) {// 1 parameter only
 					BeanBox inject = new BeanBox();
 					inject.setTarget(v[0]);
 					inject.setPureValue((Boolean) v[1]);
@@ -165,13 +165,13 @@ public class BeanBoxUtils {// NOSONAR
 			// ========== @PostConstruct and @PreDestory
 			if (m.getAnnotation(POSTCONSTRUCT.class) != null || m.getAnnotation(PostConstruct.class) != null) {
 				if (m.getParameterTypes().length > 0)
-					BeanBoxException.throwEX("In jBeanBox, PostConstruct should have no parameter.");
+					BeanException.throwEX("In jBeanBox, PostConstruct should have no parameter.");
 				ReflectionUtils.makeAccessible(m);
 				box.setPostConstruct(m);
 			}
 			if (m.getAnnotation(PREDESTROY.class) != null || m.getAnnotation(PreDestroy.class) != null) {
 				if (m.getParameterTypes().length > 0)
-					BeanBoxException.throwEX("In jBeanBox, PostConstruct should have no parameter.");
+					BeanException.throwEX("In jBeanBox, PostConstruct should have no parameter.");
 				ReflectionUtils.makeAccessible(m);
 				box.setPreDestroy(m);
 			}
@@ -194,7 +194,7 @@ public class BeanBoxUtils {// NOSONAR
 				oneParam.setTarget(v[0]);
 				oneParam.setPureValue((Boolean) v[1]);
 				oneParam.setRequired((Boolean) v[2]);
-				boolean haveOneParameter = v[0] != null && EMPTY.class != v[0];
+				boolean haveOneParameter = v[0] != null && Void.class != v[0];
 				if (haveOneParameter)
 					oneParam.setType(m.getParameterTypes()[0]); // set parameter type for 1 parameter
 				// @INJECT or @Inject or @Autowired normal method inject
@@ -233,9 +233,9 @@ public class BeanBoxUtils {// NOSONAR
 				return new Object[] { ((VALUE) a).value(), ((VALUE) a).pureValue(), ((VALUE) a).required(), null };
 			if (allowSpringJsrAnno) {
 				if (Inject.class.equals(type))
-					return new Object[] { EMPTY.class, false, true, null };
+					return new Object[] { Void.class, false, true, null };
 				if (Autowired.class.equals(type))
-					return new Object[] { EMPTY.class, false, ((Autowired) a).required(), null };
+					return new Object[] { Void.class, false, ((Autowired) a).required(), null };
 			}
 		}
 		return null;// NOSONAR
@@ -252,7 +252,7 @@ public class BeanBoxUtils {// NOSONAR
 			annoss = ((Constructor<?>) o).getParameterAnnotations();
 			paramTypes = ((Constructor<?>) o).getParameterTypes();
 		} else
-			return BeanBoxException.throwEX("Only method or Constructor are allowed at here for:" + o);
+			return BeanException.throwEX("Only method or Constructor are allowed at here for:" + o);
 		BeanBox[] beanBoxes = new BeanBox[annoss.length];
 		for (int i = 0; i < annoss.length; i++) {
 			Annotation[] annos = annoss[i];
@@ -281,7 +281,7 @@ public class BeanBoxUtils {// NOSONAR
 		else if (targetClass instanceof Class)
 			return ((Class<?>) targetClass).getAnnotations();
 		else
-			return BeanBoxException.throwEX("targetClass should be Field, Method, Constructor or Class");
+			return BeanException.throwEX("targetClass should be Field, Method, Constructor or Class");
 	}
 
 	/** Return all annotations for Class or Field */

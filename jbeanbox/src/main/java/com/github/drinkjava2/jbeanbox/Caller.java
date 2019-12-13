@@ -12,19 +12,19 @@ package com.github.drinkjava2.jbeanbox;
 import java.util.Set;
 
 /**
- * Caller store BeanBoxContext, required and history
+ * Caller store BeanContext, required and history
  *
  * @author Yong Zhu
  * @since 2.4.8
  *
  */
 public class Caller {
-	public BeanBoxContext ctx;// NOSONAR
+	public BeanContext ctx;// NOSONAR
 	public boolean required = true;// NOSONAR
 	public Set<Object> history;// NOSONAR
 	public Object result; // NOSONAR
 
-	public Caller(BeanBoxContext ctx, boolean required, Set<Object> history, Object result) {
+	public Caller(BeanContext ctx, boolean required, Set<Object> history, Object result) {
 		this.result = result;
 		this.ctx = ctx;
 		this.required = required;
@@ -39,11 +39,11 @@ public class Caller {
 		return ctx.getBean(targetClass, required, history);
 	}
 
-	public BeanBoxContext getCtx() {
+	public BeanContext getCtx() {
 		return ctx;
 	}
 
-	public void setCtx(BeanBoxContext ctx) {
+	public void setCtx(BeanContext ctx) {
 		this.ctx = ctx;
 	}
 

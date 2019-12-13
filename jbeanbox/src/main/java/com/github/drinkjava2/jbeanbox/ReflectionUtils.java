@@ -87,8 +87,8 @@ public abstract class ReflectionUtils {
 	 * @return the corresponding Field object, or {@code null} if not found
 	 */
 	public static Field findField(Class<?> clazz, String name, Class<?> type) {
-		BeanBoxException.assureNotNull(clazz, "Inject field need BeanClass be set first, can not be null");
-		BeanBoxException.assure(name != null || type != null, "Inject fields's name or type can not be null");
+		BeanException.assureNotNull(clazz, "Inject field need BeanClass be set first, can not be null");
+		BeanException.assure(name != null || type != null, "Inject fields's name or type can not be null");
 		Class<?> searchType = clazz;
 		while (!Object.class.equals(searchType) && searchType != null) {
 			Field[] fields = searchType.getDeclaredFields();
@@ -180,8 +180,8 @@ public abstract class ReflectionUtils {
 	 * @return the Method object, or {@code null} if none found
 	 */
 	public static Method findMethod(Class<?> clazz, String name, Class<?>... paramTypes) {
-		BeanBoxException.assureNotNull(clazz, "BeanClass must not be null");
-		BeanBoxException.assureNotNull(name, "Method name must not be null");
+		BeanException.assureNotNull(clazz, "BeanClass must not be null");
+		BeanException.assureNotNull(name, "Method name must not be null");
 		Class<?> searchType = clazz;
 		while (searchType != null) {
 			Method[] methods = (searchType.isInterface() ? searchType.getMethods() : searchType.getDeclaredMethods());
@@ -377,7 +377,7 @@ public abstract class ReflectionUtils {
 	 * @return {@code true} if the exception can be thrown as-is; {@code false} if it needs to be wrapped
 	 */
 	public static boolean declaresException(Method method, Class<?> exceptionType) {
-		BeanBoxException.assureNotNull(method, "Method must not be null");
+		BeanException.assureNotNull(method, "Method must not be null");
 		Class<?>[] declaredExceptions = method.getExceptionTypes();
 		for (Class<?> declaredException : declaredExceptions) {
 			if (declaredException.isAssignableFrom(exceptionType)) {

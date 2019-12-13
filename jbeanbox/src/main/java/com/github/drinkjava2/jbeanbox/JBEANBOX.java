@@ -10,7 +10,7 @@
 package com.github.drinkjava2.jbeanbox;
 
 /**
- * JBEANBOX store a default globalBeanBoxContext, and have public static method
+ * JBEANBOX store a default globalBeanContext, and have public static method
  * to access it
  * 
  * @author Yong Zhu
@@ -19,12 +19,12 @@ package com.github.drinkjava2.jbeanbox;
  */
 public class JBEANBOX {// NOSONAR
 
-	public static BeanBoxContext bctx() {
-		return BeanBoxContext.globalBeanBoxContext;
+	public static BeanContext bctx() {
+		return BeanContext.globalBeanContext;
 	}
 
 	public static void reset() {
-		BeanBoxContext.reset();
+		BeanContext.reset();
 	}
 
 	public static void close() {
@@ -47,21 +47,21 @@ public class JBEANBOX {// NOSONAR
 		return bctx().getInstance(clazz, required);
 	}
 
-	public static BeanBoxContext bind(Object shortcut, Object target) {
+	public static BeanContext bind(Object shortcut, Object target) {
 		return bctx().bind(shortcut, target);
 	}
 
 	public static BeanBox getBeanBox(Class<?> clazz) {
-		return BeanBoxUtils.getUniqueBeanBox(BeanBoxContext.globalBeanBoxContext, clazz);
+		return BeanBoxUtils.getUniqueBeanBox(BeanContext.globalBeanContext, clazz);
 	}
 
 	public static BeanBox autowired() {
-		return new BeanBox().setTarget(EMPTY.class);
+		return new BeanBox().setTarget(Void.class);
 	}
 
 	/** Equal to "@INJECT" annotation */
 	public static BeanBox inject() {
-		return new BeanBox().setTarget(EMPTY.class);
+		return new BeanBox().setTarget(Void.class);
 	}
 
 	/** Equal to "@INJECT" annotation */

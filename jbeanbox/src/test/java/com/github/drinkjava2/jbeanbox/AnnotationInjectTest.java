@@ -27,7 +27,7 @@ import com.github.drinkjava2.jbeanbox.annotation.PROTOTYPE;
 import com.github.drinkjava2.jbeanbox.annotation.VALUE;
 
 /**
- * BeanBoxContextTest
+ * Annotation Inject Test
  * 
  * @author Yong Zhu
  * @since 2.4.7
@@ -37,7 +37,7 @@ public class AnnotationInjectTest {
 
 	@Before
 	public void init() {
-		BeanBoxContext.reset();
+		BeanContext.reset();
 	}
 
 	protected void singletonTest_____________________() {
@@ -111,7 +111,7 @@ public class AnnotationInjectTest {
 
 	@Test
 	public void classInjectTest() {
-		BeanBoxContext.reset();
+		BeanContext.reset();
 		Object bean = JBEANBOX.getBean(Demo4.class);
 		Assert.assertTrue(JBEANBOX.getBean(Demo4.class) == JBEANBOX.getBean(Demo4.class));
 		Assert.assertEquals("3", bean);
@@ -269,7 +269,7 @@ public class AnnotationInjectTest {
 		public String field2;
 	}
 
-	@Test(expected = BeanBoxException.class)
+	@Test(expected = BeanException.class)
 	public void fieldInjectTest12() {
 		JBEANBOX.getInstance(FieldInject3.class);
 	}

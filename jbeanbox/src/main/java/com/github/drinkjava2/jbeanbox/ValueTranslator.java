@@ -26,7 +26,7 @@ public interface ValueTranslator {
 		@Override
 		public Object translate(String s, Class<?> type) {// NOSONAR
 			if (type == null)
-				BeanBoxException.throwEX("ParamTranslator can not translate to 'null' type");
+				BeanException.throwEX("ParamTranslator can not translate to 'null' type");
 			if (Integer.class.equals(type) || int.class.equals(type))
 				return Integer.parseInt(s);
 			if (Long.class.equals(type) || long.class.equals(type))
@@ -45,7 +45,7 @@ public interface ValueTranslator {
 				return Short.parseShort(s);
 			if (String.class.equals(type))
 				return s;
-			return BeanBoxException.throwEX("Unsupported @PARAM type:" + type);
+			return BeanException.throwEX("Unsupported @PARAM type:" + type);
 		}
 	}
 
