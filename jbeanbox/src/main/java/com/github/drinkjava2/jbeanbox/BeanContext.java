@@ -50,28 +50,28 @@ public class BeanContext {
 	protected List<Object[]> aopRules;
 
 	public BeanContext() {
-		bind(Object.class, Void.class);
-		bind(String.class, Void.class);
-		bind(Integer.class, Void.class);
-		bind(Boolean.class, Void.class);
-		bind(Byte.class, Void.class);
-		bind(Long.class, Void.class);
-		bind(Short.class, Void.class);
-		bind(Float.class, Void.class);
-		bind(Double.class, Void.class);
-		bind(Character.class, Void.class);
-		bind(List.class, Void.class);
-		bind(Map.class, Void.class);
-		bind(Set.class, Void.class);
+		bind(Object.class, EMPTY.class);
+		bind(String.class, EMPTY.class);
+		bind(Integer.class, EMPTY.class);
+		bind(Boolean.class, EMPTY.class);
+		bind(Byte.class, EMPTY.class);
+		bind(Long.class, EMPTY.class);
+		bind(Short.class, EMPTY.class);
+		bind(Float.class, EMPTY.class);
+		bind(Double.class, EMPTY.class);
+		bind(Character.class, EMPTY.class);
+		bind(List.class, EMPTY.class);
+		bind(Map.class, EMPTY.class);
+		bind(Set.class, EMPTY.class);
 
-		bind(int.class, Void.class);
-		bind(boolean.class, Void.class);
-		bind(byte.class, Void.class);
-		bind(long.class, Void.class);
-		bind(short.class, Void.class);
-		bind(float.class, Void.class);
-		bind(double.class, Void.class);
-		bind(char.class, Void.class);
+		bind(int.class, EMPTY.class);
+		bind(boolean.class, EMPTY.class);
+		bind(byte.class, EMPTY.class);
+		bind(long.class, EMPTY.class);
+		bind(short.class, EMPTY.class);
+		bind(float.class, EMPTY.class);
+		bind(double.class, EMPTY.class);
+		bind(char.class, EMPTY.class);
 	}
 
 	/**
@@ -134,7 +134,7 @@ public class BeanContext {
 		if (target != null && singletonCache.containsKey(target))
 			return (T) singletonCache.get(target);
 
-		if (target == null || Void.class == target)
+		if (target == null || EMPTY.class == target)
 			return (T) notfoundOrException(target, required);
 
 		if (target instanceof BeanBox) {
@@ -143,7 +143,7 @@ public class BeanContext {
 				Object id = bx.getSingletonId();
 				if (id != null) {
 					Object existed = singletonCache.get(id);
-					if (existed != null && Void.class != existed)
+					if (existed != null && EMPTY.class != existed)
 						return (T) existed;
 				}
 			}
@@ -173,7 +173,7 @@ public class BeanContext {
 		} else if (target instanceof Class) { // is a class?
 			BeanBox box = BeanBoxUtils.getUniqueBeanBox(this, (Class<?>) target);
 			result = getBean(box, required, history);
-			if (Void.class != result && box.isSingleton()) {
+			if (EMPTY.class != result && box.isSingleton()) {
 				singletonCache.put(target, result);
 			}
 		} else
@@ -196,7 +196,7 @@ public class BeanContext {
 		if (box.isPureValue()) // if constant?
 			return box.getTarget();
 		if (box.getTarget() != null) {// if target?
-			if (Void.class != box.getTarget())
+			if (EMPTY.class != box.getTarget())
 				return getBean(box.getTarget(), box.isRequired(), history);
 			if (box.getType() != null)
 				return getBean(box.getType(), box.isRequired(), history);
@@ -243,8 +243,8 @@ public class BeanContext {
 					return BeanException.throwEX(e);
 				}
 		} else if (box.getBeanClass() != null) { // is normal bean
-			if (Void.class == box.getBeanClass())
-				return notfoundOrException(Void.class, required);
+			if (EMPTY.class == box.getBeanClass())
+				return notfoundOrException(EMPTY.class, required);
 			try {
 				bean = box.getBeanClass().newInstance();
 			} catch (Exception e) {
@@ -284,7 +284,7 @@ public class BeanContext {
 				Field f = entry.getKey();
 				BeanBox b = entry.getValue();
 				Object fieldValue = this.getBeanFromBox(b, false, history);
-				if (Void.class == fieldValue) {
+				if (EMPTY.class == fieldValue) {
 					if (b.isRequired())
 						BeanException.throwEX("Not found required value for field: " + f.getName() + " in "
 								+ f.getDeclaringClass().getName());
@@ -347,7 +347,7 @@ public class BeanContext {
 		if (required)
 			return BeanException.throwEX("BeanBox target not found: " + target);
 		else
-			return Void.class;
+			return EMPTY.class;
 	}
 
 	protected void notExistMethod() {// this mark a not exist Method

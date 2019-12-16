@@ -56,12 +56,12 @@ public class JBEANBOX {// NOSONAR
 	}
 
 	public static BeanBox autowired() {
-		return new BeanBox().setTarget(Void.class);
+		return new BeanBox().setTarget(EMPTY.class);
 	}
 
 	/** Equal to "@INJECT" annotation */
 	public static BeanBox inject() {
-		return new BeanBox().setTarget(Void.class);
+		return new BeanBox().setTarget(EMPTY.class);
 	}
 
 	/** Equal to "@INJECT" annotation */

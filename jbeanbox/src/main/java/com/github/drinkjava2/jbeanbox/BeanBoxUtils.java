@@ -127,7 +127,7 @@ public class BeanBoxUtils {// NOSONAR
 			v = getInjectAnnotationAsArray(constr, allowSpringJsrAnno);
 			if (v != null) {
 				box.setBeanClass(clazz);// anyway set beanClass first
-				if (v[0] != null && Void.class != v[0]) {// 1 parameter only
+				if (v[0] != null && EMPTY.class != v[0]) {// 1 parameter only
 					BeanBox inject = new BeanBox();
 					inject.setTarget(v[0]);
 					inject.setPureValue((Boolean) v[1]);
@@ -194,7 +194,7 @@ public class BeanBoxUtils {// NOSONAR
 				oneParam.setTarget(v[0]);
 				oneParam.setPureValue((Boolean) v[1]);
 				oneParam.setRequired((Boolean) v[2]);
-				boolean haveOneParameter = v[0] != null && Void.class != v[0];
+				boolean haveOneParameter = v[0] != null && EMPTY.class != v[0];
 				if (haveOneParameter)
 					oneParam.setType(m.getParameterTypes()[0]); // set parameter type for 1 parameter
 				// @INJECT or @Inject or @Autowired normal method inject
@@ -233,9 +233,9 @@ public class BeanBoxUtils {// NOSONAR
 				return new Object[] { ((VALUE) a).value(), ((VALUE) a).pureValue(), ((VALUE) a).required(), null };
 			if (allowSpringJsrAnno) {
 				if (Inject.class.equals(type))
-					return new Object[] { Void.class, false, true, null };
+					return new Object[] { EMPTY.class, false, true, null };
 				if (Autowired.class.equals(type))
-					return new Object[] { Void.class, false, ((Autowired) a).required(), null };
+					return new Object[] { EMPTY.class, false, ((Autowired) a).required(), null };
 			}
 		}
 		return null;// NOSONAR
