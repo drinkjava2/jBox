@@ -10,8 +10,8 @@
 package com.github.drinkjava2.jbeanbox;
 
 /**
- * JBEANBOX store a default globalBeanContext, and have public static method
- * to access it
+ * JBEANBOX store a default globalBeanContext, and have public static method to
+ * access it
  * 
  * @author Yong Zhu
  * @since 2.4
@@ -21,6 +21,10 @@ public class JBEANBOX {// NOSONAR
 
 	public static BeanContext bctx() {
 		return BeanContext.globalBeanContext;
+	}
+
+	public static void scanClassPath(String... packages) {
+		bctx().scanClassPath(packages);
 	}
 
 	public static void reset() {

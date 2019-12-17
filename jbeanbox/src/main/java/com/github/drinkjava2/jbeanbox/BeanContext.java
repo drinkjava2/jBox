@@ -11,6 +11,7 @@ package com.github.drinkjava2.jbeanbox;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -40,8 +41,8 @@ public class BeanContext {
 	protected boolean allowSpringJsrAnnotation = globalNextAllowSpringJsrAnnotation;
 	protected ValueTranslator valueTranslator = globalNextValueTranslator;
 
-	protected Map<Object, Object> bindCache = new ConcurrentHashMap<Object, Object>();// shortcuts cache
-	protected Map<Class<?>, BeanBox> beanBoxMetaCache = new ConcurrentHashMap<Class<?>, BeanBox>(); // as title
+	protected Map<Object, Object> bindCache = new ConcurrentHashMap<Object, Object>();// bind cache
+	protected Map<Class<?>, BeanBox> beanBoxCache = new ConcurrentHashMap<Class<?>, BeanBox>(); // bean box cache
 	protected Map<Object, Object> singletonCache = new ConcurrentHashMap<Object, Object>(); // class or BeanBox as key
 
 	protected static BeanContext globalBeanContext = new BeanContext();// Global Bean context
@@ -108,7 +109,7 @@ public class BeanContext {
 			}
 		}
 		bindCache.clear();
-		beanBoxMetaCache.clear();
+		beanBoxCache.clear();
 		singletonCache.clear();
 	}
 
@@ -309,6 +310,14 @@ public class BeanContext {
 		return bean;
 	}
 
+	public void scanClassPath(String... packages) {
+		List<Class> classes = ClassScanner.scan(packages);
+		for (Class claz : classes) {
+			// if (!(claz.isInterface() || Modifier.isAbstract(claz.getModifiers())))
+			beanBoxCache.put(claz, getBeanBox(claz));
+		}
+	}
+
 	public BeanContext bind(Object shortcut, Object target) {
 		BeanException.assureNotNull(shortcut, "bind shorcut can not be empty");
 		bindCache.put(shortcut, target);
@@ -445,12 +454,12 @@ public class BeanContext {
 		return this;
 	}
 
-	public Map<Class<?>, BeanBox> getBeanBoxMetaCache() {
-		return beanBoxMetaCache;
+	public Map<Class<?>, BeanBox> getBeanBoxCache() {
+		return beanBoxCache;
 	}
 
-	public BeanContext setBeanBoxMetaCache(Map<Class<?>, BeanBox> beanBoxMetaCache) {
-		this.beanBoxMetaCache = beanBoxMetaCache;
+	public BeanContext setBeanBoxCache(Map<Class<?>, BeanBox> beanBoxMetaCache) {
+		this.beanBoxCache = beanBoxMetaCache;
 		return this;
 	}
 

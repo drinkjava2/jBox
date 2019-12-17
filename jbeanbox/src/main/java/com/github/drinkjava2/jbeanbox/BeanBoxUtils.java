@@ -44,7 +44,7 @@ public class BeanBoxUtils {// NOSONAR
 	 */
 	public static BeanBox getUniqueBeanBox(BeanContext ctx, Class<?> clazz) {
 		BeanException.assureNotNull(clazz, "Target class can not be null");
-		BeanBox box = ctx.beanBoxMetaCache.get(clazz);
+		BeanBox box = ctx.beanBoxCache.get(clazz);
 		if (box != null)
 			return box;
 		if (BeanBox.class.isAssignableFrom(clazz))
@@ -57,7 +57,7 @@ public class BeanBoxUtils {// NOSONAR
 			}
 		else
 			box = doCreateBeanBox(ctx, clazz);
-		ctx.beanBoxMetaCache.put(clazz, box);
+		ctx.beanBoxCache.put(clazz, box);
 		return box;
 	}
 
@@ -222,13 +222,16 @@ public class BeanBoxUtils {// NOSONAR
 
 	/**
 	 * get Inject As Object[4] Array, 0=value 1=isConstant 2=required
-	 * 3=annotationType, if not found annotation inject, return null
+	 * 3=annotationType,4=qualifier class, 5=qualifier typed, 6=qualifier named, if
+	 * not found annotation inject, return null
 	 */
 	private static Object[] getInjectAsArray(Annotation[] anno, boolean allowSpringJsrAnno) {// NOSONAR
 		for (Annotation a : anno) {
 			Class<? extends Annotation> type = a.annotationType();
-			if (INJECT.class.equals(type))
-				return new Object[] { ((INJECT) a).value(), ((INJECT) a).pureValue(), ((INJECT) a).required(), null };
+			if (INJECT.class.equals(type)) {
+				INJECT i=(INJECT) a;//TODO at here
+				return new Object[] { i.value(), i.pureValue(), i.required(), i.annotationType() };
+			}
 			if (VALUE.class.equals(type))
 				return new Object[] { ((VALUE) a).value(), ((VALUE) a).pureValue(), ((VALUE) a).required(), null };
 			if (allowSpringJsrAnno) {
@@ -316,7 +319,6 @@ public class BeanBoxUtils {// NOSONAR
 			}
 		return result;
 	}
- 
 
 	/**
 	 * If aop is a instance of Aop alliance Interceptor, wrap it to a BeanBox and

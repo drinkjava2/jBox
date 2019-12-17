@@ -45,6 +45,13 @@ public class QualiferTest {
 	}
 
 	@Test
+	public void testScanClassPath() {
+		JBEANBOX.scanClassPath(QualiferTest.class.getPackage().getName());
+		for (Class<?> c : JBEANBOX.bctx().getBeanBoxCache().keySet()) {
+			System.out.println(c);
+		}
+	}
+
 	public void testQualifer() {
 		A a = JBEANBOX.getBean(A.class);
 		System.out.println(a.b);
