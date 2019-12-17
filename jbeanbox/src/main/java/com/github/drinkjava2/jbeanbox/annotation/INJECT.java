@@ -14,8 +14,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import javax.inject.Qualifier;
-
 import com.github.drinkjava2.jbeanbox.EMPTY;
 
 /**
@@ -35,10 +33,10 @@ public @interface INJECT {
 
 	public boolean required() default true; // if true when target not found will throw exception, if false keep silence
 
-	public Class<?> qualifier() default Qualifier.class;
+	public Class<?> qualifier() default EMPTY.class; // If be put a Qualifer or child-annotation of Qualifer
 
-	public Class<?> typed() default EMPTY.class;
+	public Class<?> typed() default EMPTY.class; // Qualifer typed class, usually is a enum class
 
-	public String named() default "";
+	public String named() default ""; // The Named annoation's value, Name is a special child-annotation of Qualifer
 
 }
