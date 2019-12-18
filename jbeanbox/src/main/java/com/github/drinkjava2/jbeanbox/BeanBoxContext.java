@@ -9,9 +9,9 @@
  */
 package com.github.drinkjava2.jbeanbox;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,16 +20,19 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.stereotype.Component;
+
 import com.github.drinkjava2.jbeanbox.ValueTranslator.DefaultValueTranslator;
+import com.github.drinkjava2.jbeanbox.annotation.COMPONENT;
 
 /**
- * BeanContext is the Context to create beans
+ * BeanBoxContext is the Context to create beans
  * 
  * @author Yong Zhu
  * @since 2.4
  *
  */
-public class BeanContext {
+public class BeanBoxContext {
 	public static String CREATE_METHOD = "create"; // as title
 	public static String CONFIG_METHOD = "config"; // as title
 
@@ -42,15 +45,15 @@ public class BeanContext {
 	protected ValueTranslator valueTranslator = globalNextValueTranslator;
 
 	protected Map<Object, Object> bindCache = new ConcurrentHashMap<Object, Object>();// bind cache
-	protected Map<Class<?>, BeanBox> beanBoxCache = new ConcurrentHashMap<Class<?>, BeanBox>(); // bean box cache
+	protected Map<Class<?>, BeanBox> componentCache = new ConcurrentHashMap<Class<?>, BeanBox>(); // component Cache
 	protected Map<Object, Object> singletonCache = new ConcurrentHashMap<Object, Object>(); // class or BeanBox as key
 
-	protected static BeanContext globalBeanContext = new BeanContext();// Global Bean context
+	protected static BeanBoxContext globalBeanContext = new BeanBoxContext();// Global Bean context
 
 	// ==========AOP about=========
 	protected List<Object[]> aopRules;
 
-	public BeanContext() {
+	public BeanBoxContext() {
 		bind(Object.class, EMPTY.class);
 		bind(String.class, EMPTY.class);
 		bind(Integer.class, EMPTY.class);
@@ -77,7 +80,7 @@ public class BeanContext {
 
 	/**
 	 * Reset global variants setting , note this method only close
-	 * globalBeanContext, if created many BeanContext instance need close them
+	 * globalBeanContext, if created many BeanBoxContext instance need close them
 	 * manually
 	 */
 	public static void reset() {
@@ -87,12 +90,12 @@ public class BeanContext {
 		globalNextValueTranslator = new DefaultValueTranslator();
 		CREATE_METHOD = "create";
 		CONFIG_METHOD = "config";
-		globalBeanContext = new BeanContext();
+		globalBeanContext = new BeanBoxContext();
 	}
 
 	/**
-	 * Close current BeanContext, clear singlton cache, call predestory methods for
-	 * each singleton if they have
+	 * Close current BeanBoxContext, clear singlton cache, call predestory methods
+	 * for each singleton if they have
 	 */
 	public void close() {
 		for (Entry<Object, Object> singletons : singletonCache.entrySet()) {
@@ -109,8 +112,12 @@ public class BeanContext {
 			}
 		}
 		bindCache.clear();
-		beanBoxCache.clear();
+		componentCache.clear();
 		singletonCache.clear();
+	}
+
+	public Object getObject(Object obj) {
+		return getBean(obj, true, null);
 	}
 
 	public <T> T getBean(Object obj) {
@@ -150,16 +157,17 @@ public class BeanContext {
 			}
 			if (history != null && history.contains(target)) {
 				if (bx.getTarget() != null)
-					BeanException.throwEX("Fail to build bean, circular dependency found on target: " + bx.getTarget());
+					BeanBoxException
+							.throwEX("Fail to build bean, circular dependency found on target: " + bx.getTarget());
 				if (bx.getBeanClass() != null)
-					BeanException.throwEX(
+					BeanBoxException.throwEX(
 							"Fail to build bean, circular dependency found on beanClass: " + bx.getBeanClass());
 				if (bx.getType() != null)
-					BeanException.throwEX("Fail to build bean, circular dependency found on type: " + bx.getType());
+					BeanBoxException.throwEX("Fail to build bean, circular dependency found on type: " + bx.getType());
 				if (bx.getCreateMethod() != null)
-					BeanException.throwEX(
+					BeanBoxException.throwEX(
 							"Fail to build bean, circular dependency found on method: " + bx.getCreateMethod());
-				BeanException.throwEX("Fail to build bean, circular dependency found on: " + bx);
+				BeanBoxException.throwEX("Fail to build bean, circular dependency found on: " + bx);
 			}
 		}
 
@@ -186,7 +194,7 @@ public class BeanContext {
 	/** Get Bean From BeanBox instance */
 	private Object getBeanFromBox(BeanBox box, boolean required, Set<Object> history) {// NOSONAR
 		// NOSONAR System.out.println(" Box=> box=" + box + " history=" + history);
-		BeanException.assureNotNull(box, "Fail to build instance for a null beanBox");
+		BeanBoxException.assureNotNull(box, "Fail to build instance for a null beanBox");
 		Object bean = null;
 		if (box.isSingleton()) { // Check if singleton in cache
 			bean = singletonCache.get(box);
@@ -224,10 +232,10 @@ public class BeanContext {
 				} else if (m.getParameterTypes().length == 0)
 					bean = m.invoke(box);
 				else
-					BeanException.throwEX("Create method can only have 0 or 1 parameter");
-				BeanException.assureNotNull(bean, "Create method created a null object.");
+					BeanBoxException.throwEX("Create method can only have 0 or 1 parameter");
+				BeanBoxException.assureNotNull(bean, "Create method created a null object.");
 			} catch (Exception e) {
-				return BeanException.throwEX(e);
+				return BeanBoxException.throwEX(e);
 			}
 		else if (box.getConstructor() != null) { // has constructor?
 			if (box.getConstructorParams() != null && box.getConstructorParams().length > 0) {
@@ -235,13 +243,13 @@ public class BeanContext {
 				try {
 					bean = box.getConstructor().newInstance(initargs);
 				} catch (Exception e) {
-					return BeanException.throwEX(e);
+					return BeanBoxException.throwEX(e);
 				}
 			} else // 0 param constructor
 				try {
 					bean = box.getConstructor().newInstance();
 				} catch (Exception e) {
-					return BeanException.throwEX(e);
+					return BeanBoxException.throwEX(e);
 				}
 		} else if (box.getBeanClass() != null) { // is normal bean
 			if (EMPTY.class == box.getBeanClass())
@@ -249,7 +257,7 @@ public class BeanContext {
 			try {
 				bean = box.getBeanClass().newInstance();
 			} catch (Exception e) {
-				BeanException.throwEX("Failed to call 0 parameter constructor of: " + box.getBeanClass(), e);
+				BeanBoxException.throwEX("Failed to call 0 parameter constructor of: " + box.getBeanClass(), e);
 			}
 		} else
 			return notfoundOrException(null, required); // return null or throw EX
@@ -271,9 +279,9 @@ public class BeanContext {
 				else if (m.getParameterTypes().length == 1)
 					m.invoke(box, bean);
 				else
-					BeanException.throwEX("Config method can only have 1 or 2 parameters");
+					BeanBoxException.throwEX("Config method can only have 1 or 2 parameters");
 			} catch (Exception e) {
-				return BeanException.throwEX(e);
+				return BeanBoxException.throwEX(e);
 			}
 		}
 
@@ -287,7 +295,7 @@ public class BeanContext {
 				Object fieldValue = this.getBeanFromBox(b, false, history);
 				if (EMPTY.class == fieldValue) {
 					if (b.isRequired())
-						BeanException.throwEX("Not found required value for field: " + f.getName() + " in "
+						BeanBoxException.throwEX("Not found required value for field: " + f.getName() + " in "
 								+ f.getDeclaringClass().getName());
 				} else {
 					if (fieldValue != null && fieldValue instanceof String)
@@ -310,28 +318,42 @@ public class BeanContext {
 		return bean;
 	}
 
-	public void scanClassPath(String... packages) {
+	/**
+	 * Scan classes with &#064;COMPONENT or &#064;Component annotation, for autowire
+	 * purpose, usually used for inject interface properties without manual bind
+	 */
+	@SuppressWarnings("rawtypes")
+	public void scanComponents(String... packages) {
 		List<Class> classes = ClassScanner.scan(packages);
-		for (Class claz : classes) {
-			// if (!(claz.isInterface() || Modifier.isAbstract(claz.getModifiers())))
-			beanBoxCache.put(claz, getBeanBox(claz));
-		}
+		for (Class claz : classes)
+			for (Annotation anno : claz.getAnnotations()) {
+				Class<? extends Annotation> aType = anno.annotationType();
+				// Scan jBeanBox & Spring's component annotation
+				if (COMPONENT.class.equals(aType) || Component.class.equals(aType)
+						|| aType.isAnnotationPresent(Component.class)) {
+					BeanBox box = getBeanBox(claz);
+					componentCache.put(claz, box);
+					Map<String, Object> values = BeanBoxUtils.changeAnnotationValuesToMap(anno);
+					if (!"".equals(values.get("value")))
+						this.bind(values.get("value"), claz);// value store component bean's name
+				}
+			}
 	}
 
-	public BeanContext bind(Object shortcut, Object target) {
-		BeanException.assureNotNull(shortcut, "bind shorcut can not be empty");
+	public BeanBoxContext bind(Object shortcut, Object target) {
+		BeanBoxException.assureNotNull(shortcut, "bind shorcut can not be empty");
 		bindCache.put(shortcut, target);
 		return this;
 	}
 
-	public BeanContext addContextAop(Object aop, String classNameRegex, String methodNameRegex) {
+	public BeanBoxContext addContextAop(Object aop, String classNameRegex, String methodNameRegex) {
 		if (aopRules == null)
 			aopRules = new ArrayList<Object[]>();
 		aopRules.add(new Object[] { BeanBoxUtils.checkAOP(aop), classNameRegex, methodNameRegex });
 		return this;
 	}
 
-	public BeanContext addContextAop(Object aop, Class<?> clazz, String methodNameRegex) {
+	public BeanBoxContext addContextAop(Object aop, Class<?> clazz, String methodNameRegex) {
 		return addContextAop(aop, clazz.getName() + "*", methodNameRegex);
 	}
 
@@ -342,7 +364,7 @@ public class BeanContext {
 	protected void staticMethods________________________() {// NOSONAR
 	}
 
-	private static Object[] param2RealObjects(BeanContext ctx, Set<Object> history, BeanBox[] boxes) {
+	private static Object[] param2RealObjects(BeanBoxContext ctx, Set<Object> history, BeanBox[] boxes) {
 		Object[] result = new Object[boxes.length];
 		for (int i = 0; i < boxes.length; i++) {
 			result[i] = ctx.getBeanFromBox(boxes[i], true, history);
@@ -354,7 +376,7 @@ public class BeanContext {
 
 	private static Object notfoundOrException(Object target, boolean required) {
 		if (required)
-			return BeanException.throwEX("BeanBox target not found: " + target);
+			return BeanBoxException.throwEX("BeanBox target not found: " + target);
 		else
 			return EMPTY.class;
 	}
@@ -367,7 +389,7 @@ public class BeanContext {
 
 	static {
 		try {
-			NOT_EXIST_METHOD = BeanContext.class.getDeclaredMethod("notExistMethod");
+			NOT_EXIST_METHOD = BeanBoxContext.class.getDeclaredMethod("notExistMethod");
 		} catch (Exception e) {// NOSONAR
 		}
 	}
@@ -375,12 +397,12 @@ public class BeanContext {
 	protected void staticGetterAndSetters________________________() {// NOSONAR
 	}
 
-	public static BeanContext getGlobalBeanContext() {
+	public static BeanBoxContext getGlobalBeanContext() {
 		return globalBeanContext;
 	}
 
-	public static void setGlobalBeanContext(BeanContext globalBeanContext) {
-		BeanContext.globalBeanContext = globalBeanContext;
+	public static void setGlobalBeanContext(BeanBoxContext globalBeanContext) {
+		BeanBoxContext.globalBeanContext = globalBeanContext;
 	}
 
 	public static boolean isGlobalNextAllowAnnotation() {
@@ -388,7 +410,7 @@ public class BeanContext {
 	}
 
 	public static void setGlobalNextAllowAnnotation(boolean globalNextAllowAnnotation) {
-		BeanContext.globalNextAllowAnnotation = globalNextAllowAnnotation;
+		BeanBoxContext.globalNextAllowAnnotation = globalNextAllowAnnotation;
 	}
 
 	public static boolean isGlobalNextAllowSpringJsrAnnotation() {
@@ -396,7 +418,7 @@ public class BeanContext {
 	}
 
 	public static void setGlobalNextAllowSpringJsrAnnotation(boolean globalNextAllowSpringJsrAnnotation) {
-		BeanContext.globalNextAllowSpringJsrAnnotation = globalNextAllowSpringJsrAnnotation;
+		BeanBoxContext.globalNextAllowSpringJsrAnnotation = globalNextAllowSpringJsrAnnotation;
 	}
 
 	public static ValueTranslator getGlobalNextParamTranslator() {
@@ -404,7 +426,7 @@ public class BeanContext {
 	}
 
 	public static void setGlobalNextParamTranslator(ValueTranslator globalNextParamTranslator) {
-		BeanContext.globalNextValueTranslator = globalNextParamTranslator;
+		BeanBoxContext.globalNextValueTranslator = globalNextParamTranslator;
 	}
 
 	public static Method getNotExistMethod() {
@@ -412,7 +434,7 @@ public class BeanContext {
 	}
 
 	public static void setNotExistMethod(Method notExistMethod) {
-		BeanContext.NOT_EXIST_METHOD = notExistMethod;
+		BeanBoxContext.NOT_EXIST_METHOD = notExistMethod;
 	}
 
 	protected void getterAndSetters________________________() {// NOSONAR
@@ -422,7 +444,7 @@ public class BeanContext {
 		return allowAnnotation;
 	}
 
-	public BeanContext setAllowAnnotation(boolean allowAnnotation) {
+	public BeanBoxContext setAllowAnnotation(boolean allowAnnotation) {
 		this.allowAnnotation = allowAnnotation;
 		return this;
 	}
@@ -431,7 +453,7 @@ public class BeanContext {
 		return allowSpringJsrAnnotation;
 	}
 
-	public BeanContext setAllowSpringJsrAnnotation(boolean allowSpringJsrAnnotation) {
+	public BeanBoxContext setAllowSpringJsrAnnotation(boolean allowSpringJsrAnnotation) {
 		this.allowSpringJsrAnnotation = allowSpringJsrAnnotation;
 		return this;
 	}
@@ -440,7 +462,7 @@ public class BeanContext {
 		return valueTranslator;
 	}
 
-	public BeanContext setValueTranslator(ValueTranslator valueTranslator) {
+	public BeanBoxContext setValueTranslator(ValueTranslator valueTranslator) {
 		this.valueTranslator = valueTranslator;
 		return this;
 	}
@@ -449,17 +471,17 @@ public class BeanContext {
 		return bindCache;
 	}
 
-	public BeanContext setBindCache(Map<Object, Object> bindCache) {
+	public BeanBoxContext setBindCache(Map<Object, Object> bindCache) {
 		this.bindCache = bindCache;
 		return this;
 	}
 
-	public Map<Class<?>, BeanBox> getBeanBoxCache() {
-		return beanBoxCache;
+	public Map<Class<?>, BeanBox> getComponentCache() {
+		return componentCache;
 	}
 
-	public BeanContext setBeanBoxCache(Map<Class<?>, BeanBox> beanBoxMetaCache) {
-		this.beanBoxCache = beanBoxMetaCache;
+	public BeanBoxContext setComponentCache(Map<Class<?>, BeanBox> beanBoxMetaCache) {
+		this.componentCache = beanBoxMetaCache;
 		return this;
 	}
 
@@ -467,7 +489,7 @@ public class BeanContext {
 		return singletonCache;
 	}
 
-	public BeanContext setSingletonCache(Map<Object, Object> singletonCache) {
+	public BeanBoxContext setSingletonCache(Map<Object, Object> singletonCache) {
 		this.singletonCache = singletonCache;
 		return this;
 	}
@@ -476,7 +498,7 @@ public class BeanContext {
 		return aopRules;
 	}
 
-	public BeanContext setAopRules(List<Object[]> aopRules) {
+	public BeanBoxContext setAopRules(List<Object[]> aopRules) {
 		this.aopRules = aopRules;
 		return this;
 	}

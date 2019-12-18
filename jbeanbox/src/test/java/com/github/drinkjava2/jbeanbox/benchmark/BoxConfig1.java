@@ -3,7 +3,7 @@ package com.github.drinkjava2.jbeanbox.benchmark;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.inject;
 
 import com.github.drinkjava2.jbeanbox.BeanBox;
-import com.github.drinkjava2.jbeanbox.BeanContext;
+import com.github.drinkjava2.jbeanbox.BeanBoxContext;
 import com.github.drinkjava2.jbeanbox.benchmark.objects.A;
 import com.github.drinkjava2.jbeanbox.benchmark.objects.B;
 import com.github.drinkjava2.jbeanbox.benchmark.objects.C;
@@ -68,7 +68,7 @@ public class BoxConfig1 {
 	}
 
 	public static void main(String[] args) {
-		BeanContext ctx1 = new BeanContext();
+		BeanBoxContext ctx1 = new BeanBoxContext();
 		ctx1.setAllowAnnotation(false);
 		A a = ctx1.getBean(ABox.class);
 		System.out.println(a.b.c.d1.e.getname());

@@ -19,22 +19,26 @@ package com.github.drinkjava2.jbeanbox;
  */
 public class JBEANBOX {// NOSONAR
 
-	public static BeanContext bctx() {
-		return BeanContext.globalBeanContext;
+	public static BeanBoxContext bctx() {
+		return BeanBoxContext.globalBeanContext;
 	}
 
-	public static void scanClassPath(String... packages) {
-		bctx().scanClassPath(packages);
+	public static void scanComponents(String... packages) {
+		bctx().scanComponents(packages);
 	}
 
 	public static void reset() {
-		BeanContext.reset();
+		BeanBoxContext.reset();
 	}
 
 	public static void close() {
 		bctx().close();
 	}
 
+	public static Object getObject(Object target) {
+		return bctx().getObject(target);
+	}
+	
 	public static <T> T getBean(Object target) {
 		return bctx().getBean(target);
 	}
@@ -51,12 +55,12 @@ public class JBEANBOX {// NOSONAR
 		return bctx().getInstance(clazz, required);
 	}
 
-	public static BeanContext bind(Object shortcut, Object target) {
+	public static BeanBoxContext bind(Object shortcut, Object target) {
 		return bctx().bind(shortcut, target);
 	}
 
 	public static BeanBox getBeanBox(Class<?> clazz) {
-		return BeanBoxUtils.getUniqueBeanBox(BeanContext.globalBeanContext, clazz);
+		return BeanBoxUtils.getUniqueBeanBox(BeanBoxContext.globalBeanContext, clazz);
 	}
 
 	public static BeanBox autowired() {

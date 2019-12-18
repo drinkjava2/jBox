@@ -10,59 +10,59 @@
 package com.github.drinkjava2.jbeanbox;
 
 /**
- * BeanException for jBeanBox
+ * BeanBoxException for jBeanBox
  * 
  * @author Yong Zhu
  * @since 1.0.0
  */
-public class BeanException extends RuntimeException {
+public class BeanBoxException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 
-	public BeanException() {
+	public BeanBoxException() {
 		// Default constructor
 	}
 
-	public BeanException(String message) {
+	public BeanBoxException(String message) {
 		super(message);
 	}
 
-	public BeanException(Throwable cause) {
+	public BeanBoxException(Throwable cause) {
 		super(cause);
 	}
 
-	public BeanException(String message, Throwable cause) {
+	public BeanBoxException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
 	public static <T> T throwEX(String errorMsg, Throwable e) {
-		throw new BeanException(errorMsg, e);
+		throw new BeanBoxException(errorMsg, e);
 	}
 
 	public static <T> T throwEX(Throwable cause) {
-		throw new BeanException(cause);
+		throw new BeanBoxException(cause);
 	}
 
 	public static <T> T throwEX(String errorMsg) {
-		throw new BeanException(errorMsg);
+		throw new BeanBoxException(errorMsg);
 	}
 
 	public static boolean assureNotNull(Object obj, String... optionMessages) {
 		if (obj == null)
-			throw new BeanException(
+			throw new BeanBoxException(
 					optionMessages.length == 0 ? "Assert error, Object parameter can not be null" : optionMessages[0]);
 		return true;
 	}
 
 	public static boolean assureNotEmpty(String str, String... optionMessages) {
 		if (str == null || str.length() == 0)
-			throw new BeanException(
+			throw new BeanBoxException(
 					optionMessages.length == 0 ? "Assert error, String parameter can not be empty" : optionMessages[0]);
 		return true;
 	}
 	
 	public static boolean assure(boolean condition, String... optionMessages) {
 		if (!condition)
-			throw new BeanException(
+			throw new BeanBoxException(
 					optionMessages.length == 0 ? "Assert expected true but got false" : optionMessages[0]);
 		return true;
 	}

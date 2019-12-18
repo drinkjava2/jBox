@@ -5,7 +5,7 @@ import java.lang.reflect.Method;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.github.drinkjava2.jbeanbox.BeanContext;
+import com.github.drinkjava2.jbeanbox.BeanBoxContext;
 import com.github.drinkjava2.jbeanbox.JBEANBOX;
 import com.github.drinkjava2.jbeanbox.benchmark.objects.A;
 
@@ -56,7 +56,7 @@ public class BenchmarkTest {
 
 	@Test
 	public void testAnnotationSingleton() {
-		BeanContext.reset();
+		BeanBoxContext.reset();
 		JBEANBOX.getBeanBox(A.class).setSingleton(true);
 		for (int i = 0; i < REPEAT_TIMES; i++)
 			JBEANBOX.getBean(A.class);
@@ -64,8 +64,8 @@ public class BenchmarkTest {
 
 	@Test
 	public void testAnnotationPrototype() {
-		BeanContext.reset();
-		BeanContext ctx = new BeanContext();
+		BeanBoxContext.reset();
+		BeanBoxContext ctx = new BeanBoxContext();
 		ctx.getBeanBox(A.class).setPrototype(true);
 		for (int i = 0; i < REPEAT_TIMES; i++)
 			JBEANBOX.getBean(A.class);
@@ -73,8 +73,8 @@ public class BenchmarkTest {
 
 	@Test
 	public void testConstructInjectSingleTon() {
-		BeanContext.reset();
-		BeanContext ctx = new BeanContext();
+		BeanBoxContext.reset();
+		BeanBoxContext ctx = new BeanBoxContext();
 		ctx.setAllowAnnotation(false);
 		ctx.getBeanBox(BoxConfig1.ABox.class).setSingleton(true);
 		for (int i = 0; i < REPEAT_TIMES; i++)
@@ -83,8 +83,8 @@ public class BenchmarkTest {
 
 	@Test
 	public void testConstructInjectPrototype() {
-		BeanContext.reset();
-		BeanContext ctx = new BeanContext();
+		BeanBoxContext.reset();
+		BeanBoxContext ctx = new BeanBoxContext();
 		ctx.setAllowAnnotation(false);
 		ctx.getBeanBox(BoxConfig1.ABox.class).setPrototype(true);
 		for (int i = 0; i < REPEAT_TIMES; i++)
@@ -92,8 +92,8 @@ public class BenchmarkTest {
 	}
 
 	public void testCreateMethodSingleton() {
-		BeanContext.reset();
-		BeanContext ctx = new BeanContext();
+		BeanBoxContext.reset();
+		BeanBoxContext ctx = new BeanBoxContext();
 		ctx.setAllowAnnotation(false);
 		ctx.getBeanBox(BoxConfig2.ABox.class).setSingleton(true);
 		for (int i = 0; i < REPEAT_TIMES; i++)
@@ -101,8 +101,8 @@ public class BenchmarkTest {
 	}
 
 	public void testCreateMethodPrototype() {
-		BeanContext.reset();
-		BeanContext ctx = new BeanContext();
+		BeanBoxContext.reset();
+		BeanBoxContext ctx = new BeanBoxContext();
 		ctx.setAllowAnnotation(false);
 		ctx.getBeanBox(BoxConfig1.ABox.class).setPrototype(true);
 		for (int i = 0; i < REPEAT_TIMES; i++)

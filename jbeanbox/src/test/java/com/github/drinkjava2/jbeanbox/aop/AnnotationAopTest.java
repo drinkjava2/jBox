@@ -22,7 +22,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.drinkjava2.jbeanbox.BeanContext;
+import com.github.drinkjava2.jbeanbox.BeanBoxContext;
 import com.github.drinkjava2.jbeanbox.JBEANBOX;
 import com.github.drinkjava2.jbeanbox.annotation.AOP;
 
@@ -37,7 +37,7 @@ public class AnnotationAopTest {
 
 	@Before
 	public void init() {
-		BeanContext.reset();
+		BeanBoxContext.reset();
 	}
 
 	public static class Interceptor1 implements MethodInterceptor {

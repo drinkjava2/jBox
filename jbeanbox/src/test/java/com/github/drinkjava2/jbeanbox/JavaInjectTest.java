@@ -35,7 +35,7 @@ public class JavaInjectTest {
 
 	@Before
 	public void init() {
-		BeanContext.reset();
+		BeanBoxContext.reset();
 	}
 
 	public static class Foo {
@@ -82,12 +82,12 @@ public class JavaInjectTest {
 		Assert.assertEquals("Hello", new BeanBox().setTarget("C").getBean());
 	}
 
-	@Test(expected = BeanException.class)
+	@Test(expected = BeanBoxException.class)
 	public void getBeanByTarget2() { // Test target not found
 		JBEANBOX.getBean(new BeanBox().setTarget("AAA"));
 	}
 
-	@Test(expected = BeanException.class)
+	@Test(expected = BeanBoxException.class)
 	public void getBeanByTarget3() { // Test target is String.class
 		JBEANBOX.getBean(new BeanBox().setTarget(String.class));
 	}
@@ -96,14 +96,14 @@ public class JavaInjectTest {
 	public void getBean4() {
 		Assert.assertNotEquals(JBEANBOX.getBean(Foo.class), JBEANBOX.getBean(Bar.class));
 
-		BeanContext.reset();
+		BeanBoxContext.reset();
 		BeanBox box = JBEANBOX.getBeanBox(Foo.class);
 		box.setTarget(Bar.class);
 		Bar b1 = JBEANBOX.getBean(box);
 		Bar b2 = JBEANBOX.getBean(Bar.class);
 		Assert.assertEquals(b1, b2);
 
-		BeanContext.reset();
+		BeanBoxContext.reset();
 		JBEANBOX.bind(Foo.class, Bar.class);
 		Foo f = JBEANBOX.getBean(box);
 		Bar b = JBEANBOX.getBean(Bar.class);

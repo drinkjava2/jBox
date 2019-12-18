@@ -14,6 +14,7 @@ package com.github.drinkjava2.jbeanbox;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.drinkjava2.jbeanbox.annotation.COMPONENT;
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 
 /**
@@ -27,7 +28,7 @@ public class QualiferTest {
 
 	@Before
 	public void init() {
-		BeanContext.reset();
+		BeanBoxContext.reset();
 	}
 
 	public static class A {
@@ -35,21 +36,25 @@ public class QualiferTest {
 		B b;
 	}
 
+	@COMPONENT()
 	public static interface B {
 	}
 
+	@COMPONENT("beanB1")
 	public static class B1 implements B {
 	}
 
+	@COMPONENT()
 	public static class B2 implements B {
 	}
 
 	@Test
 	public void testScanClassPath() {
-		JBEANBOX.scanClassPath(QualiferTest.class.getPackage().getName());
-		for (Class<?> c : JBEANBOX.bctx().getBeanBoxCache().keySet()) {
+		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
+		for (Class<?> c : JBEANBOX.bctx().getComponentCache().keySet()) {
 			System.out.println(c);
 		}
+		System.out.println(JBEANBOX.getObject("beanB1"));
 	}
 
 	public void testQualifer() {

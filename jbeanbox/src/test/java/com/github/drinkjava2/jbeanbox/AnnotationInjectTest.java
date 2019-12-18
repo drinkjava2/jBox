@@ -39,7 +39,7 @@ public class AnnotationInjectTest {
 
 	@Before
 	public void init() {
-		BeanContext.reset();
+		BeanBoxContext.reset();
 	}
 
 	protected void singletonTest_____________________() {
@@ -113,7 +113,7 @@ public class AnnotationInjectTest {
 
 	@Test
 	public void classInjectTest() {
-		BeanContext.reset();
+		BeanBoxContext.reset();
 		Object bean = JBEANBOX.getBean(Demo4.class);
 		Assert.assertTrue(JBEANBOX.getBean(Demo4.class) == JBEANBOX.getBean(Demo4.class));
 		Assert.assertEquals("3", bean);
@@ -271,7 +271,7 @@ public class AnnotationInjectTest {
 		public String field2;
 	}
 
-	@Test(expected = BeanException.class)
+	@Test(expected = BeanBoxException.class)
 	public void fieldInjectTest12() {
 		JBEANBOX.getInstance(FieldInject3.class);
 	}

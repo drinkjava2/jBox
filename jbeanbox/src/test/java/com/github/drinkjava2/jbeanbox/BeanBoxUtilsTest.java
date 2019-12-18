@@ -37,11 +37,11 @@ public class BeanBoxUtilsTest {
 
 	@Before
 	public void init() {
-		BeanContext.reset();
+		BeanBoxContext.reset();
 	}
 
 	public static BeanBox class2BeanBox(Class<?> clazz) {
-		return BeanBoxUtils.getUniqueBeanBox(BeanContext.globalBeanContext, clazz);
+		return BeanBoxUtils.getUniqueBeanBox(BeanBoxContext.globalBeanContext, clazz);
 	}
 
 	protected void BindTest_____________________() {

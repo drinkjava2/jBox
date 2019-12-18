@@ -64,18 +64,18 @@ public class BeanBox {
 
 	{// NOSONAR
 		if (!BeanBox.class.equals(this.getClass())) {
-			Method m = ReflectionUtils.findMethod(this.getClass(), BeanContext.CREATE_METHOD);
+			Method m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CREATE_METHOD);
 			if (m == null)
-				m = ReflectionUtils.findMethod(this.getClass(), BeanContext.CREATE_METHOD, Caller.class);
+				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CREATE_METHOD, Caller.class);
 			if (m != null) {
 				ReflectionUtils.makeAccessible(m);
 				this.beanClass = m.getReturnType();
 				this.createMethod = m;
 			}
 
-			m = ReflectionUtils.findMethod(this.getClass(), BeanContext.CONFIG_METHOD, Object.class);
+			m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class);
 			if (m == null)
-				m = ReflectionUtils.findMethod(this.getClass(), BeanContext.CONFIG_METHOD, Object.class, Caller.class);
+				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class, Caller.class);
 			if (m != null) {
 				ReflectionUtils.makeAccessible(m);
 				this.configMethod = m;
@@ -96,23 +96,23 @@ public class BeanBox {
 		return this;
 	}
 
-	/** Use default global BeanContext to create bean */
+	/** Use default global BeanBoxContext to create bean */
 	public <T> T getBean() {
-		return BeanContext.globalBeanContext.getBean(this);
+		return BeanBoxContext.globalBeanContext.getBean(this);
 	}
 
-	/** Use default global BeanContext to create bean */
+	/** Use default global BeanBoxContext to create bean */
 	public static <T> T getBean(Object target) {
-		return BeanContext.globalBeanContext.getBean(target);
+		return BeanBoxContext.globalBeanContext.getBean(target);
 	}
 
-	/** Use default global BeanContext to create a prototype bean */
+	/** Use default global BeanBoxContext to create a prototype bean */
 	public static <T> T getPrototypeBean(Class<?> beanClass) {
 		return new BeanBox(beanClass).getBean();
 	}
 
-	/** Use given BeanContext to create bean */
-	public <T> T getBean(BeanContext ctx) {
+	/** Use given BeanBoxContext to create bean */
+	public <T> T getBean(BeanBoxContext ctx) {
 		return ctx.getBean(this);
 	}
 
@@ -276,7 +276,7 @@ public class BeanBox {
 	public synchronized BeanBox addMethodAop(Object aop, String methodName, Class<?>... paramTypes) {
 		checkOrCreateMethodAops();
 		Method m = ReflectionUtils.findMethod(beanClass, methodName, paramTypes);
-		BeanException.assureNotNull(m, "Not found method: '" + methodName + "'");
+		BeanBoxException.assureNotNull(m, "Not found method: '" + methodName + "'");
 		addMethodAop(aop, m);
 		return this;
 	}

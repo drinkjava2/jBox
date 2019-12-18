@@ -32,7 +32,7 @@ import com.github.drinkjava2.cglib.proxy.MethodProxy;
 class ProxyBean implements MethodInterceptor, Callback {
 	protected Object[] box_ctx;
 
-	protected ProxyBean(BeanBox box, BeanContext ctx) {
+	protected ProxyBean(BeanBox box, BeanBoxContext ctx) {
 		box_ctx = new Object[] { box, ctx };
 	}
 
@@ -42,7 +42,7 @@ class ProxyBean implements MethodInterceptor, Callback {
 		List<Object> allInters = new ArrayList<Object>();
 
 		BeanBox box = (BeanBox) box_ctx[0];// box method aops
-		BeanContext ctx = (BeanContext) box_ctx[1];
+		BeanBoxContext ctx = (BeanBoxContext) box_ctx[1];
 		if (box.getMethodAops() != null) {
 			List<Object> inters = box.getMethodAops().get(m);
 			if (inters != null && !inters.isEmpty())
@@ -55,7 +55,7 @@ class ProxyBean implements MethodInterceptor, Callback {
 					allInters.add(entry[0]);
 			}
 
-		if (ctx.getAopRules() != null) {// BeanContext aops, need add cache in future
+		if (ctx.getAopRules() != null) {// BeanBoxContext aops, need add cache in future
 			String thisClassName = obj.getClass().getName();
 
 			for (Object[] aops : ctx.getAopRules()) {
@@ -72,7 +72,7 @@ class ProxyBean implements MethodInterceptor, Callback {
 			return mprxy.invokeSuper(obj, args);
 		// inters can be AOP class, AOP instance, BeanBox class, BeanBox instance
 		org.aopalliance.intercept.MethodInterceptor inter = ctx.getBean(allInters.get(0));
-		BeanException.assureNotNull(inter);
+		BeanBoxException.assureNotNull(inter);
 		return inter.invoke(new MethodInvoc(obj, m, args, mprxy, allInters, ctx, 1));
 	}
 
@@ -83,10 +83,10 @@ class ProxyBean implements MethodInterceptor, Callback {
 		private final Object[] args;
 		private final MethodProxy mprxy;
 		private final List<Object> inters;
-		private final BeanContext ctx;
+		private final BeanBoxContext ctx;
 		private int count;
 
-		protected MethodInvoc(Object obj, Method m, Object[] args, MethodProxy mprxy, List<Object> inters, BeanContext ctx,
+		protected MethodInvoc(Object obj, Method m, Object[] args, MethodProxy mprxy, List<Object> inters, BeanBoxContext ctx,
 				int count) {
 			this.obj = obj;	this.m = m;	this.args = args;	this.mprxy = mprxy;
 			this.inters = inters;	this.ctx = ctx;	this.count = count;

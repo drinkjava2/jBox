@@ -13,6 +13,7 @@ package com.github.drinkjava2.jbeanbox;
 
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.github.drinkjava2.jbeanbox.aop.AnnotationAopTest.BeanAop;
@@ -28,17 +29,13 @@ public class ClassScannerTest {
 	@Test
 	public void prototypeTest() {
 		List<Class> cList1 = ClassScanner.scan("com.github.drinkjava2.jbeanbox");
-		for (Class c : cList1)
-			System.out.println(c);
+		Assert.assertTrue(cList1.size() > 0);
 
-		System.out.println("======================");
 		List<Class> cList2 = ClassScanner.scanByAnno(BeanAop.class, "com.github.drinkjava2.jbeanbox");
-		for (Class c : cList2)
-			System.out.println(c);
-		
-		System.out.println("======================");
-		List<Class> cList3 = ClassScanner.scanByName("com.github.drinkjava2.jbeanbox.annotation.PR*", "com.github.drinkjava2.jbeanbox");
-		for (Class c : cList3)
-			System.out.println(c);
+		Assert.assertTrue(cList2.size() > 0);
+
+		List<Class> cList3 = ClassScanner.scanByName("com.github.drinkjava2.jbeanbox.annotation.PR*",
+				"com.github.drinkjava2.jbeanbox");
+		Assert.assertTrue(cList3.size() > 0);
 	}
 }

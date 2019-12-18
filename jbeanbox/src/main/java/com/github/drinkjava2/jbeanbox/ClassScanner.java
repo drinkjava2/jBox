@@ -53,10 +53,8 @@ public enum ClassScanner {
 		if (scanBasePackages.length == 0) {
 			return classList;
 		}
-
 		Arrays.asList(scanBasePackages).stream().filter(pkg -> pkg != null && pkg.length() != 0)
 				.forEach(pkg -> classList.addAll(ClassScanner.scanOnePackage(pkg)));
-
 		return classList;
 	}
 

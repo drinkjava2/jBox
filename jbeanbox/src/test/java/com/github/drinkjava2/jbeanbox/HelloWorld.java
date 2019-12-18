@@ -57,7 +57,7 @@ public class HelloWorld {
 		User u6 = JBEANBOX.getBean(new BeanBox().setBeanClass(User.class).setPostConstruct("init"));
 		User u7 = new UserBox7().getBean();
 		
-		BeanContext ctx = new BeanContext(); 
+		BeanBoxContext ctx = new BeanBoxContext(); 
 		Interceptor aop=new MethodInterceptor() { 
 			public Object invoke(MethodInvocation invocation) throws Throwable { 
 				invocation.getArguments()[0]="User9";
