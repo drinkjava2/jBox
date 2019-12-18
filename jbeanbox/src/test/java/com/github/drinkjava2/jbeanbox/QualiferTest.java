@@ -13,6 +13,7 @@ package com.github.drinkjava2.jbeanbox;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.stereotype.Service;
 
 import com.github.drinkjava2.jbeanbox.annotation.COMPONENT;
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
@@ -36,7 +37,7 @@ public class QualiferTest {
 		B b;
 	}
 
-	@COMPONENT()
+	@Service
 	public static interface B {
 	}
 
@@ -53,7 +54,12 @@ public class QualiferTest {
 		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
 		for (Class<?> c : JBEANBOX.bctx().getComponentCache().keySet()) {
 			System.out.println(c);
-		}
+		} 
+	}
+	
+	@Test
+	public void testComponentName() {
+		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName()); 
 		System.out.println(JBEANBOX.getObject("beanB1"));
 	}
 
