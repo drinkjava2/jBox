@@ -20,10 +20,14 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.inject.Qualifier;
+
 import org.springframework.stereotype.Component;
 
 import com.github.drinkjava2.jbeanbox.ValueTranslator.DefaultValueTranslator;
 import com.github.drinkjava2.jbeanbox.annotation.COMPONENT;
+import com.github.drinkjava2.jbeanbox.annotation.NAMED;
+import com.github.drinkjava2.jbeanbox.annotation.QUALIFILER;
 
 /**
  * BeanBoxContext is the Context to create beans
@@ -320,29 +324,58 @@ public class BeanBoxContext {
 
 	/**
 	 * Scan classes with &#064;COMPONENT or &#064;Component annotation, for autowire
-	 * purpose, usually used for inject interface properties without manual bind
+	 * purpose, usually used for inject bean fields without need manually bind
 	 */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void scanComponents(String... packages) {
 		List<Class> classes = ClassScanner.scan(packages);
 		for (Class claz : classes)
 			for (Annotation anno : claz.getAnnotations()) {
 				Class<? extends Annotation> aType = anno.annotationType();
-				// Scan jBeanBox & Spring's component annotation
-				if (COMPONENT.class.equals(aType) || Component.class.equals(aType)
-						|| aType.isAnnotationPresent(Component.class)) {
+				if (BeanBoxUtils.ifSameOrChildAnno(aType, COMPONENT.class, Component.class)) {
 					BeanBox box = getBeanBox(claz);
 					componentCache.put(claz, box);
 					Map<String, Object> values = BeanBoxUtils.changeAnnotationValuesToMap(anno);
-					if (!"".equals(values.get("value")))
-						this.bind(values.get("value"), claz);// value store component bean's name
+					if (!"".equals(values.get("value")))// use given bean name
+						this.bind(values.get("value"), claz);
+					else {
+						String s = claz.getSimpleName(); // else use first char lower case class name as bean name
+						if (!Character.isLowerCase(s.charAt(0)))
+							s = (new StringBuilder()).append(Character.toLowerCase(s.charAt(0))).append(s.substring(1))
+									.toString();
+						bind(s, claz);
+					}
+
+					for (Annotation otherAnno : claz.getAnnotations()) {// check qualifiler or named annotation family
+						Class<? extends Annotation> anno2 = otherAnno.annotationType();
+						if (BeanBoxUtils.ifSameOrChildAnno(anno2, NAMED.class, NAMED.class, QUALIFILER.class,
+								Qualifier.class, org.springframework.beans.factory.annotation.Qualifier.class)) {
+							Map<String, Object> v = BeanBoxUtils.changeAnnotationValuesToMap(anno);
+							if (v.size() > 1)
+								BeanBoxException.throwEX(
+										"BeanBox does not support multiple property in Qualifier annotation " + anno2);
+							String annoName = anno2.getSimpleName().toUpperCase();
+							bind(annoName + ":" + (v.isEmpty() ? "" : v.values().iterator().next()), claz);
+						}
+					}
 				}
 			}
 	}
 
-	public BeanBoxContext bind(Object shortcut, Object target) {
-		BeanBoxException.assureNotNull(shortcut, "bind shorcut can not be empty");
-		bindCache.put(shortcut, target);
+	/** Bind a targe on a bean id, if id already exist, throw BeanBoxException */
+	public BeanBoxContext bind(Object id, Object target) {
+		BeanBoxException.assureNotNull(id, "bind id can not be empty");
+		if (bindCache.containsKey(id))
+			BeanBoxException.throwEX("Fail to bind duplicated bean id '" + id
+					+ "', consider use 'rebind' method to allow override existed binding");
+		bindCache.put(id, target);
+		return this;
+	}
+
+	/** Bind a targe on a bean id, if id already exist, override it */
+	public BeanBoxContext rebind(Object id, Object target) {
+		BeanBoxException.assureNotNull(id, "bind id can not be empty");
+		bindCache.put(id, target);
 		return this;
 	}
 

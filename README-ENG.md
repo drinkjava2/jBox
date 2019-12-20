@@ -78,7 +78,7 @@ public class HelloWorld {
 				return invocation.proceed();
 			}
 		};
-		User u8 = ctx.bind(String.class, "8").bind("8", H8.class)
+		User u8 = ctx.rebind(String.class, "8").bind("8", H8.class)
 				.getBean(ctx.getBeanBox(User.class).addMethodAop(aop, "setName",String.class).injectField("name", autowired())); 
 		System.out.println(u1.name); //Result: User1
 		System.out.println(u2.name); //Result: User2

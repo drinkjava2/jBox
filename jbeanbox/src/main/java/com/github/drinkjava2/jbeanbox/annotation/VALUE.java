@@ -15,7 +15,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * VALUE for inject pure value parameter, equal to Spring's @value annotation
+ * VALUE for inject a String String or primative value, similar like Spring's
+ * Value annotation, use BeanBoxContext's setValueTranslator method can
+ * customize the value transalator, current jBeanBox do not support read values
+ * from property
  * 
  * @author Yong Zhu
  * @since 2.4.7
@@ -24,10 +27,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
 public @interface VALUE {
-
-	public String value(); // a String represents a constant parameter value
-
-	public boolean pureValue() default true; // if true means value is a pure value, otherwise value is a target
-
-	public boolean required() default true; // if true when target not found will throw exception, if false keep silence
+	public String value();
 }

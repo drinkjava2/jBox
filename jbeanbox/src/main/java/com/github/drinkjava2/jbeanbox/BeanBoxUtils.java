@@ -101,7 +101,7 @@ public class BeanBoxUtils {// NOSONAR
 					}
 		}
 
-		// ======== Class inject, if @INJECT, @PARAM put on class
+		// ======== Class inject, if @INJECT, @Qualifiler put on class
 		Object[] v = getInjectAnnotationAsArray(clazz, allowSpringJsrAnno);
 		if (v != null) {
 			box.setTarget(v[0]);
@@ -222,18 +222,17 @@ public class BeanBoxUtils {// NOSONAR
 
 	/**
 	 * get Inject As Object[4] Array, 0=value 1=isConstant 2=required
-	 * 3=annotationType,4=qualifier class, 5=qualifier typed, 6=qualifier named, if
-	 * not found annotation inject, return null
+	 * 3=annotationType, if not found annotation inject, return null
 	 */
 	private static Object[] getInjectAsArray(Annotation[] anno, boolean allowSpringJsrAnno) {// NOSONAR
 		for (Annotation a : anno) {
 			Class<? extends Annotation> type = a.annotationType();
 			if (INJECT.class.equals(type)) {
-				INJECT i=(INJECT) a;//TODO at here
+				INJECT i = (INJECT) a;
 				return new Object[] { i.value(), i.pureValue(), i.required(), i.annotationType() };
 			}
 			if (VALUE.class.equals(type))
-				return new Object[] { ((VALUE) a).value(), ((VALUE) a).pureValue(), ((VALUE) a).required(), null };
+				return new Object[] { ((VALUE) a).value(), true, true, null };
 			if (allowSpringJsrAnno) {
 				if (Inject.class.equals(type))
 					return new Object[] { EMPTY.class, false, true, null };
@@ -296,6 +295,14 @@ public class BeanBoxUtils {// NOSONAR
 				return changeAnnotationValuesToMap(a);
 		}
 		return null;
+	}
+
+	protected static boolean ifSameOrChildAnno(Class<? extends Annotation> annoType,
+			@SuppressWarnings("unchecked") Class<? extends Annotation>... annoTypes) {
+		for (Class<? extends Annotation> a : annoTypes)
+			if (annoType.equals(a) || annoType.isAnnotationPresent(a))
+				return true;
+		return false;
 	}
 
 	/** Check if annotation exist in Class or Field */

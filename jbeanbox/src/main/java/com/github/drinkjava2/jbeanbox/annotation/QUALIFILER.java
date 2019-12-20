@@ -9,28 +9,22 @@
  */
 package com.github.drinkjava2.jbeanbox.annotation;
 
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.github.drinkjava2.jbeanbox.EMPTY;
-
 /**
- * INJECT used to inject BeanBox class for class, fields, method, parameter
+ * QUALIFILER equal to jsr330's Qualifiler
  * 
  * @author Yong Zhu
  * @since 2.4.7
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
-public @interface INJECT {
-
-	public Class<?> value() default EMPTY.class; // In fact is BeanBox's target field
-
-	public boolean pureValue() default false; // if true mean values is a pure class value, otherwise value is a target
-
-	public boolean required() default true; // if true when target not found will throw exception, if false keep silence
-
+@Target({ ANNOTATION_TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
+public @interface QUALIFILER {
+	String value() default "";
 }

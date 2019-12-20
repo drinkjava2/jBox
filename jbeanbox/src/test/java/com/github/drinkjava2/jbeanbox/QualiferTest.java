@@ -11,12 +11,13 @@
  */
 package com.github.drinkjava2.jbeanbox;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import com.github.drinkjava2.jbeanbox.annotation.COMPONENT;
-import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 
 /**
  * Qualifer annotation Test
@@ -29,43 +30,36 @@ public class QualiferTest {
 
 	@Before
 	public void init() {
-		BeanBoxContext.reset();
+		JBEANBOX.reset();
 	}
 
-	public static class A {
-		@INJECT
-		B b;
+	@Component
+	public static interface A {
+	}
+
+	@COMPONENT("a1")
+	public static class A1 implements A {
+	}
+
+	@Service("a2")
+	public static class A2 implements A {
+	}
+
+	@Component
+	public static class A3 implements A {
 	}
 
 	@Service
-	public static interface B {
+	public static class A4 implements A {
 	}
 
-	@COMPONENT("beanB1")
-	public static class B1 implements B {
-	}
-
-	@COMPONENT()
-	public static class B2 implements B {
-	}
-
-	@Test
-	public void testScanClassPath() {
-		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
-		for (Class<?> c : JBEANBOX.bctx().getComponentCache().keySet()) {
-			System.out.println(c);
-		} 
-	}
-	
 	@Test
 	public void testComponentName() {
-		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName()); 
-		System.out.println(JBEANBOX.getObject("beanB1"));
-	}
-
-	public void testQualifer() {
-		A a = JBEANBOX.getBean(A.class);
-		System.out.println(a.b);
+		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
+		Assert.assertEquals(A1.class, JBEANBOX.getObject("a1").getClass());
+		Assert.assertEquals(A2.class, JBEANBOX.getObject("a2").getClass());
+		Assert.assertEquals(A3.class, JBEANBOX.getObject("a3").getClass());
+		Assert.assertEquals(A4.class, JBEANBOX.getObject("a4").getClass());
 	}
 
 }

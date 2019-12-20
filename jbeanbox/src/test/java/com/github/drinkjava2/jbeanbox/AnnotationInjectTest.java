@@ -21,7 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.github.drinkjava2.jbeanbox.AnnotationInjectTest.QQQ.Color;
+import com.github.drinkjava2.jbeanbox.AnnotationInjectTest.MethodInject1.MyQualificer.Color;
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 import com.github.drinkjava2.jbeanbox.annotation.POSTCONSTRUCT;
 import com.github.drinkjava2.jbeanbox.annotation.PREDESTROY;
@@ -279,19 +279,6 @@ public class AnnotationInjectTest {
 	protected void MethodInject_______________() {
 	}
 
-	@Qualifier
-	public static @interface QQQ {
-		Color color() default Color.TAN;
-
-		public enum Color {
-			RED, BLACK, TAN
-		}
-	}
-	@Qualifier
-	public static @interface Named {
-		String value() default ""; 
-	}
-
 	public static class MethodInject1 {
 		public String s1;
 		public String s2;
@@ -306,8 +293,22 @@ public class AnnotationInjectTest {
 			s1 = a;
 		}
 
-		@INJECT(qualifier = QQQ.class, typed = Color.class, named = "aa")
-		private void method2(@INJECT(HelloBox.class) String a) {
+		@Qualifier
+		public static @interface MyQualificer {
+			Color value() default Color.TAN;
+
+			public enum Color {
+				RED, BLACK, TAN
+			}
+		}
+
+//		@INJECT
+//		private void method2(@MyQualificer(Color.BLACK) String a) {
+//			s2 = a;
+//		}
+
+		@INJECT
+		private void method2a(@INJECT(HelloBox.class) String a) {
 			s2 = a;
 		}
 
