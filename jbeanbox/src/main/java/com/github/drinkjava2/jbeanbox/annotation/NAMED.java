@@ -14,8 +14,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.github.drinkjava2.jbeanbox.EMPTY;
+
 /**
- * &#064;NAMED equal to &#064;QUALIFILER("someName")
+ * &#064;NAMED similar like JSR330's &#064;Named annotation
  * 
  * @author Yong Zhu
  * @since 2.4.7
@@ -25,5 +27,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
 public @interface NAMED {
-	public String value(); // a String represents a constant parameter value
+	public Class<?> value() default EMPTY.class; // In fact is BeanBox's target field
 }

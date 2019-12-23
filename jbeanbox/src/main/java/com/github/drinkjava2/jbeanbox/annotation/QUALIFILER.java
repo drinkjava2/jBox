@@ -17,7 +17,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * QUALIFILER equal to jsr330's Qualifiler
+ * QUALIFILER similar like jsr330's Qualifiler
  * 
  * @author Yong Zhu
  * @since 2.4.7
@@ -26,5 +26,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ANNOTATION_TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
 public @interface QUALIFILER {
-	String value() default "";
 }

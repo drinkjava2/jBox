@@ -77,6 +77,6 @@ public class HelloWorld {
 		u8.setName("");
 		System.out.println(u8.name); //Result: User9
 		ctx.close();
-		System.out.println(u8.name); //Result: User10 
+		System.out.println(u8.name); //Result: User10  
 	}
 }

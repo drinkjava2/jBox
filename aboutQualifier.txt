@@ -1,0 +1,59 @@
+﻿关于@Named的定义和使用
+@COMPONENT("servImpl")
+public class ServImpl implements Serv{}
+=
+componentCache.add("servImpl",ServImpl.class);
+bind("servImpl", ServImpl.class);
+
+或 （与第一种有细微区别，这个是Qualifier,没有定义bean的名字)
+@COMPONENT
+@NAMED("servImpl")
+public class ServImpl implements Serv{}
+=getBeanBox(ServImpl.class).setQualifierClass(Xxxx.class).setQualifierValue(xx));
+ 
+使用:
+@Inject
+@Named("servImpl");
+Serv serv;
+
+或
+Serv serv=getBean("servImpl")
+  
+ 
+
+
+关于@Qualifier的定义和使用
+(实际上@Named只是@Qualifier的一个特例，相当于value字段为字符串类型值)
+@COMPONENT
+@MyQuali(MyColor.RED)
+public class A implements Serv{} 
+
+=
+componentCache.add(A.class);
+getBeanBox(A.class).setQualifierClass(Xxxx.class).setQualifierValue(xx));
+
+
+使用
+@Inject
+@MyQuali(Color.RED)
+Serv a;
+
+=Serv serv=getQualifierBean(Serv.class, MyQuali.class,  MyColor.RED) 
+
+
+
+
+内幕：
+* 只有在componentCache中的box实例，才会参与自动wired寻找
+* @Component注解，会在componentCache里添加一class
+  同时用bind("name",class)，来创建一个bind
+2.@qualifiler注解，会设box的qualifier属性
+
+以上两者结合起来，
+在遇到@Inject或 @Autowired的时候，比如要注入Serv serv：
+1.如果是@Inject(name=,按bind找，
+2.如果在component中有这个类：
+     componentCache里找有没有
+3.如果在component中没有这个类，正常获取它的BeanBox，生成bean返回
+ 
+ 

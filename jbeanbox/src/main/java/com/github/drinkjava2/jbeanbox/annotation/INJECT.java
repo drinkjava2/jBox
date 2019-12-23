@@ -24,7 +24,7 @@ import com.github.drinkjava2.jbeanbox.EMPTY;
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
+@Target({ ElementType.ANNOTATION_TYPE, ElementType.FIELD, ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
 public @interface INJECT {
 
 	public Class<?> value() default EMPTY.class; // In fact is BeanBox's target field
