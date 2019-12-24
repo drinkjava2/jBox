@@ -21,7 +21,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.github.drinkjava2.jbeanbox.AnnotationInjectTest.MethodInject1.MyQualificer.Color;
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 import com.github.drinkjava2.jbeanbox.annotation.POSTCONSTRUCT;
 import com.github.drinkjava2.jbeanbox.annotation.PREDESTROY;
@@ -55,7 +54,7 @@ public class AnnotationInjectTest {
 	}
 
 	public static class SingleBox2 extends BeanBox {
-		Object create() {
+		public Object create() {
 			return new Single();
 		}
 	}
@@ -302,10 +301,10 @@ public class AnnotationInjectTest {
 			}
 		}
 
-//		@INJECT
-//		private void method2(@MyQualificer(Color.BLACK) String a) {
-//			s2 = a;
-//		}
+		// @INJECT
+		// private void method2(@MyQualificer(Color.BLACK) String a) {
+		// s2 = a;
+		// }
 
 		@INJECT
 		private void method2a(@INJECT(HelloBox.class) String a) {

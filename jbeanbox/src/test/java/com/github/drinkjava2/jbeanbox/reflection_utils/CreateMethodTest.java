@@ -19,7 +19,7 @@ import com.github.drinkjava2.jbeanbox.JBEANBOX;
 public class CreateMethodTest {
 
 	public static class BaseClassBox extends BeanBox {
-		Parent create() {
+		public Object create() {
 			Parent p = new Parent();
 			return p;
 		}

@@ -23,7 +23,7 @@ public class SimpleSpeedTest {
 			singleton = false;
 		}
 
-		Object create() {
+		public Object create() {
 			return new A();
 		}
 	}

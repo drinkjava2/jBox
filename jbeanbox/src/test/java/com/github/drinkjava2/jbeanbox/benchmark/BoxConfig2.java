@@ -29,37 +29,37 @@ public class BoxConfig2 {
 	}
 
 	public static class ABox extends PrototypeBox {
-		Object create(Require caller) {
+		public Object create(Require caller) {
 			return new A((B) caller.getBean(BBox.class));
 		}
 	}
 
 	public static class BBox extends PrototypeBox {
-		Object create(Require caller) {
+		public Object create(Require caller) {
 			return new B((C) caller.getBean(CBox.class));
 		}
 	}
 
 	public static class CBox extends PrototypeBox {
-		Object create(Require caller) {
+		public Object create(Require caller) {
 			return new C((D1) caller.getBean(D1Box.class), (D2) caller.getBean(D2Box.class));
 		}
 	}
 
 	public static class D1Box extends PrototypeBox {
-		Object create(Require caller) {
+		public Object create(Require caller) {
 			return new D1((E) caller.getBean(EBox.class));
 		}
 	}
 
 	public static class D2Box extends PrototypeBox {
-		Object create(Require caller) {
+		public Object create(Require caller) {
 			return new D2((E) caller.getBean(EBox.class));
 		}
 	}
 
 	public static class EBox extends PrototypeBox {
-		Object create() {
+		public Object create() {
 			return new E();
 		}
 	}

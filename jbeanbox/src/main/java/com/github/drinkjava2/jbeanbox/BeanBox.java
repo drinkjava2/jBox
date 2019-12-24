@@ -28,14 +28,19 @@ import java.util.Map;
 public class BeanBox {
 
 	// below fields for BeanBox has a target
-	protected Object target; // inject can be constant, beanBox, beanBox class, class
+	protected Object target; // inject can be constant, beanBox, beanBox class, class 
 
 	protected boolean pureValue = false; // if true means target is a pure value
 
 	protected Class<?> type; // For field and parameter constant inject, need know what's the type
 
 	protected boolean required = true;// For field and parameter, if not found throw exception
+	
+	protected Class<? extends Annotation> qualifierAnno; // the qualifier annotation class
 
+	protected Object qualifierValue; // the only value of the qualifier annotation, jBeanBox only support 1 value
+	
+	
 	// below fields for BeanBox has no target
 	protected Class<?> beanClass; // bean class, usually is an annotated class
 
@@ -58,10 +63,7 @@ public class BeanBox {
 	protected Method createMethod; // if not null, use this method to create bean
 
 	protected Method configMethod; // if not null, after bean created, will call this method
-
-	protected Class<? extends Annotation> qualifierAnno; // the qualifier annotation class
-
-	protected Object qualifierValue; // the only value of the qualifier annotation, jBeanBox only support 1 value
+ 
 
 	// ========== AOP About ===========
 	protected Map<Method, List<Object>> methodAops;// if not null, need create proxy bean
@@ -348,6 +350,17 @@ public class BeanBox {
 		return singleton != null && singleton;
 	}
 
+	public Object create() {
+		return null;
+	}
+	
+	public Object create(Require req) {
+		return null;
+	}
+	
+	public void config(Object bean, Require req) {
+	}
+	
 	protected void getterAndSetters_____________________() {// NOSONAR
 	}
 

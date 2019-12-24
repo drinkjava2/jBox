@@ -36,7 +36,7 @@ public class HelloWorld {
 	}
 
 	public static class UserBox extends BeanBox {
-		Object create() {return new User("User2");}
+		public Object create() {return new User("User2");}
 	}
 	
 	public static class UserBox7 extends BeanBox {

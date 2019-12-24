@@ -245,43 +245,49 @@ public class BeanBoxContext {
 				}
 		if (aopFound)
 			bean = AopUtils.createProxyBean(box.getBeanClass(), box, this);
-		else if (box.getCreateMethod() != null) // if have create method?
-			try {
-				Method m = box.getCreateMethod();
-				if (m.getParameterTypes().length == 1) {
-					bean = m.invoke(box, req);
-				} else if (m.getParameterTypes().length == 0)
-					bean = m.invoke(box);
-				else
-					BeanBoxException.throwEX("Create method can only have 0 or 1 parameter");
-				BeanBoxException.assureNotNull(bean, "Create method created a null object.");
-			} catch (Exception e) {
-				return BeanBoxException.throwEX(e);
-			}
-		else if (box.getConstructor() != null) { // has constructor?
-			if (box.getConstructorParams() != null && box.getConstructorParams().length > 0) {
-				Object[] initargs = param2RealObjects(req, box.getConstructorParams());
+		else {
+			Object created = box.create();
+			if (created != null)
+				bean = created;
+		}
+		if (bean == null)
+			if (box.getCreateMethod() != null) // if have create method?
 				try {
-					bean = box.getConstructor().newInstance(initargs);
+					Method m = box.getCreateMethod();
+					if (m.getParameterTypes().length == 1) {
+						bean = m.invoke(box, req);
+					} else if (m.getParameterTypes().length == 0)
+						bean = m.invoke(box);
+					else
+						BeanBoxException.throwEX("Create method can only have 0 or 1 parameter");
+					BeanBoxException.assureNotNull(bean, "Create method created a null object.");
 				} catch (Exception e) {
 					return BeanBoxException.throwEX(e);
 				}
-			} else // 0 param constructor
+			else if (box.getConstructor() != null) { // has constructor?
+				if (box.getConstructorParams() != null && box.getConstructorParams().length > 0) {
+					Object[] initargs = param2RealObjects(req, box.getConstructorParams());
+					try {
+						bean = box.getConstructor().newInstance(initargs);
+					} catch (Exception e) {
+						return BeanBoxException.throwEX(e);
+					}
+				} else // 0 param constructor
+					try {
+						bean = box.getConstructor().newInstance();
+					} catch (Exception e) {
+						return BeanBoxException.throwEX(e);
+					}
+			} else if (box.getBeanClass() != null) { // is normal bean
+				if (EMPTY.class == box.getBeanClass())
+					return notfoundOrException(EMPTY.class, req.required);
 				try {
-					bean = box.getConstructor().newInstance();
+					bean = box.getBeanClass().newInstance();
 				} catch (Exception e) {
-					return BeanBoxException.throwEX(e);
+					BeanBoxException.throwEX("Failed to call 0 parameter constructor of: " + box.getBeanClass(), e);
 				}
-		} else if (box.getBeanClass() != null) { // is normal bean
-			if (EMPTY.class == box.getBeanClass())
-				return notfoundOrException(EMPTY.class, req.required);
-			try {
-				bean = box.getBeanClass().newInstance();
-			} catch (Exception e) {
-				BeanBoxException.throwEX("Failed to call 0 parameter constructor of: " + box.getBeanClass(), e);
-			}
-		} else
-			return notfoundOrException(null, req.required); // return null or throw EX
+			} else
+				return notfoundOrException(null, req.required); // return null or throw EX
 
 		// Now Bean is ready
 
@@ -292,19 +298,7 @@ public class BeanBoxContext {
 				singletonCache.put(box, bean);
 		} // NOW BEAN IS CREATED
 
-		if (box.getConfigMethod() != null) {// ====config method of this BeanBox
-			try {
-				Method m = box.getConfigMethod();
-				if (m.getParameterTypes().length == 2)
-					m.invoke(box, bean, req);
-				else if (m.getParameterTypes().length == 1)
-					m.invoke(box, bean);
-				else
-					BeanBoxException.throwEX("Config method can only have 1 or 2 parameters");
-			} catch (Exception e) {
-				return BeanBoxException.throwEX(e);
-			}
-		}
+		box.config(bean, req);
 
 		if (box.getPostConstruct() != null) // PostConstructor
 			ReflectionUtils.invokeMethod(box.getPostConstruct(), bean);
