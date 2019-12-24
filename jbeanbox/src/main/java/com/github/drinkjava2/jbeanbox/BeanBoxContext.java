@@ -38,9 +38,6 @@ import com.github.drinkjava2.jbeanbox.annotation.QUALIFILER;
  *
  */
 public class BeanBoxContext {
-	public static String CREATE_METHOD = "create"; // as title
-	public static String CONFIG_METHOD = "config"; // as title
-
 	protected static boolean globalNextAllowAnnotation = true; // as title
 	protected static boolean globalNextAllowSpringJsrAnnotation = true; // as title
 	protected static ValueTranslator globalNextValueTranslator = new DefaultValueTranslator(); // see user manual
@@ -95,8 +92,6 @@ public class BeanBoxContext {
 		globalNextAllowAnnotation = true;
 		globalNextAllowSpringJsrAnnotation = true;
 		globalNextValueTranslator = new DefaultValueTranslator();
-		CREATE_METHOD = "create";
-		CONFIG_METHOD = "config";
 		globalBeanBoxContext = new BeanBoxContext();
 	}
 
@@ -172,9 +167,6 @@ public class BeanBoxContext {
 							"Fail to build bean, circular dependency found on beanClass: " + bx.getBeanClass());
 				if (bx.getType() != null)
 					BeanBoxException.throwEX("Fail to build bean, circular dependency found on type: " + bx.getType());
-				if (bx.getCreateMethod() != null)
-					BeanBoxException.throwEX(
-							"Fail to build bean, circular dependency found on method: " + bx.getCreateMethod());
 				BeanBoxException.throwEX("Fail to build bean, circular dependency found on: " + bx);
 			}
 		}
@@ -246,25 +238,12 @@ public class BeanBoxContext {
 		if (aopFound)
 			bean = AopUtils.createProxyBean(box.getBeanClass(), box, this);
 		else {
-			Object created = box.create();
-			if (created != null)
-				bean = created;
+			bean = box.create();
+			if (bean == null)
+				bean = box.create(req);
 		}
 		if (bean == null)
-			if (box.getCreateMethod() != null) // if have create method?
-				try {
-					Method m = box.getCreateMethod();
-					if (m.getParameterTypes().length == 1) {
-						bean = m.invoke(box, req);
-					} else if (m.getParameterTypes().length == 0)
-						bean = m.invoke(box);
-					else
-						BeanBoxException.throwEX("Create method can only have 0 or 1 parameter");
-					BeanBoxException.assureNotNull(bean, "Create method created a null object.");
-				} catch (Exception e) {
-					return BeanBoxException.throwEX(e);
-				}
-			else if (box.getConstructor() != null) { // has constructor?
+			if (box.getConstructor() != null) { // has constructor?
 				if (box.getConstructorParams() != null && box.getConstructorParams().length > 0) {
 					Object[] initargs = param2RealObjects(req, box.getConstructorParams());
 					try {
@@ -298,6 +277,7 @@ public class BeanBoxContext {
 				singletonCache.put(box, bean);
 		} // NOW BEAN IS CREATED
 
+		box.config(bean);
 		box.config(bean, req);
 
 		if (box.getPostConstruct() != null) // PostConstructor

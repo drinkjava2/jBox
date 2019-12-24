@@ -264,19 +264,19 @@ public class BeanBoxUtilsTest {
 	public static class CreateAndConfigMethod1 extends BeanBox {
 
 		public Object create() {
-			return null;
+			return new String[] { "1", "2" };
 		}
 
 		public void config(Object obj) {
+			String[] arr = (String[]) obj;
+			arr[1] = "3";
 		}
 	}
 
 	@Test
-	public void createAndConfigMethodTest() throws SecurityException, NoSuchMethodException {
-		BeanBox box = class2BeanBox(CreateAndConfigMethod1.class);
-		Assert.assertEquals(CreateAndConfigMethod1.class.getDeclaredMethod("create"), box.getCreateMethod());
-		Assert.assertEquals(CreateAndConfigMethod1.class.getDeclaredMethod("config", Object.class),
-				box.getConfigMethod());
+	public void createAndConfigMethodTest() throws SecurityException, NoSuchMethodException { 
+		String[] arr = JBEANBOX.getBean(CreateAndConfigMethod1.class);
+		Assert.assertEquals("3", arr[1]); 
 	}
 
 }

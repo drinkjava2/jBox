@@ -396,10 +396,11 @@ public class JavaInjectTest {
 
 	public static class CFdemo3Box extends BeanBox {
 		{
+			this.setBeanClass(CFdemo3.class);
 			injectValue("c", "3");
 		}
 
-		public CFdemo3 create() {
+		public Object create() {
 			CFdemo3 c = new CFdemo3();
 			c.a = "1";
 			return c;

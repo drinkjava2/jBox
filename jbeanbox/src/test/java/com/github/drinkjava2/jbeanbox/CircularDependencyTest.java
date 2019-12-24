@@ -108,7 +108,7 @@ public class CircularDependencyTest {
 	}
 
 	public static class Ebox extends BeanBox {
-		Object create(Require caller) {
+		public Object create(Require caller) {
 			E e = new E();
 			e.f = caller.getBean(Fbox.class);
 			return e;
@@ -120,7 +120,7 @@ public class CircularDependencyTest {
 	}
 
 	public static class Fbox extends BeanBox {
-		Object create(Require caller) {
+		public Object create(Require caller) {
 			F f = new F();
 			f.e = caller.getBean(Ebox.class);
 			return f;

@@ -26,7 +26,7 @@ public class Require {
 	Class<? extends Annotation> qualiferClass;
 	Object qualifierValue;
 	public BeanBoxContext ctx;
-	public Set<Object> history; 
+	public Set<Object> history;
 
 	public Require() { // default constr
 	}
@@ -50,11 +50,7 @@ public class Require {
 	}
 
 	public <T> T getBean(Object target) {
-		return ctx.getBean(target);
-	}
-
-	public <T> T get(Object target) {
-		return ctx.getBean(target);
+		return ctx.getBean(new Require(target).setHistory(this.history));
 	}
 
 	public Require setTarget(Object target) {
@@ -91,5 +87,5 @@ public class Require {
 		this.history = history;
 		return this;
 	}
- 
+
 }

@@ -28,19 +28,18 @@ import java.util.Map;
 public class BeanBox {
 
 	// below fields for BeanBox has a target
-	protected Object target; // inject can be constant, beanBox, beanBox class, class 
+	protected Object target; // inject can be constant, beanBox, beanBox class, class
 
 	protected boolean pureValue = false; // if true means target is a pure value
 
 	protected Class<?> type; // For field and parameter constant inject, need know what's the type
 
 	protected boolean required = true;// For field and parameter, if not found throw exception
-	
+
 	protected Class<? extends Annotation> qualifierAnno; // the qualifier annotation class
 
 	protected Object qualifierValue; // the only value of the qualifier annotation, jBeanBox only support 1 value
-	
-	
+
 	// below fields for BeanBox has no target
 	protected Class<?> beanClass; // bean class, usually is an annotated class
 
@@ -60,36 +59,9 @@ public class BeanBox {
 
 	protected Map<Method, BeanBox[]> methodInjects;// if not null, inject Methods
 
-	protected Method createMethod; // if not null, use this method to create bean
-
-	protected Method configMethod; // if not null, after bean created, will call this method
- 
-
 	// ========== AOP About ===========
 	protected Map<Method, List<Object>> methodAops;// if not null, need create proxy bean
 	protected List<Object[]> aopRules;// if not null, need create proxy bean
-
-	{// NOSONAR
-		if (!BeanBox.class.equals(this.getClass())) {
-			Method m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CREATE_METHOD);
-			if (m == null)
-				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CREATE_METHOD, Require.class);
-			if (m != null) {
-				ReflectionUtils.makeAccessible(m);
-				this.beanClass = m.getReturnType();
-				this.createMethod = m;
-			}
-
-			m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class);
-			if (m == null)
-				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class,
-						Require.class);
-			if (m != null) {
-				ReflectionUtils.makeAccessible(m);
-				this.configMethod = m;
-			}
-		}
-	}
 
 	public BeanBox() { // Default constructor
 	}
@@ -141,8 +113,6 @@ public class BeanBox {
 		sb.append("preDestorys=" + this.preDestroy).append("\r\n");
 		sb.append("fieldInjects=" + this.fieldInjects).append("\r\n");
 		sb.append("methodInjects=" + this.methodInjects).append("\r\n");
-		sb.append("createMethod=" + this.createMethod).append("\r\n");
-		sb.append("configMethod=" + this.configMethod).append("\r\n");
 		sb.append("========BeanBox Debug Info End===========");
 		return sb.toString();
 	}
@@ -350,17 +320,20 @@ public class BeanBox {
 		return singleton != null && singleton;
 	}
 
-	public Object create() {
+	public Object create() {// for child class override
 		return null;
 	}
-	
-	public Object create(Require req) {
+
+	public Object create(Require req) {// for child class override
 		return null;
 	}
-	
-	public void config(Object bean, Require req) {
+
+	public void config(Object bean) {// for child class override
 	}
-	
+
+	public void config(Object bean, Require req) {// for child class override
+	}
+
 	protected void getterAndSetters_____________________() {// NOSONAR
 	}
 
@@ -469,24 +442,6 @@ public class BeanBox {
 
 	public BeanBox setMethodInjects(Map<Method, BeanBox[]> methodInjects) {
 		this.methodInjects = methodInjects;
-		return this;
-	}
-
-	public Method getCreateMethod() {
-		return createMethod;
-	}
-
-	public BeanBox setCreateMethod(Method createMethod) {
-		this.createMethod = createMethod;
-		return this;
-	}
-
-	public Method getConfigMethod() {
-		return configMethod;
-	}
-
-	public BeanBox setConfigMethod(Method configMethod) {
-		this.configMethod = configMethod;
 		return this;
 	}
 
