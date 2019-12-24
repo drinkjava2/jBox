@@ -2,45 +2,43 @@
 @COMPONENT("servImpl")
 public class ServImpl implements Serv{}
 =
-componentCache.add("servImpl",ServImpl.class);
+componentCache.add(ServImpl.class);
 bind("servImpl", ServImpl.class);
 
-或 （与第一种有细微区别，这个是Qualifier,没有定义bean的名字)
+或 （与第一种有细微区别，这个是Qualifier,并不是bean的名字)
 @COMPONENT
 @NAMED("servImpl")
 public class ServImpl implements Serv{}
-=getBeanBox(ServImpl.class).setQualifierClass(Xxxx.class).setQualifierValue(xx));
+=
+componentCache.add(ServImpl.class);
+getBeanBox(ServImpl.class).setQualifierClass(Named.class).setQualifierValue("servImpl"));
  
 使用:
-@Inject
-@Named("servImpl");
+@INJECT
+@NAMED("servImpl");
 Serv serv;
-
 或
-Serv serv=getBean("servImpl")
-  
+Serv serv=getBean("servImpl") //仅限于bean有名字用法
+或
+Serv serv=getBean(Serv.class, "servImpl") //限于bean有name或@Named注解
  
-
 
 关于@Qualifier的定义和使用
 (实际上@Named只是@Qualifier的一个特例，相当于value字段为字符串类型值)
 @COMPONENT
 @MyQuali(MyColor.RED)
-public class A implements Serv{} 
-
+public class ServImpl implements Serv{} 
 =
-componentCache.add(A.class);
-getBeanBox(A.class).setQualifierClass(Xxxx.class).setQualifierValue(xx));
+componentCache.add(ServImpl.class);
+getBeanBox(ServImpl.class).setQualifierClass(MyQuali.class).setQualifierValue(MyColor.RED));
 
 
 使用
 @Inject
 @MyQuali(Color.RED)
 Serv a;
-
-=Serv serv=getQualifierBean(Serv.class, MyQuali.class,  MyColor.RED) 
-
-
+=
+Serv serv=getBean(Serv.class, MyQuali.class,  MyColor.RED) //限于bean有@Named注解
 
 
 内幕：
