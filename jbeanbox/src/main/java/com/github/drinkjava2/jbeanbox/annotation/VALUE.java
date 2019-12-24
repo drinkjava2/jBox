@@ -16,9 +16,9 @@ import java.lang.annotation.Target;
 
 /**
  * VALUE for inject a String String or primative value, similar like Spring's
- * Value annotation, use BeanBoxContext's setValueTranslator method can
- * customize the value transalator, current jBeanBox do not support read values
- * from property
+ * Value annotation, current version jBeanBox does not read values from property
+ * file, to do that need use BeanBoxContext's setValueTranslator method to
+ * customize the value transalator
  * 
  * @author Yong Zhu
  * @since 2.4.7

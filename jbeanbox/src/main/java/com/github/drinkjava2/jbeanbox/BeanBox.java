@@ -71,7 +71,7 @@ public class BeanBox {
 		if (!BeanBox.class.equals(this.getClass())) {
 			Method m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CREATE_METHOD);
 			if (m == null)
-				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CREATE_METHOD, Caller.class);
+				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CREATE_METHOD, Require.class);
 			if (m != null) {
 				ReflectionUtils.makeAccessible(m);
 				this.beanClass = m.getReturnType();
@@ -81,7 +81,7 @@ public class BeanBox {
 			m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class);
 			if (m == null)
 				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class,
-						Caller.class);
+						Require.class);
 			if (m != null) {
 				ReflectionUtils.makeAccessible(m);
 				this.configMethod = m;

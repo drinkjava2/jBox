@@ -344,7 +344,7 @@ public class JavaInjectTest {
 
 	public static class CFdemoBox extends BeanBox {
 
-		public Object create(Caller v) {
+		public Object create(Require v) {
 			CFdemo1 c = new CFdemo1();
 			c.a = "1";
 			return c;
@@ -362,13 +362,13 @@ public class JavaInjectTest {
 
 	public static class CFdemoBox2 extends BeanBox {
 
-		public Object create(Caller v) {
+		public Object create(Require v) {
 			CFdemo2 c2 = new CFdemo2();
 			c2.field1 = v.getBean(CFdemoBox.class);
 			return c2;
 		}
 
-		public void config(Object c, Caller v) {
+		public void config(Object c, Require v) {
 			((CFdemo2) c).field2 = v.getBean(CFdemoBox.class);
 		}
 	}

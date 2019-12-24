@@ -2,7 +2,7 @@ package com.github.drinkjava2.jbeanbox.benchmark;
 
 import com.github.drinkjava2.jbeanbox.BeanBox;
 import com.github.drinkjava2.jbeanbox.BeanBoxContext;
-import com.github.drinkjava2.jbeanbox.Caller;
+import com.github.drinkjava2.jbeanbox.Require;
 import com.github.drinkjava2.jbeanbox.benchmark.objects.A;
 import com.github.drinkjava2.jbeanbox.benchmark.objects.B;
 import com.github.drinkjava2.jbeanbox.benchmark.objects.C;
@@ -29,31 +29,31 @@ public class BoxConfig2 {
 	}
 
 	public static class ABox extends PrototypeBox {
-		Object create(Caller caller) {
+		Object create(Require caller) {
 			return new A((B) caller.getBean(BBox.class));
 		}
 	}
 
 	public static class BBox extends PrototypeBox {
-		Object create(Caller caller) {
+		Object create(Require caller) {
 			return new B((C) caller.getBean(CBox.class));
 		}
 	}
 
 	public static class CBox extends PrototypeBox {
-		Object create(Caller caller) {
+		Object create(Require caller) {
 			return new C((D1) caller.getBean(D1Box.class), (D2) caller.getBean(D2Box.class));
 		}
 	}
 
 	public static class D1Box extends PrototypeBox {
-		Object create(Caller caller) {
+		Object create(Require caller) {
 			return new D1((E) caller.getBean(EBox.class));
 		}
 	}
 
 	public static class D2Box extends PrototypeBox {
-		Object create(Caller caller) {
+		Object create(Require caller) {
 			return new D2((E) caller.getBean(EBox.class));
 		}
 	}
