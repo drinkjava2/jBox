@@ -44,7 +44,7 @@ public class BeanBoxUtils {// NOSONAR
 	 */
 	public static BeanBox getUniqueBeanBox(BeanBoxContext ctx, Class<?> clazz) {
 		BeanBoxException.assureNotNull(clazz, "Target class can not be null");
-		BeanBox box = ctx.componentCache.get(clazz);
+		BeanBox box = ctx.beanBoxCache.get(clazz);
 		if (box != null)
 			return box;
 		if (BeanBox.class.isAssignableFrom(clazz))
@@ -57,7 +57,7 @@ public class BeanBoxUtils {// NOSONAR
 			}
 		else
 			box = doCreateBeanBox(ctx, clazz);
-		ctx.componentCache.put(clazz, box);
+		ctx.beanBoxCache.put(clazz, box);
 		return box;
 	}
 

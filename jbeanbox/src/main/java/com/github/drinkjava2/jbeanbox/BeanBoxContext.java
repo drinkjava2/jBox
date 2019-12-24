@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import javax.inject.Named;
 import javax.inject.Qualifier;
@@ -49,11 +50,13 @@ public class BeanBoxContext {
 	protected boolean allowSpringJsrAnnotation = globalNextAllowSpringJsrAnnotation;
 	protected ValueTranslator valueTranslator = globalNextValueTranslator;
 
-	protected Map<Object, Object> bindCache = new ConcurrentHashMap<Object, Object>();// bind cache
-	protected Map<Class<?>, BeanBox> componentCache = new ConcurrentHashMap<Class<?>, BeanBox>(); // component Cache
-	protected Map<Object, Object> singletonCache = new ConcurrentHashMap<Object, Object>(); // class or BeanBox as key
+	protected Map<Object, Object> bindCache = new ConcurrentHashMap<>();// bind cache
+	protected Map<Class<?>, BeanBox> beanBoxCache = new ConcurrentHashMap<>(); // BeanBox Cache
+	protected Map<Object, Object> singletonCache = new ConcurrentHashMap<>(); // class or BeanBox as key
+	protected Set<Class<?>> componentCache = new ConcurrentSkipListSet<>(); // component cache
+	protected Map<Class<?>, Boolean> componentExistCache = new ConcurrentHashMap<>();// as title
 
-	protected static BeanBoxContext globalBeanContext = new BeanBoxContext();// Global Bean context
+	protected static BeanBoxContext globalBeanBoxContext = new BeanBoxContext();// Global Bean context
 
 	// ==========AOP about=========
 	protected List<Object[]> aopRules;
@@ -85,17 +88,17 @@ public class BeanBoxContext {
 
 	/**
 	 * Reset global variants setting , note this method only close
-	 * globalBeanContext, if created many BeanBoxContext instance need close them
+	 * globalBeanBoxContext, if created many BeanBoxContext instance need close them
 	 * manually
 	 */
 	public static void reset() {
-		globalBeanContext.close();
+		globalBeanBoxContext.close();
 		globalNextAllowAnnotation = true;
 		globalNextAllowSpringJsrAnnotation = true;
 		globalNextValueTranslator = new DefaultValueTranslator();
 		CREATE_METHOD = "create";
 		CONFIG_METHOD = "config";
-		globalBeanContext = new BeanBoxContext();
+		globalBeanBoxContext = new BeanBoxContext();
 	}
 
 	/**
@@ -117,7 +120,7 @@ public class BeanBoxContext {
 			}
 		}
 		bindCache.clear();
-		componentCache.clear();
+		beanBoxCache.clear();
 		singletonCache.clear();
 	}
 
@@ -138,6 +141,14 @@ public class BeanBoxContext {
 	}
 
 	public <T> T getInstance(Class<T> target, boolean required) {
+		return getBean(target, required, null);
+	}
+	
+	public <T> T getBean(Object obj, boolean required, Class<? extends Annotation> qualifierAnno, Object qualifierValue) {
+		return getBean(obj, required, null);
+	}
+
+	public <T> T getInstance(Class<T> target, boolean required,Class<? extends Annotation> qualifierAnno, Object qualifierValue) {
 		return getBean(target, required, null);
 	}
 
@@ -185,7 +196,9 @@ public class BeanBoxContext {
 		} else if (target instanceof BeanBox) { // is a BeanBox instance?
 			result = getBeanFromBox((BeanBox) target, required, history);
 		} else if (target instanceof Class) { // is a class?
-			BeanBox box = BeanBoxUtils.getUniqueBeanBox(this, (Class<?>) target);
+			BeanBox box = searchComponent((Class<?>) target); // first search in components
+			if (box == null) // if not a component, directly create the instance for this class
+				box = BeanBoxUtils.getUniqueBeanBox(this, (Class<?>) target);
 			result = getBean(box, required, history);
 			if (EMPTY.class != result && box.isSingleton()) {
 				singletonCache.put(target, result);
@@ -194,6 +207,15 @@ public class BeanBoxContext {
 			result = notfoundOrException(target, required);
 		history.remove(target);
 		return (T) result;
+	}
+
+	private BeanBox searchComponent(Class<?> claz) {
+		if (Boolean.FALSE.equals(componentExistCache.get(claz))) // if already know no component exist
+			return null;
+		for (Object[] objects : aopRules) {
+
+		}
+		return null;
 	}
 
 	/** Get Bean From BeanBox instance */
@@ -334,6 +356,7 @@ public class BeanBoxContext {
 			for (Annotation anno : claz.getAnnotations()) {
 				Class<? extends Annotation> aType = anno.annotationType();
 				if (BeanBoxUtils.ifSameOrChildAnno(aType, COMPONENT.class, Component.class)) {
+					componentCache.add(claz);// add class as component
 					BeanBox box = getBeanBox(claz);
 					Map<String, Object> values = BeanBoxUtils.changeAnnotationValuesToMap(anno);
 					if (!"".equals(values.get("value")))// use given bean name
@@ -347,16 +370,17 @@ public class BeanBoxContext {
 					}
 
 					for (Annotation otherAnno : claz.getAnnotations()) {// check qualifiler or named annotation family
-						Class<? extends Annotation> anno2 = otherAnno.annotationType();
-						if (BeanBoxUtils.ifSameOrChildAnno(anno2, NAMED.class, Named.class, QUALIFILER.class,
+						Class<? extends Annotation> qualiAnno = otherAnno.annotationType();
+						if (BeanBoxUtils.ifSameOrChildAnno(qualiAnno, NAMED.class, Named.class, QUALIFILER.class,
 								Qualifier.class, org.springframework.beans.factory.annotation.Qualifier.class)) {
-							Map<String, Object> v = BeanBoxUtils.changeAnnotationValuesToMap(anno);
+							Map<String, Object> v = BeanBoxUtils.changeAnnotationValuesToMap(otherAnno);
 							if (v.size() > 1)
-								BeanBoxException.throwEX(
-										"BeanBox does not support multiple property in Qualifier annotation " + anno2);
-							String annoName = anno2.getSimpleName().toUpperCase();
-							bind(annoName + ":" + (v.isEmpty() ? "" : v.values().iterator().next()), box);
-						} // TODO: here bind has problem?
+								BeanBoxException
+										.throwEX("jBeanBox does not support multiple property in Qualifier annotation: "
+												+ qualiAnno);
+							box.setQualifierAnno(qualiAnno)
+									.setQualifierValue(v.isEmpty() ? null : v.values().iterator().next());
+						}
 					}
 				}
 			}
@@ -430,12 +454,12 @@ public class BeanBoxContext {
 	protected void staticGetterAndSetters________________________() {// NOSONAR
 	}
 
-	public static BeanBoxContext getGlobalBeanContext() {
-		return globalBeanContext;
+	public static BeanBoxContext getGlobalBeanBoxContext() {
+		return globalBeanBoxContext;
 	}
 
-	public static void setGlobalBeanContext(BeanBoxContext globalBeanContext) {
-		BeanBoxContext.globalBeanContext = globalBeanContext;
+	public static void setGlobalBeanBoxContext(BeanBoxContext globalBeanBoxContext) {
+		BeanBoxContext.globalBeanBoxContext = globalBeanBoxContext;
 	}
 
 	public static boolean isGlobalNextAllowAnnotation() {
@@ -509,12 +533,12 @@ public class BeanBoxContext {
 		return this;
 	}
 
-	public Map<Class<?>, BeanBox> getComponentCache() {
-		return componentCache;
+	public Map<Class<?>, BeanBox> getBeanBoxCache() {
+		return beanBoxCache;
 	}
 
-	public BeanBoxContext setComponentCache(Map<Class<?>, BeanBox> beanBoxMetaCache) {
-		this.componentCache = beanBoxMetaCache;
+	public BeanBoxContext setBeanBoxCache(Map<Class<?>, BeanBox> beanBoxMetaCache) {
+		this.beanBoxCache = beanBoxMetaCache;
 		return this;
 	}
 

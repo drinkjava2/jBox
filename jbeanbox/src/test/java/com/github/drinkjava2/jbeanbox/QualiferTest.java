@@ -39,19 +39,6 @@ public class QualiferTest {
 	public void init() {
 		JBEANBOX.reset();
 	}
-	
-	public static interface AA {
-	}
-
-	@COMPONENT("a1")
-	public static class AA1 implements AA {
-	}
-	
-	public static void main(String[] args) { 
-    JBEANBOX.bind(AA.class, AA1.class);
-	System.out.println(JBEANBOX.getBeanBox(AA.class).getBeanClass());
-	}
-	
 
 	protected void componentNameTest_____________________() {
 	}
@@ -112,5 +99,4 @@ public class QualiferTest {
 		Color color() default Color.TAN;
 	}
 
-	 
 }

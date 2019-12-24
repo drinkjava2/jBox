@@ -41,7 +41,7 @@ public class BeanBoxUtilsTest {
 	}
 
 	public static BeanBox class2BeanBox(Class<?> clazz) {
-		return BeanBoxUtils.getUniqueBeanBox(BeanBoxContext.globalBeanContext, clazz);
+		return BeanBoxUtils.getUniqueBeanBox(BeanBoxContext.globalBeanBoxContext, clazz);
 	}
 
 	protected void BindTest_____________________() {

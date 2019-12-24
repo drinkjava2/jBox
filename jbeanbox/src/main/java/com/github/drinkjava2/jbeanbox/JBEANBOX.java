@@ -10,7 +10,7 @@
 package com.github.drinkjava2.jbeanbox;
 
 /**
- * JBEANBOX store a default globalBeanContext, and have public static method to
+ * JBEANBOX store a default globalBeanBoxContext, and have public static method to
  * access it
  * 
  * @author Yong Zhu
@@ -20,7 +20,7 @@ package com.github.drinkjava2.jbeanbox;
 public class JBEANBOX {// NOSONAR
 
 	public static BeanBoxContext bctx() {
-		return BeanBoxContext.globalBeanContext;
+		return BeanBoxContext.globalBeanBoxContext;
 	}
 
 	public static void scanComponents(String... packages) {
@@ -60,7 +60,7 @@ public class JBEANBOX {// NOSONAR
 	}
 
 	public static BeanBox getBeanBox(Class<?> clazz) {
-		return BeanBoxUtils.getUniqueBeanBox(BeanBoxContext.globalBeanContext, clazz);
+		return BeanBoxUtils.getUniqueBeanBox(BeanBoxContext.globalBeanBoxContext, clazz);
 	}
 
 	public static BeanBox autowired() {

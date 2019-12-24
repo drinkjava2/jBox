@@ -9,6 +9,7 @@
  */
 package com.github.drinkjava2.jbeanbox;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -58,6 +59,10 @@ public class BeanBox {
 
 	protected Method configMethod; // if not null, after bean created, will call this method
 
+	protected Class<? extends Annotation> qualifierAnno; // the qualifier annotation class
+
+	protected Object qualifierValue; // the only value of the qualifier annotation, jBeanBox only support 1 value
+
 	// ========== AOP About ===========
 	protected Map<Method, List<Object>> methodAops;// if not null, need create proxy bean
 	protected List<Object[]> aopRules;// if not null, need create proxy bean
@@ -75,7 +80,8 @@ public class BeanBox {
 
 			m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class);
 			if (m == null)
-				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class, Caller.class);
+				m = ReflectionUtils.findMethod(this.getClass(), BeanBoxContext.CONFIG_METHOD, Object.class,
+						Caller.class);
 			if (m != null) {
 				ReflectionUtils.makeAccessible(m);
 				this.configMethod = m;
@@ -98,12 +104,12 @@ public class BeanBox {
 
 	/** Use default global BeanBoxContext to create bean */
 	public <T> T getBean() {
-		return BeanBoxContext.globalBeanContext.getBean(this);
+		return BeanBoxContext.globalBeanBoxContext.getBean(this);
 	}
 
 	/** Use default global BeanBoxContext to create bean */
 	public static <T> T getBean(Object target) {
-		return BeanBoxContext.globalBeanContext.getBean(target);
+		return BeanBoxContext.globalBeanBoxContext.getBean(target);
 	}
 
 	/** Use default global BeanBoxContext to create a prototype bean */
@@ -486,6 +492,24 @@ public class BeanBox {
 
 	public BeanBox setAopRules(List<Object[]> aopRules) {
 		this.aopRules = aopRules;
+		return this;
+	}
+
+	public Class<? extends Annotation> getQualifierAnno() {
+		return qualifierAnno;
+	}
+
+	public BeanBox setQualifierAnno(Class<? extends Annotation> qualifierAnno) {
+		this.qualifierAnno = qualifierAnno;
+		return this;
+	}
+
+	public Object getQualifierValue() {
+		return qualifierValue;
+	}
+
+	public BeanBox setQualifierValue(Object qualifierValue) {
+		this.qualifierValue = qualifierValue;
 		return this;
 	}
 
