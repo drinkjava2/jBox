@@ -13,11 +13,9 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.aopalliance.intercept.MethodInvocation;
 
-import com.github.drinkjava2.cglib.proxy.Callback;
 import com.github.drinkjava2.cglib.proxy.MethodInterceptor;
 import com.github.drinkjava2.cglib.proxy.MethodProxy;
 
@@ -29,7 +27,7 @@ import com.github.drinkjava2.cglib.proxy.MethodProxy;
  *
  */
 @SuppressWarnings("all")
-class ProxyBean implements MethodInterceptor, Callback {
+class ProxyBean implements MethodInterceptor {
 	protected Object[] box_ctx;
 
 	protected ProxyBean(BeanBox box, BeanBoxContext ctx) {

@@ -35,6 +35,11 @@ public class JBEANBOX {// NOSONAR
 		bctx().close();
 	}
 
+	/** Use default global BeanBoxContext to create a prototype bean */
+	public static <T> T getPrototypeBean(Class<?> beanClass) {
+		return bctx().getBean(new BeanBox(beanClass));
+	}
+	
 	public static Object getObject(Object target) {
 		return bctx().getObject(target);
 	}

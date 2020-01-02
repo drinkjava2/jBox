@@ -91,7 +91,7 @@ public class BeanBoxUtils {// NOSONAR
 			Map<String, Object> m = getAnnoAsMap(clazz, "org.springframework.context.annotation.Scope");
 			if (m != null)
 				for (Entry<String, Object> entry : m.entrySet())
-					if ("value".equals(entry.getKey())) {
+					if ("value".equals(entry.getKey())) {//NOSONAR
 						if ("prototype".equalsIgnoreCase(String.valueOf(entry.getValue())))
 							box.setSingleton(false);
 						else if ("singleton".equalsIgnoreCase(String.valueOf(entry.getValue())))
@@ -102,7 +102,7 @@ public class BeanBoxUtils {// NOSONAR
 		}
 
 		// ======== Class inject, if @INJECT, @Qualifiler put on class
-		Require v = getRequirementFromAnno(clazz, allowSpringJsrAnno);
+		Require v = getRequireFromAnno(clazz, allowSpringJsrAnno);
 		if (v != null) {
 			box.setTarget(v.target);
 			box.setPureValue(v.pureValue);
@@ -124,7 +124,7 @@ public class BeanBoxUtils {// NOSONAR
 		// ========== Constructor inject
 		Constructor<?>[] constrs = clazz.getConstructors();
 		for (Constructor<?> constr : constrs) {
-			v = getRequirementFromAnno(constr, allowSpringJsrAnno);
+			v = getRequireFromAnno(constr, allowSpringJsrAnno);
 			if (v != null) {
 				box.setBeanClass(clazz);// anyway set beanClass first
 				if (v.target != null && EMPTY.class != v.target) {// 1 parameter only
@@ -146,7 +146,7 @@ public class BeanBoxUtils {// NOSONAR
 		// =================Field inject=================
 		// @INJECT annotations on fields include super class's
 		for (Field f : ReflectionUtils.getSelfAndSuperClassFields(clazz)) {
-			v = getRequirementFromAnno(f, allowSpringJsrAnno);
+			v = getRequireFromAnno(f, allowSpringJsrAnno);
 			if (v != null) {
 				box.checkOrCreateFieldInjects();
 				BeanBox inject = new BeanBox();
@@ -187,7 +187,7 @@ public class BeanBoxUtils {// NOSONAR
 				}
 
 			// =========== method inject annotation ==============
-			v = getRequirementFromAnno(m, allowSpringJsrAnno);
+			v = getRequireFromAnno(m, allowSpringJsrAnno);
 			if (v != null) {
 				ReflectionUtils.makeAccessible(m);
 				BeanBox oneParam = new BeanBox();
@@ -212,16 +212,16 @@ public class BeanBoxUtils {// NOSONAR
 	}
 
 	/** Get wanted Inject info from target annotation */
-	private static Require getRequirementFromAnno(Object target, boolean allowSpringJsrAnno) {
+	private static Require getRequireFromAnno(Object target, boolean allowSpringJsrAnno) {
 		Annotation[] anno = getAnnotations(target);
-		return getRequirementFromAnnos(anno, allowSpringJsrAnno);
+		return getRequireFromAnnos(anno, allowSpringJsrAnno);
 	}
 
 	/**
 	 * get Inject As Object[4] Array, 0=value 1=isConstant 2=required
 	 * 3=annotationType, if not found annotation inject, return null
 	 */
-	private static Require getRequirementFromAnnos(Annotation[] anno, boolean allowSpringJsrAnno) {// NOSONAR
+	private static Require getRequireFromAnnos(Annotation[] anno, boolean allowSpringJsrAnno) {// NOSONAR
 		for (Annotation a : anno) {
 			Class<? extends Annotation> type = a.annotationType();
 			if (INJECT.class.equals(type)) {
@@ -255,7 +255,7 @@ public class BeanBoxUtils {// NOSONAR
 		BeanBox[] beanBoxes = new BeanBox[annoss.length];
 		for (int i = 0; i < annoss.length; i++) {
 			Annotation[] annos = annoss[i];
-			Require v = getRequirementFromAnnos(annos, allowSpringJsrAnno);
+			Require v = getRequireFromAnnos(annos, allowSpringJsrAnno);
 			BeanBox inject = new BeanBox();
 			if (v != null) { // if parameter has annotation
 				inject.setTarget(v.target);
@@ -315,7 +315,7 @@ public class BeanBoxUtils {// NOSONAR
 
 	/** This used for unknown Annotation, change values to a Map */
 	protected static Map<String, Object> changeAnnotationValuesToMap(Annotation annotation) {
-		Map<String, Object> result = new HashMap<String, Object>();
+		Map<String, Object> result = new HashMap<>();
 		for (Method method : annotation.annotationType().getDeclaredMethods())
 			try {
 				result.put(method.getName(), method.invoke(annotation, (Object[]) null));

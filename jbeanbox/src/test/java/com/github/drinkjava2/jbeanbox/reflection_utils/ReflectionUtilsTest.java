@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.github.drinkjava2.jbeanbox.BeanBox;
+import com.github.drinkjava2.jbeanbox.JBEANBOX;
 import com.github.drinkjava2.jbeanbox.ReflectionUtils;
 
 public class ReflectionUtilsTest {
@@ -71,14 +72,14 @@ public class ReflectionUtilsTest {
 
 	@Test
 	public void testSon() {
-		Son son = BeanBox.getBean(SonBox.class);
+		Son son = JBEANBOX.getBean(SonBox.class);
 		Assert.assertEquals("user1", son.getUser());
 		Assert.assertEquals("user2", son.getUserName());
 		Assert.assertEquals(10, (int) son.getAge());
 	}
 
 	public static void main(String[] args) {
-		Son son = BeanBox.getBean(SonBox.class);
+		Son son = JBEANBOX.getBean(SonBox.class);
 		Assert.assertEquals("user1", son.getUser());
 		Assert.assertEquals("user2", son.getUserName());
 		Assert.assertEquals(10, (int) son.getAge());
