@@ -238,9 +238,11 @@ public class BeanBoxContext {
 		if (aopFound)
 			bean = AopUtils.createProxyBean(box.getBeanClass(), box, this);
 		else {
-			bean = box.create();
+			bean = box.create(); //use BeanBox's create methods to create bean
 			if (bean == null)
-				bean = box.create(req);
+				bean = box.create(this);
+			if (bean == null)
+				bean = box.create(this, req.history);
 		}
 		if (bean == null)
 			if (box.getConstructor() != null) { // has constructor?
@@ -278,7 +280,8 @@ public class BeanBoxContext {
 		} // NOW BEAN IS CREATED
 
 		box.config(bean);
-		box.config(bean, req);
+		box.config(bean, this);
+		box.config(bean, this, req.history);
 
 		if (box.getPostConstruct() != null) // PostConstructor
 			ReflectionUtils.invokeMethod(box.getPostConstruct(), bean);

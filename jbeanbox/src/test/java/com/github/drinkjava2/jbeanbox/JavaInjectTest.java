@@ -15,6 +15,8 @@ import static com.github.drinkjava2.jbeanbox.JBEANBOX.autowired;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.inject;
 import static com.github.drinkjava2.jbeanbox.JBEANBOX.value;
 
+import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -344,7 +346,7 @@ public class JavaInjectTest {
 
 	public static class CFdemoBox extends BeanBox {
 
-		public Object create(Require v) {
+		public Object create(BeanBoxContext b, Set<Object> history) {
 			CFdemo1 c = new CFdemo1();
 			c.a = "1";
 			return c;
@@ -362,14 +364,14 @@ public class JavaInjectTest {
 
 	public static class CFdemoBox2 extends BeanBox {
 
-		public Object create(Require v) {
+		public Object create(BeanBoxContext ctx, Set<Object> history) {
 			CFdemo2 c2 = new CFdemo2();
-			c2.field1 = v.getBean(CFdemoBox.class);
+			c2.field1 = ctx.getBean(CFdemoBox.class);
 			return c2;
 		}
 
-		public void config(Object c, Require v) {
-			((CFdemo2) c).field2 = v.getBean(CFdemoBox.class);
+		public void config(Object c, BeanBoxContext ctx, Set<Object> history) {
+			((CFdemo2) c).field2 = ctx.getBean(CFdemoBox.class);
 		}
 	}
 

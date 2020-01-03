@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * BeanBox is a virtual model tell system how to build or lookup bean instance
@@ -324,14 +325,21 @@ public class BeanBox {
 		return null;
 	}
 
-	public Object create(Require req) {// for child class override
+	public Object create(BeanBoxContext context) {// for child class override
+		return null;
+	}
+
+	public Object create(BeanBoxContext context, Set<Object> history) {// for child class override
 		return null;
 	}
 
 	public void config(Object bean) {// for child class override
 	}
 
-	public void config(Object bean, Require req) {// for child class override
+	public void config(Object bean, BeanBoxContext context) {// for child class override
+	}
+
+	public void config(Object bean, BeanBoxContext context, Set<Object> history) {// for child class override
 	}
 
 	protected void getterAndSetters_____________________() {// NOSONAR
