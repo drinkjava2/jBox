@@ -119,29 +119,29 @@ public class BeanBoxContext {
 	}
 
 	public Object getObject(Object obj) {
-		return getBean(new Require(obj));
+		return getBean(new Require(obj), null);
 	}
 
 	public <T> T getBean(Object obj) {
-		return getBean(new Require(obj, true)); // first step of changzheng
+		return getBean(new Require(obj, true), null); // first step of changzheng
 	}
 
 	public <T> T getInstance(Class<T> target) {
-		return getBean(new Require(target, true));
+		return getBean(new Require(target, true), null);
 	}
 
 	public <T> T getBean(Object obj, boolean required) {
-		return getBean(new Require(obj, required));
+		return getBean(new Require(obj, required), null);
 	}
 
 	public <T> T getInstance(Class<T> target, boolean required) {
-		return getBean(new Require(target, required));
+		return getBean(new Require(target, required), null);
 	}
 
 	// protected <T> T getBean(Object target, boolean required, Set<Object> history)
 
 	@SuppressWarnings("unchecked")
-	protected <T> T getBean(Require req) {// NOSONAR
+	protected <T> T getBean(Object target,  Set<Object> history, Object... options) {// NOSONAR
 		if (req.target != null && singletonCache.containsKey(req.target))
 			return (T) singletonCache.get(req.target);
 
@@ -158,7 +158,7 @@ public class BeanBoxContext {
 						return (T) existed;
 				}
 			}
-			if (req.history != null && req.history.contains(req.target)) {
+			if (history != null && history.contains(req.target)) {
 				if (bx.getTarget() != null)
 					BeanBoxException
 							.throwEX("Fail to build bean, circular dependency found on target: " + bx.getTarget());
@@ -172,14 +172,13 @@ public class BeanBoxContext {
 		}
 
 		Object result = null;
-		req.setCtx(this);
-		if (req.history == null)
-			req.history = new HashSet<Object>();
-		req.history.add(req.target);
+		if (history == null)
+			history = new HashSet<Object>();
+		history.add(req.target);
 		if (bindCache.containsKey(req.target)) {
 			result = getBean(req.setTarget(bindCache.get(req.target)));
 		} else if (req.target instanceof BeanBox) { // is a BeanBox instance?
-			result = getBeanFromBox((BeanBox) req.target, req);
+			result = getBeanFromBox((BeanBox) req.target, history, req);
 		} else if (req.target instanceof Class) { // is a class?
 			BeanBox box = searchComponent((Class<?>) req.target); // first search in components
 			if (box == null) // if not a component, directly create the instance for this class
@@ -190,7 +189,7 @@ public class BeanBoxContext {
 			}
 		} else
 			result = notfoundOrException(req.target, req.required);
-		req.history.remove(req.target);
+		history.remove(req.target);
 		return (T) result;
 	}
 
@@ -205,7 +204,7 @@ public class BeanBoxContext {
 	}
 
 	/** Get Bean From BeanBox instance */
-	private Object getBeanFromBox(BeanBox box, Require req) {// NOSONAR
+	private Object getBeanFromBox(BeanBox box, Set<Object> history, Require req) {// NOSONAR
 		// NOSONAR System.out.println(" Box=> box=" + box + " history=" + history);
 		BeanBoxException.assureNotNull(box, "Fail to build instance for a null beanBox");
 		Object bean = null;
@@ -238,16 +237,16 @@ public class BeanBoxContext {
 		if (aopFound)
 			bean = AopUtils.createProxyBean(box.getBeanClass(), box, this);
 		else {
-			bean = box.create(); //use BeanBox's create methods to create bean
+			bean = box.create(); // use BeanBox's create methods to create bean
 			if (bean == null)
 				bean = box.create(this);
 			if (bean == null)
-				bean = box.create(this, req.history);
+				bean = box.create(this, history);
 		}
 		if (bean == null)
 			if (box.getConstructor() != null) { // has constructor?
 				if (box.getConstructorParams() != null && box.getConstructorParams().length > 0) {
-					Object[] initargs = param2RealObjects(req, box.getConstructorParams());
+					Object[] initargs = param2RealObjects(req, box.getConstructorParams(), history);
 					try {
 						bean = box.getConstructor().newInstance(initargs);
 					} catch (Exception e) {
@@ -281,7 +280,7 @@ public class BeanBoxContext {
 
 		box.config(bean);
 		box.config(bean, this);
-		box.config(bean, this, req.history);
+		box.config(bean, this, history);
 
 		if (box.getPostConstruct() != null) // PostConstructor
 			ReflectionUtils.invokeMethod(box.getPostConstruct(), bean);
@@ -290,7 +289,7 @@ public class BeanBoxContext {
 			for (Entry<Field, BeanBox> entry : box.getFieldInjects().entrySet()) {
 				Field f = entry.getKey();
 				BeanBox b = entry.getValue();
-				Object fieldValue = this.getBeanFromBox(b, req);// TODO: here is false should?
+				Object fieldValue = this.getBeanFromBox(b, history, req);
 				if (EMPTY.class == fieldValue) {
 					if (b.isRequired())
 						BeanBoxException.throwEX("Not found required value for field: " + f.getName() + " in "
@@ -307,7 +306,7 @@ public class BeanBoxContext {
 				Method m = methods.getKey();
 				BeanBox[] paramBoxs = methods.getValue();
 				if (paramBoxs != null && paramBoxs.length > 0) {
-					Object[] methodParams = param2RealObjects(req, paramBoxs);
+					Object[] methodParams = param2RealObjects(req, paramBoxs, history);
 					ReflectionUtils.invokeMethod(m, bean, methodParams);
 				} else // method has no parameter
 					ReflectionUtils.invokeMethod(m, bean);
@@ -389,17 +388,17 @@ public class BeanBoxContext {
 		return BeanBoxUtils.getUniqueBeanBox(this, clazz);
 	}
 
-	protected void staticMethods________________________() {// NOSONAR
-	}
-
-	private static Object[] param2RealObjects(Require req, BeanBox[] boxes) {
+	private Object[] param2RealObjects(Require req, BeanBox[] boxes, Set<Object> history) {
 		Object[] result = new Object[boxes.length];
 		for (int i = 0; i < boxes.length; i++) {
-			result[i] = req.ctx.getBeanFromBox(boxes[i], req);
+			result[i] = getBeanFromBox(boxes[i], history, req);
 			if (result[i] != null && result[i] instanceof String)
-				result[i] = req.ctx.valueTranslator.translate((String) result[i], boxes[i].getType());
+				result[i] = valueTranslator.translate((String) result[i], boxes[i].getType());
 		}
 		return result;
+	}
+
+	protected void staticMethods________________________() {// NOSONAR
 	}
 
 	private static Object notfoundOrException(Object target, boolean required) {

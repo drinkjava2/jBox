@@ -10,7 +10,6 @@
 package com.github.drinkjava2.jbeanbox;
 
 import java.lang.annotation.Annotation;
-import java.util.Set;
 
 /**
  * This class collect all required info inside of &#064;Inject and
@@ -22,12 +21,8 @@ import java.util.Set;
 public class Require {
 	Object target;
 	boolean pureValue;
-	boolean required;
-	Class<? extends Annotation> qualiferClass;
-	Object qualifierValue;
-	public BeanBoxContext ctx;
-	public Set<Object> history;
-
+	boolean required; 
+	
 	public Require() { // default constr
 	}
 
@@ -44,13 +39,11 @@ public class Require {
 			Object qualifierValue) {
 		this.target = target;
 		this.pureValue = pureValue;
-		this.required = required;
-		this.qualiferClass = qualifierClass;
-		this.qualifierValue = qualifierValue;
+		this.required = required; 
 	}
 
 	public <T> T getBean(Object target) {
-		return ctx.getBean(new Require(target).setHistory(this.history));
+		return null;
 	}
 
 	public Require setTarget(Object target) {
@@ -66,26 +59,6 @@ public class Require {
 	public Require setRequired(boolean required) {
 		this.required = required;
 		return this;
-	}
-
-	public Require setQualiferClass(Class<? extends Annotation> qualiferClass) {
-		this.qualiferClass = qualiferClass;
-		return this;
-	}
-
-	public Require setQualifierValue(Object qualifierValue) {
-		this.qualifierValue = qualifierValue;
-		return this;
-	}
-
-	public Require setCtx(BeanBoxContext ctx) {
-		this.ctx = ctx;
-		return this;
-	}
-
-	public Require setHistory(Set<Object> history) {
-		this.history = history;
-		return this;
-	}
+	} 
 
 }
