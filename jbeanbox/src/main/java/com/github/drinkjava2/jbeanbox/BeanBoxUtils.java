@@ -102,7 +102,7 @@ public class BeanBoxUtils {// NOSONAR
 		}
 
 		// ======== Class inject, if @INJECT, @Qualifiler put on class
-		Require v = getRequireFromAnno(clazz, allowSpringJsrAnno);
+		BeanBox v = getRequireFromAnno(clazz, allowSpringJsrAnno);
 		if (v != null) {
 			box.setTarget(v.target);
 			box.setPureValue(v.pureValue);
@@ -212,7 +212,7 @@ public class BeanBoxUtils {// NOSONAR
 	}
 
 	/** Get wanted Inject info from target annotation */
-	private static Require getRequireFromAnno(Object target, boolean allowSpringJsrAnno) {
+	private static BeanBox getRequireFromAnno(Object target, boolean allowSpringJsrAnno) {
 		Annotation[] anno = getAnnotations(target);
 		return getRequireFromAnnos(anno, allowSpringJsrAnno);
 	}
@@ -221,20 +221,20 @@ public class BeanBoxUtils {// NOSONAR
 	 * get Inject As Object[4] Array, 0=value 1=isConstant 2=required
 	 * 3=annotationType, if not found annotation inject, return null
 	 */
-	private static Require getRequireFromAnnos(Annotation[] anno, boolean allowSpringJsrAnno) {// NOSONAR
+	private static BeanBox getRequireFromAnnos(Annotation[] anno, boolean allowSpringJsrAnno) {// NOSONAR
 		for (Annotation a : anno) {
 			Class<? extends Annotation> type = a.annotationType();
 			if (INJECT.class.equals(type)) {
 				INJECT i = (INJECT) a;
-				return new Require(i.value(), i.required()).setPureValue(i.pureValue());
+				return new BeanBox().setTarget(i.value()).setRequired(i.required()).setPureValue(i.pureValue());
 			}
 			if (VALUE.class.equals(type))
-				return new Require(((VALUE) a).value(), true).setPureValue(true);
+				return new BeanBox().setTarget(((VALUE) a).value()).setRequired(true).setPureValue(true);
 			if (allowSpringJsrAnno) {
 				if (Inject.class.equals(type))
-					return new Require(EMPTY.class, true).setPureValue(false);
+					return new BeanBox().setTarget(EMPTY.class).setPureValue(false);
 				if (Autowired.class.equals(type))
-					return new Require(EMPTY.class, ((Autowired) a).required()).setPureValue(false);
+					return new BeanBox().setTarget(EMPTY.class).setRequired(((Autowired) a).required());
 			}
 		}
 		return null;// NOSONAR
@@ -255,7 +255,7 @@ public class BeanBoxUtils {// NOSONAR
 		BeanBox[] beanBoxes = new BeanBox[annoss.length];
 		for (int i = 0; i < annoss.length; i++) {
 			Annotation[] annos = annoss[i];
-			Require v = getRequireFromAnnos(annos, allowSpringJsrAnno);
+			BeanBox v = getRequireFromAnnos(annos, allowSpringJsrAnno);
 			BeanBox inject = new BeanBox();
 			if (v != null) { // if parameter has annotation
 				inject.setTarget(v.target);

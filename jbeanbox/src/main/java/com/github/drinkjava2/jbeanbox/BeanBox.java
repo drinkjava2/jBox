@@ -324,7 +324,7 @@ public class BeanBox {
 	public Object create() {// for child class override
 		return null;
 	}
-
+	
 	public Object create(BeanBoxContext context) {// for child class override
 		return null;
 	}
@@ -335,10 +335,10 @@ public class BeanBox {
 
 	public void config(Object bean) {// for child class override
 	}
-
+	
 	public void config(Object bean, BeanBoxContext context) {// for child class override
 	}
-
+	
 	public void config(Object bean, BeanBoxContext context, Set<Object> history) {// for child class override
 	}
 

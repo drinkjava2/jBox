@@ -118,38 +118,37 @@ public class BeanBoxContext {
 		singletonCache.clear();
 	}
 
-	public Object getObject(Object obj) {
-		return getBean(new Require(obj), null);
+	public Object getObject(Object target) {
+		return getBean(target, true, null);
 	}
 
-	public <T> T getBean(Object obj) {
-		return getBean(new Require(obj, true), null); // first step of changzheng
+	public <T> T getBean(Object target) {
+		return getBean(target, true, null);// first step of changzheng
 	}
 
 	public <T> T getInstance(Class<T> target) {
-		return getBean(new Require(target, true), null);
+		return getBean(target, true, null);
 	}
 
-	public <T> T getBean(Object obj, boolean required) {
-		return getBean(new Require(obj, required), null);
+	public <T> T getBean(Object target, boolean required) {
+		return getBean(target, true, null);
 	}
 
 	public <T> T getInstance(Class<T> target, boolean required) {
-		return getBean(new Require(target, required), null);
+		return getBean(target, true, null);
 	}
 
-	// protected <T> T getBean(Object target, boolean required, Set<Object> history)
-
 	@SuppressWarnings("unchecked")
-	protected <T> T getBean(Object target,  Set<Object> history, Object... options) {// NOSONAR
-		if (req.target != null && singletonCache.containsKey(req.target))
-			return (T) singletonCache.get(req.target);
+	protected <T> T getBean(Object target, boolean required, Set<Object> history) {// NOSONAR
+		// System.out.println(" target=" + target + " history=" + history);
+		if (target != null && singletonCache.containsKey(target))
+			return (T) singletonCache.get(target);
 
-		if (req.target == null || EMPTY.class == req.target)
-			return (T) notfoundOrException(req.target, req.required);
+		if (target == null || EMPTY.class == target)
+			return (T) notfoundOrException(target, required);
 
-		if (req.target instanceof BeanBox) {
-			BeanBox bx = (BeanBox) req.target;
+		if (target instanceof BeanBox) {
+			BeanBox bx = (BeanBox) target;
 			if (bx.isSingleton()) { // BeanBox already in singleton cache?
 				Object id = bx.getSingletonId();
 				if (id != null) {
@@ -158,7 +157,7 @@ public class BeanBoxContext {
 						return (T) existed;
 				}
 			}
-			if (history != null && history.contains(req.target)) {
+			if (history != null && history.contains(target)) {
 				if (bx.getTarget() != null)
 					BeanBoxException
 							.throwEX("Fail to build bean, circular dependency found on target: " + bx.getTarget());
@@ -174,22 +173,22 @@ public class BeanBoxContext {
 		Object result = null;
 		if (history == null)
 			history = new HashSet<Object>();
-		history.add(req.target);
-		if (bindCache.containsKey(req.target)) {
-			result = getBean(req.setTarget(bindCache.get(req.target)));
-		} else if (req.target instanceof BeanBox) { // is a BeanBox instance?
-			result = getBeanFromBox((BeanBox) req.target, history, req);
-		} else if (req.target instanceof Class) { // is a class?
-			BeanBox box = searchComponent((Class<?>) req.target); // first search in components
+		history.add(target);
+		if (bindCache.containsKey(target)) {
+			result = getBean(bindCache.get(target), required, history);
+		} else if (target instanceof BeanBox) { // is a BeanBox instance?
+			result = getBeanFromBox((BeanBox) target, history);
+		} else if (target instanceof Class) { // is a class?
+			BeanBox box = searchComponent((Class<?>) target); // first search in components
 			if (box == null) // if not a component, directly create the instance for this class
-				box = BeanBoxUtils.getUniqueBeanBox(this, (Class<?>) req.target);
-			result = getBean(req.setTarget(box));
+				box = BeanBoxUtils.getUniqueBeanBox(this, (Class<?>) target);
+			result = getBean(box, box.required, history);
 			if (EMPTY.class != result && box.isSingleton()) {
-				singletonCache.put(req.target, result);
+				singletonCache.put(target, result);
 			}
 		} else
-			result = notfoundOrException(req.target, req.required);
-		history.remove(req.target);
+			result = notfoundOrException(target, required);
+		history.remove(target);
 		return (T) result;
 	}
 
@@ -204,8 +203,8 @@ public class BeanBoxContext {
 	}
 
 	/** Get Bean From BeanBox instance */
-	private Object getBeanFromBox(BeanBox box, Set<Object> history, Require req) {// NOSONAR
-		// NOSONAR System.out.println(" Box=> box=" + box + " history=" + history);
+	private Object getBeanFromBox(BeanBox box, Set<Object> history) {// NOSONAR
+		// System.out.println(" Box=> box=" + box + " history=" + history);
 		BeanBoxException.assureNotNull(box, "Fail to build instance for a null beanBox");
 		Object bean = null;
 		if (box.isSingleton()) { // Check if singleton in cache
@@ -218,11 +217,14 @@ public class BeanBoxContext {
 			return box.getTarget();
 		if (box.getTarget() != null) {// if target?
 			if (EMPTY.class != box.getTarget())
-				return getBean(req.setTarget(box.getTarget()).setRequired(box.isRequired()));
-			if (box.getType() != null)
-				return getBean(req.setTarget(box.getType()).setRequired(box.isRequired()));
+				return getBean(box.getTarget(), box.required, history);
+			if (box.getType() != null) {
+				System.out.println(box.getType());
+				System.out.println( box.required);
+				return getBean(box.getType(), box.required, history);
+			}
 			else
-				return notfoundOrException(box.getTarget(), box.isRequired());
+				return notfoundOrException(box.getTarget(), box.required);
 		}
 
 		boolean aopFound = false;// is AOP?
@@ -246,7 +248,7 @@ public class BeanBoxContext {
 		if (bean == null)
 			if (box.getConstructor() != null) { // has constructor?
 				if (box.getConstructorParams() != null && box.getConstructorParams().length > 0) {
-					Object[] initargs = param2RealObjects(req, box.getConstructorParams(), history);
+					Object[] initargs = param2RealObjects(box.getConstructorParams(), history);
 					try {
 						bean = box.getConstructor().newInstance(initargs);
 					} catch (Exception e) {
@@ -260,14 +262,14 @@ public class BeanBoxContext {
 					}
 			} else if (box.getBeanClass() != null) { // is normal bean
 				if (EMPTY.class == box.getBeanClass())
-					return notfoundOrException(EMPTY.class, req.required);
+					return notfoundOrException(EMPTY.class, box.required);
 				try {
 					bean = box.getBeanClass().newInstance();
 				} catch (Exception e) {
 					BeanBoxException.throwEX("Failed to call 0 parameter constructor of: " + box.getBeanClass(), e);
 				}
 			} else
-				return notfoundOrException(null, req.required); // return null or throw EX
+				return notfoundOrException(null, box.required); // return null or throw EX
 
 		// Now Bean is ready
 
@@ -278,7 +280,7 @@ public class BeanBoxContext {
 				singletonCache.put(box, bean);
 		} // NOW BEAN IS CREATED
 
-		box.config(bean);
+		box.config(bean);// call config methods maybe overrided by user
 		box.config(bean, this);
 		box.config(bean, this, history);
 
@@ -289,12 +291,9 @@ public class BeanBoxContext {
 			for (Entry<Field, BeanBox> entry : box.getFieldInjects().entrySet()) {
 				Field f = entry.getKey();
 				BeanBox b = entry.getValue();
-				Object fieldValue = this.getBeanFromBox(b, history, req);
-				if (EMPTY.class == fieldValue) {
-					if (b.isRequired())
-						BeanBoxException.throwEX("Not found required value for field: " + f.getName() + " in "
-								+ f.getDeclaringClass().getName());
-				} else {
+				System.out.println("b.required="+b.required);
+				Object fieldValue = this.getBeanFromBox(b, history);
+				if (fieldValue != null && EMPTY.class != fieldValue) {
 					if (fieldValue != null && fieldValue instanceof String)
 						fieldValue = this.valueTranslator.translate((String) fieldValue, b.getType());
 					ReflectionUtils.setField(f, bean, fieldValue);
@@ -306,7 +305,7 @@ public class BeanBoxContext {
 				Method m = methods.getKey();
 				BeanBox[] paramBoxs = methods.getValue();
 				if (paramBoxs != null && paramBoxs.length > 0) {
-					Object[] methodParams = param2RealObjects(req, paramBoxs, history);
+					Object[] methodParams = param2RealObjects(paramBoxs, history);
 					ReflectionUtils.invokeMethod(m, bean, methodParams);
 				} else // method has no parameter
 					ReflectionUtils.invokeMethod(m, bean);
@@ -388,10 +387,10 @@ public class BeanBoxContext {
 		return BeanBoxUtils.getUniqueBeanBox(this, clazz);
 	}
 
-	private Object[] param2RealObjects(Require req, BeanBox[] boxes, Set<Object> history) {
+	private Object[] param2RealObjects(BeanBox[] boxes, Set<Object> history) {
 		Object[] result = new Object[boxes.length];
 		for (int i = 0; i < boxes.length; i++) {
-			result[i] = getBeanFromBox(boxes[i], history, req);
+			result[i] = getBeanFromBox(boxes[i], history);
 			if (result[i] != null && result[i] instanceof String)
 				result[i] = valueTranslator.translate((String) result[i], boxes[i].getType());
 		}
