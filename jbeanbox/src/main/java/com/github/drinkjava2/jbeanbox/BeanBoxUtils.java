@@ -60,25 +60,13 @@ public class BeanBoxUtils {// NOSONAR
 	 */
 	private static BeanBox getBeanBox(BeanBoxContext ctx, Class<?> clazz, Boolean singleton) {
 		BeanBoxException.assureNotNull(clazz, "Target class can not be null");
-		BeanBox box;
-		if (singleton == null) // is default
-			box = ctx.beanBoxCache.get(clazz);
-		else if (singleton) // is singleton
-			box = ctx.singletonBeanBoxCache.get(clazz);
-		else // is prototype
-			box = ctx.prototypeBeanBoxCache.get(clazz);
-		if (box != null)
-			return box;
-		BeanBox defaultBox = ctx.beanBoxCache.get(clazz); // default beanbox already?
-		if (defaultBox != null) {
-			if (singleton) {
-				box = defaultBox.newCopy().setSingleton(true);
-				ctx.singletonBeanBoxCache.put(clazz, box);
-			} else {
-				box = defaultBox.newCopy().setSingleton(false);
-				ctx.prototypeBeanBoxCache.put(clazz, box);
-			}
-			return box;
+		BeanBox box = ctx.beanBoxCache.get(clazz);
+		if (box != null) {
+			if (singleton == null)
+				return box;
+			if (singleton && box.isSingleton())
+				return box;
+			return box.newCopy().setSingleton(singleton);
 		}
 		if (BeanBox.class.isAssignableFrom(clazz)) // not found beanbox
 			try {

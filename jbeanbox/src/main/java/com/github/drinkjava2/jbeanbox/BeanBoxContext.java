@@ -49,8 +49,6 @@ public class BeanBoxContext {
 	protected Map<Object, Object> bindCache = new ConcurrentHashMap<>();// bind cache
 
 	protected Map<Class<?>, BeanBox> beanBoxCache = new ConcurrentHashMap<>(); // default BeanBox cache
-	protected Map<Class<?>, BeanBox> prototypeBeanBoxCache = new ConcurrentHashMap<>(); // force prototype BeanBox Cache
-	protected Map<Class<?>, BeanBox> singletonBeanBoxCache = new ConcurrentHashMap<>(); // force singleton BeanBox Cache
 
 	protected Map<Object, Object> singletonCache = new ConcurrentHashMap<>(); // class or BeanBox as key
 	protected Set<Class<?>> componentCache = new HashSet<>(); // component cache
@@ -120,8 +118,6 @@ public class BeanBoxContext {
 		bindCache.clear();
 		singletonCache.clear();
 		beanBoxCache.clear();
-		prototypeBeanBoxCache.clear();
-		singletonBeanBoxCache.clear();
 	}
 
 	public Object getObject(Object target) {
