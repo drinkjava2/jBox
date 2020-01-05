@@ -10,22 +10,32 @@
 package com.github.drinkjava2.jbeanbox;
 
 /**
- * AopUtils create AOP proxy bean
+ * A simple string matcher tool
  * 
  * @author Yong Zhu
  * @since 2.5.0
- *
  */
-public enum NameMatchUtil {
-	;
-
+public class NameMatchUtil { // NOSONAR
 	/**
-	 * A simple matcher for class and method name, only 1 * allowed <br/>
-	 * "*abc.ef" matches "any.abc.ef", "anymoreabc.ef" ... <br/>
-	 * "abc.ef*" matches "abc.efg", "abc.efg.hj" ... <br/>
-	 * "abc*def" matches "abcd.efg.ddef", "abcany*anydef"
+	 * A simple string matcher, only 1 * allowed, but many regex string can
+	 * seperated by "|" char, for example: <br/>
+	 * "abc.ef*|*gh|ijk*lmn" matches "abc.efxxx", "xxxgh","ijkxxxlmn"
 	 */
 	public static boolean nameMatch(String regex, String name) {
+		if (regex == null || regex.length() == 0 || name == null || name.length() == 0)
+			return false;
+		do {
+			int i = regex.indexOf('|');
+			if (i < 0)
+				return doSingleNameMatch(regex, name);
+			if (doSingleNameMatch(regex.substring(0, i), name))
+				return true;
+			regex = regex.substring(i + 1);// NOSONAR
+		} while (true);
+	}
+
+	/** A simple matcher, only 1 * allowed represents any string */
+	private static boolean doSingleNameMatch(String regex, String name) {
 		if (regex == null || regex.length() == 0 || name == null || name.length() == 0)
 			return false;
 		if ('*' == (regex.charAt(0))) {

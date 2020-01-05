@@ -260,14 +260,14 @@ public class JavaInjectTest {
 	@Test
 	public void fieldInjectTest1() {
 		BeanBox box = new BeanBox().setBeanClass(FieldInject2.class);
-		box.injectField("field0", inject(false, false, false));
+		box.injectField("field0", inject(false).setRequired(false));
 		box.injectField("field1", inject(ClassA.class));
 		box.injectField("field2", ClassA.class);
 		box.injectField("field3", HelloBox.class);
 		box.injectValue("field4", true);
 		box.injectValue("field5", 5L);
 		box.injectField("field6", value("6"));
-		box.injectField("field7", inject(EMPTY.class, false, false));
+		box.injectField("field7", inject(EMPTY.class).setRequired(false));
 		box.injectField("field8", inject());
 		box.injectField("field9", autowired());
 

@@ -214,22 +214,30 @@ public class AnnotationInjectTest {
 	public static class ClassA {
 		int i = 1;
 	}
-	  
-	
 
-	public static class FieldInjectTmp {
+	public static class FieldRequireFalseBean {
 		@INJECT(required = false)
-		public String field0 = "aa"; 
+		public String field0 = "aa";
 	}
-	
+
 	@Test
 	public void FieldInjectTmpTest() {
-		BeanBox b=BeanBoxUtils.getUniqueBeanBox(JBEANBOX.bctx(), FieldInjectTmp.class);
-		System.out.println(b.getDebugInfo());
-		FieldInject3 f3=JBEANBOX.getBean( FieldInject3.class);
+		JBEANBOX.getBean(FieldRequireFalseBean.class);
 	}
-	
-	
+
+	public static class FieldRequireTrueBean {
+		@Autowired(required = true)
+		public String field1;
+
+		@Inject
+		public String field2;
+	}
+
+	@Test(expected = BeanBoxException.class)
+	public void fieldInjectTest12() {
+		JBEANBOX.getInstance(FieldRequireTrueBean.class);
+	}
+
 	public static class FieldInject2 {
 		@INJECT(required = false)
 		public String field0 = "aa";
@@ -266,28 +274,15 @@ public class AnnotationInjectTest {
 	public void fieldInjectTest1() {
 		FieldInject2 bean = JBEANBOX.getInstance(FieldInject2.class);
 		Assert.assertEquals("aa", bean.field0);
-//		Assert.assertEquals(1, bean.field1.i);
-//		Assert.assertEquals(1, bean.field2.i);
-//		Assert.assertEquals("Hello", bean.field3);
-//		Assert.assertEquals(true, bean.field4);
-//		Assert.assertEquals(5, bean.field5);
-//		Assert.assertEquals(6, (long) bean.field6);
-//		Assert.assertEquals("7", bean.field7);
-//		Assert.assertEquals(CA.class, bean.ca.getClass());
-//		Assert.assertEquals(CB.class, bean.cb.getClass());
-	}
-
-	public static class FieldInject3 {
-		@Autowired(required = true)
-		public String field1;
-
-		@Inject
-		public String field2;
-	}
-
-	@Test(expected = BeanBoxException.class)
-	public void fieldInjectTest12() {
-		JBEANBOX.getInstance(FieldInject3.class);
+		Assert.assertEquals(1, bean.field1.i);
+		Assert.assertEquals(1, bean.field2.i);
+		Assert.assertEquals("Hello", bean.field3);
+		Assert.assertEquals(true, bean.field4);
+		Assert.assertEquals(5, bean.field5);
+		Assert.assertEquals(6, (long) bean.field6);
+		Assert.assertEquals("7", bean.field7);
+		Assert.assertEquals(CA.class, bean.ca.getClass());
+		Assert.assertEquals(CB.class, bean.cb.getClass());
 	}
 
 	protected void MethodInject_______________() {

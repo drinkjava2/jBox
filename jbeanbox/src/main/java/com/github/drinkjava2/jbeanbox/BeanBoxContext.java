@@ -204,7 +204,7 @@ public class BeanBoxContext {
 
 	/** Get Bean From BeanBox instance */
 	private Object getBeanFromBox(BeanBox box, Set<Object> history) {// NOSONAR
-		// System.out.println(" Box=> box=" + box + " history=" + history);
+		//System.out.println(" Box=> box=" + box + " history=" + history);
 		BeanBoxException.assureNotNull(box, "Fail to build instance for a null beanBox");
 		Object bean = null;
 		if (box.isSingleton()) { // Check if singleton in cache
@@ -218,11 +218,8 @@ public class BeanBoxContext {
 		if (box.getTarget() != null) {// if target?
 			if (EMPTY.class != box.getTarget())
 				return getBean(box.getTarget(), box.required, history);
-			if (box.getType() != null) {
-				System.out.println(box.getType());
-				System.out.println( box.required);
+			if (box.getType() != null)
 				return getBean(box.getType(), box.required, history);
-			}
 			else
 				return notfoundOrException(box.getTarget(), box.required);
 		}
@@ -291,7 +288,6 @@ public class BeanBoxContext {
 			for (Entry<Field, BeanBox> entry : box.getFieldInjects().entrySet()) {
 				Field f = entry.getKey();
 				BeanBox b = entry.getValue();
-				System.out.println("b.required="+b.required);
 				Object fieldValue = this.getBeanFromBox(b, history);
 				if (fieldValue != null && EMPTY.class != fieldValue) {
 					if (fieldValue != null && fieldValue instanceof String)

@@ -10,7 +10,7 @@
 package com.github.drinkjava2.jbeanbox;
 
 /**
- * JBEANBOX store a default globalBeanBoxContext, and have public static method to
+ * JBEANBOX store a default global BeanBoxContext, and have public static method to
  * access it
  * 
  * @author Yong Zhu
@@ -81,20 +81,10 @@ public class JBEANBOX {// NOSONAR
 	public static BeanBox inject(Object target) {
 		return new BeanBox().setTarget(target);
 	}
-
-	/** Equal to "@INJECT" annotation */
-	public static BeanBox inject(Object target, boolean pureValue, boolean required) {
-		return new BeanBox().setTarget(target).setPureValue(pureValue).setRequired(required);
-	}
-
+ 
 	/** Equal to "@VALUE" annotation */
 	public static BeanBox value(Object value) {
 		return new BeanBox().setTarget(value).setPureValue(true).setRequired(true);
-	}
-
-	/** Equal to "@VALUE" annotation */
-	public static BeanBox value(Object value, boolean pureValue, boolean required) {
-		return new BeanBox().setTarget(value).setPureValue(pureValue).setRequired(required);
-	}
+	} 
 
 }

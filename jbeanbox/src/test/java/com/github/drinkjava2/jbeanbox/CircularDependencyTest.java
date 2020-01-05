@@ -11,6 +11,8 @@
  */
 package com.github.drinkjava2.jbeanbox;
 
+import java.util.Set;
+
 import javax.inject.Inject;
 
 import org.junit.Assert;
@@ -108,9 +110,9 @@ public class CircularDependencyTest {
 	}
 
 	public static class Ebox extends BeanBox {
-		public Object create(BeanBoxContext caller) {
+		public Object create(BeanBoxContext caller, Set<Object> history) {
 			E e = new E();
-			e.f = caller.getBean(Fbox.class);
+			e.f = caller.getBean(Fbox.class, true, history);
 			return e;
 		}
 	}
@@ -120,9 +122,9 @@ public class CircularDependencyTest {
 	}
 
 	public static class Fbox extends BeanBox {
-		public Object create(BeanBoxContext caller) {
+		public Object create(BeanBoxContext caller, Set<Object> history) {
 			F f = new F();
-			f.e = caller.getBean(Ebox.class);
+			f.e = caller.getBean(Ebox.class,true, history);
 			return f;
 		}
 	}
