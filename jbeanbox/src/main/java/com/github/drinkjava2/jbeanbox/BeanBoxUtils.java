@@ -83,6 +83,8 @@ public class BeanBoxUtils {// NOSONAR
 		if (BeanBox.class.isAssignableFrom(clazz)) // not found beanbox
 			try {
 				box = (BeanBox) clazz.newInstance();
+				if (box.singleton == null)
+					box.singleton = true;
 			} catch (Exception e) {
 				BeanBoxException.throwEX(e);
 			}
@@ -111,6 +113,7 @@ public class BeanBoxUtils {// NOSONAR
 	private static BeanBox doCreateBeanBox(BeanBoxContext ctx, Class<?> clazz) {// NOSONAR
 		BeanBox box = new BeanBox();
 		box.setBeanClass(clazz);
+		box.setSingleton(true); // for static class default set to singleton
 
 		if (!ctx.isAllowAnnotation())
 			return box;

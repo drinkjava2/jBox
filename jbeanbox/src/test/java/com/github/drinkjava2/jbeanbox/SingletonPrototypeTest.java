@@ -12,27 +12,22 @@ public class SingletonPrototypeTest {
 
 	}
 
-	public static class SingleTonBox extends BeanBox {
-		{
-			setBeanClass(A.class);
-		}
-	}
-
 	public static class PrototypeBox extends BeanBox {
 		{
 			setBeanClass(A.class);
-			setPrototype(true);
 		}
 	}
 
 	@Test
-	public void testSingleton() {
-		Assert.assertTrue(new SingleTonBox().isSingleton());
-		Assert.assertTrue(JBEANBOX.getBeanBox(SingleTonBox.class) == JBEANBOX.getBeanBox(SingleTonBox.class));
+	public void testDefaultType() {
+		JBEANBOX.getBeanBox(PrototypeBox.class);
+		Assert.assertTrue(!new PrototypeBox().isSingleton()); // if new beanbox, is prototype
+		Assert.assertTrue(JBEANBOX.getBeanBox(PrototypeBox.class).isSingleton()); // if fixed class, is singleton
+		Assert.assertTrue(JBEANBOX.getBeanBox(PrototypeBox.class) == JBEANBOX.getBeanBox(PrototypeBox.class));
 
-		BeanBox box1 = new SingleTonBox();
-		BeanBox box2 = new SingleTonBox();
-		Assert.assertTrue(box1.getBean() == box1.getBean());
+		BeanBox box1 = new PrototypeBox();
+		BeanBox box2 = new PrototypeBox();
+		Assert.assertTrue(box1.getBean() != box1.getBean());
 		Assert.assertTrue(box1.getBean() != box2.getBean());
 	}
 

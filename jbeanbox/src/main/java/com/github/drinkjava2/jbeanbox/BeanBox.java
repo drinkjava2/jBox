@@ -44,7 +44,7 @@ public class BeanBox {
 	// below fields for BeanBox has no target
 	protected Class<?> beanClass; // bean class, usually is an annotated class
 
-	protected Boolean singleton = true; // Default Beanbox is singleton
+	protected Boolean singleton = null; // Default Beanbox is singleton
 
 	protected Constructor<?> constructor; // if not null, use constructor to create
 
@@ -319,10 +319,6 @@ public class BeanBox {
 		return this;
 	}
 
-	public boolean isSingleton() {
-		return singleton != null && singleton; // if singlton not set, default is prototype
-	}
-
 	public Object create() {// for child class override
 		return null;
 	}
@@ -392,11 +388,11 @@ public class BeanBox {
 		return this;
 	}
 
-	public Boolean getSingleton() {
-		return singleton;
+	public boolean isSingleton() {
+		return singleton != null && singleton;
 	}
 
-	public BeanBox setSingleton(Boolean singleton) {
+	public BeanBox setSingleton(boolean singleton) {
 		this.singleton = singleton;
 		return this;
 	}

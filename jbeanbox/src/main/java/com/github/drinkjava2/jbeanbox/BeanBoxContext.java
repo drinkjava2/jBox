@@ -163,17 +163,8 @@ public class BeanBoxContext {
 						return (T) existed;
 				}
 			}
-			if (history != null && history.contains(target)) {
-				if (bx.getTarget() != null)
-					BeanBoxException
-							.throwEX("Fail to build bean, circular dependency found on target: " + bx.getTarget());
-				if (bx.getBeanClass() != null)
-					BeanBoxException.throwEX(
-							"Fail to build bean, circular dependency found on beanClass: " + bx.getBeanClass());
-				if (bx.getType() != null)
-					BeanBoxException.throwEX("Fail to build bean, circular dependency found on type: " + bx.getType());
-				BeanBoxException.throwEX("Fail to build bean, circular dependency found on: " + bx);
-			}
+			if (history != null && history.contains(target))
+				BeanBoxException.throwEX("Circular dependency found on: " + bx.getTarget());
 		}
 
 		Object result = null;
