@@ -44,7 +44,7 @@ public class BeanBox {
 	// below fields for BeanBox has no target
 	protected Class<?> beanClass; // bean class, usually is an annotated class
 
-	protected Boolean singleton; // Default singleton is not set, see readme.md
+	protected Boolean singleton = true; // Default Beanbox is singleton
 
 	protected Constructor<?> constructor; // if not null, use constructor to create
 
@@ -67,10 +67,6 @@ public class BeanBox {
 	public BeanBox() { // Default constructor
 	}
 
-	public BeanBox(Class<?> beanClass) { // Default constructor
-		this.beanClass = beanClass;
-	}
-
 	public Object getSingletonId() {
 		if (singleton == null || !singleton || pureValue || target != null)
 			return null;
@@ -80,21 +76,6 @@ public class BeanBox {
 	/** Use default global BeanBoxContext to create bean */
 	public <T> T getBean() {
 		return BeanBoxContext.globalBeanBoxContext.getBean(this);
-	}
-
-	/** Use default global BeanBoxContext to create bean */
-	public static <T> T getBean(Object target) {
-		return BeanBoxContext.globalBeanBoxContext.getBean(target);
-	}
-
-	/** Use default global BeanBoxContext to create a prototype bean */
-	public static <T> T getPrototypeBean(Class<?> beanClass) {
-		return new BeanBox(beanClass).getBean();
-	}
-
-	/** Use given BeanBoxContext to create bean */
-	public <T> T getBean(BeanBoxContext ctx) {
-		return ctx.getBean(this);
 	}
 
 	/** For debug only, will delete in future version */
@@ -136,6 +117,27 @@ public class BeanBox {
 	protected void checkOrCreateMethodAopRules() { // no need explain
 		if (aopRules == null)
 			aopRules = new ArrayList<Object[]>();
+	}
+
+	protected BeanBox newCopy() {
+		BeanBox box = new BeanBox();
+		box.target = this.target;
+		box.pureValue = this.pureValue;
+		box.type = this.type;
+		box.required = this.required;
+		box.qualifierAnno = this.qualifierAnno;
+		box.qualifierValue = this.qualifierValue;
+		box.beanClass = this.beanClass;
+		box.singleton = this.singleton;
+		box.constructor = this.constructor;
+		box.constructorParams = this.constructorParams;
+		box.postConstruct = this.postConstruct;
+		box.preDestroy = this.preDestroy;
+		box.fieldInjects = this.fieldInjects;
+		box.methodInjects = this.methodInjects;
+		box.methodAops = this.methodAops;
+		box.aopRules = this.aopRules;
+		return box;
 	}
 
 	protected void belowAreJavaConfigMethods_______________() {// NOSONAR
@@ -318,13 +320,13 @@ public class BeanBox {
 	}
 
 	public boolean isSingleton() {
-		return singleton != null && singleton;
+		return singleton != null && singleton; // if singlton not set, default is prototype
 	}
 
 	public Object create() {// for child class override
 		return null;
 	}
-	
+
 	public Object create(BeanBoxContext context) {// for child class override
 		return null;
 	}
@@ -335,10 +337,10 @@ public class BeanBox {
 
 	public void config(Object bean) {// for child class override
 	}
-	
+
 	public void config(Object bean, BeanBoxContext context) {// for child class override
 	}
-	
+
 	public void config(Object bean, BeanBoxContext context, Set<Object> history) {// for child class override
 	}
 

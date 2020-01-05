@@ -28,7 +28,7 @@ public class ClassScannerTest {
 
 	@Test
 	public void prototypeTest() {
-		List<Class> cList1 = ClassScanner.scan("com.github.drinkjava2.jbeanbox");
+		List<Class> cList1 = ClassScanner.scanPackages("com.github.drinkjava2.jbeanbox");
 		Assert.assertTrue(cList1.size() > 0);
 
 		List<Class> cList2 = ClassScanner.scanByAnno(BeanAop.class, "com.github.drinkjava2.jbeanbox");
@@ -37,5 +37,8 @@ public class ClassScannerTest {
 		List<Class> cList3 = ClassScanner.scanByName("com.github.drinkjava2.jbeanbox.annotation.PR*",
 				"com.github.drinkjava2.jbeanbox");
 		Assert.assertTrue(cList3.size() > 0);
+
+		List<Class> cList4 = ClassScanner.scanPackages("org.junit");
+		Assert.assertTrue(cList4.size() > 0);
 	}
 }

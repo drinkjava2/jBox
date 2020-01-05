@@ -31,7 +31,7 @@ import com.github.drinkjava2.jbeanbox.annotation.NAMED;
 import com.github.drinkjava2.jbeanbox.annotation.QUALIFILER;
 
 /**
- * BeanBoxContext is the Context to create beans
+ * BeanBoxContext is the Context (i.e. BeanFactory) to create beans
  * 
  * @author Yong Zhu
  * @since 2.4
@@ -47,7 +47,11 @@ public class BeanBoxContext {
 	protected ValueTranslator valueTranslator = globalNextValueTranslator;
 
 	protected Map<Object, Object> bindCache = new ConcurrentHashMap<>();// bind cache
-	protected Map<Class<?>, BeanBox> beanBoxCache = new ConcurrentHashMap<>(); // BeanBox Cache
+
+	protected Map<Class<?>, BeanBox> beanBoxCache = new ConcurrentHashMap<>(); // default BeanBox cache
+	protected Map<Class<?>, BeanBox> prototypeBeanBoxCache = new ConcurrentHashMap<>(); // force prototype BeanBox Cache
+	protected Map<Class<?>, BeanBox> singletonBeanBoxCache = new ConcurrentHashMap<>(); // force singleton BeanBox Cache
+
 	protected Map<Object, Object> singletonCache = new ConcurrentHashMap<>(); // class or BeanBox as key
 	protected Set<Class<?>> componentCache = new HashSet<>(); // component cache
 	protected Map<Class<?>, Boolean> componentExistCache = new ConcurrentHashMap<>();// as title
@@ -109,13 +113,15 @@ public class BeanBoxContext {
 					try {
 						box.getPreDestroy().invoke(obj);
 					} catch (Exception e) {
-						// Eat it here, but usually need log it
+						System.err.println(e.getMessage());// NOSONAR
 					}
 			}
 		}
 		bindCache.clear();
-		beanBoxCache.clear();
 		singletonCache.clear();
+		beanBoxCache.clear();
+		prototypeBeanBoxCache.clear();
+		singletonBeanBoxCache.clear();
 	}
 
 	public Object getObject(Object target) {
@@ -172,7 +178,7 @@ public class BeanBoxContext {
 
 		Object result = null;
 		if (history == null)
-			history = new HashSet<Object>();
+			history = new HashSet<Object>();// NOSONAR
 		history.add(target);
 		if (bindCache.containsKey(target)) {
 			result = getBean(bindCache.get(target), required, history);
@@ -180,8 +186,8 @@ public class BeanBoxContext {
 			result = getBeanFromBox((BeanBox) target, history);
 		} else if (target instanceof Class) { // is a class?
 			BeanBox box = searchComponent((Class<?>) target); // first search in components
-			if (box == null) // if not a component, directly create the instance for this class
-				box = BeanBoxUtils.getUniqueBeanBox(this, (Class<?>) target);
+			if (box == null) // TODO if not a component, directly create the instance for this class
+				box = BeanBoxUtils.getBeanBox(this, (Class<?>) target);
 			result = getBean(box, box.required, history);
 			if (EMPTY.class != result && box.isSingleton()) {
 				singletonCache.put(target, result);
@@ -204,7 +210,7 @@ public class BeanBoxContext {
 
 	/** Get Bean From BeanBox instance */
 	private Object getBeanFromBox(BeanBox box, Set<Object> history) {// NOSONAR
-		//System.out.println(" Box=> box=" + box + " history=" + history);
+		// System.out.println(" Box=> box=" + box + " history=" + history);
 		BeanBoxException.assureNotNull(box, "Fail to build instance for a null beanBox");
 		Object bean = null;
 		if (box.isSingleton()) { // Check if singleton in cache
@@ -316,7 +322,7 @@ public class BeanBoxContext {
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void scanComponents(String... packages) {
-		List<Class> classes = ClassScanner.scan(packages);
+		List<Class> classes = ClassScanner.scanPackages(packages);
 		for (Class claz : classes)
 			for (Annotation anno : claz.getAnnotations()) {
 				Class<? extends Annotation> aType = anno.annotationType();
@@ -380,7 +386,7 @@ public class BeanBoxContext {
 	}
 
 	public BeanBox getBeanBox(Class<?> clazz) {
-		return BeanBoxUtils.getUniqueBeanBox(this, clazz);
+		return BeanBoxUtils.getBeanBox(this, clazz);
 	}
 
 	private Object[] param2RealObjects(BeanBox[] boxes, Set<Object> history) {
@@ -401,19 +407,6 @@ public class BeanBoxContext {
 			return BeanBoxException.throwEX("BeanBox target not found: " + target);
 		else
 			return EMPTY.class;
-	}
-
-	protected void notExistMethod() {// this mark a not exist Method
-
-	}
-
-	protected static Method NOT_EXIST_METHOD = null; // NOSONAR
-
-	static {
-		try {
-			NOT_EXIST_METHOD = BeanBoxContext.class.getDeclaredMethod("notExistMethod");
-		} catch (Exception e) {// NOSONAR
-		}
 	}
 
 	protected void staticGetterAndSetters________________________() {// NOSONAR
@@ -449,14 +442,6 @@ public class BeanBoxContext {
 
 	public static void setGlobalNextParamTranslator(ValueTranslator globalNextParamTranslator) {
 		BeanBoxContext.globalNextValueTranslator = globalNextParamTranslator;
-	}
-
-	public static Method getNotExistMethod() {
-		return NOT_EXIST_METHOD;
-	}
-
-	public static void setNotExistMethod(Method notExistMethod) {
-		BeanBoxContext.NOT_EXIST_METHOD = notExistMethod;
 	}
 
 	protected void getterAndSetters________________________() {// NOSONAR
@@ -498,15 +483,6 @@ public class BeanBoxContext {
 		return this;
 	}
 
-	public Map<Class<?>, BeanBox> getBeanBoxCache() {
-		return beanBoxCache;
-	}
-
-	public BeanBoxContext setBeanBoxCache(Map<Class<?>, BeanBox> beanBoxMetaCache) {
-		this.beanBoxCache = beanBoxMetaCache;
-		return this;
-	}
-
 	public Map<Object, Object> getSingletonCache() {
 		return singletonCache;
 	}
@@ -524,5 +500,4 @@ public class BeanBoxContext {
 		this.aopRules = aopRules;
 		return this;
 	}
-
 }

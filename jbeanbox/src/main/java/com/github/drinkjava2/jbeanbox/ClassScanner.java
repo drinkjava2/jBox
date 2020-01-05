@@ -48,7 +48,7 @@ public enum ClassScanner {
 	 * @param scanBasePackages
 	 * @return
 	 */
-	public static List<Class> scan(String... scanBasePackages) {
+	public static List<Class> scanPackages(String... scanBasePackages) {
 		List<Class> classList = new LinkedList<>();
 		if (scanBasePackages.length == 0) {
 			return classList;
@@ -66,7 +66,7 @@ public enum ClassScanner {
 	 * @return
 	 */
 	public static List<Class> scanByAnno(Class<? extends Annotation> anno, String... scanBasePackages) {
-		List<Class> classList = scan(scanBasePackages);
+		List<Class> classList = scanPackages(scanBasePackages);
 		return classList.parallelStream().filter(clz -> {
 			Annotation clzAnno = clz.getAnnotation(anno);
 			if (clzAnno == null)
@@ -84,7 +84,7 @@ public enum ClassScanner {
 	 * @return
 	 */
 	public static List<Class> scanByName(String nameSimpleReg, String... scanBasePackages) {
-		List<Class> classList = scan(scanBasePackages);
+		List<Class> classList = scanPackages(scanBasePackages);
 		return classList.parallelStream().filter(clz -> {
 			return NameMatchUtil.nameMatch(nameSimpleReg, clz.getName());
 		}).collect(Collectors.toList());

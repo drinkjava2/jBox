@@ -39,24 +39,57 @@ import com.github.drinkjava2.jbeanbox.annotation.VALUE;
  */
 public class BeanBoxUtils {// NOSONAR
 
+	/** Get a class BeanBox which sington property is ture */
+	public static BeanBox getSingletonBeanBox(BeanBoxContext ctx, Class<?> clazz) {
+		return getBeanBox(ctx, clazz, true);
+	}
+
+	/** Get a class BeanBox which sington property is false */
+	public static BeanBox getPrototypeBeanBox(BeanBoxContext ctx, Class<?> clazz) {
+		return getBeanBox(ctx, clazz, false);
+	}
+
+	/** Get a class BeanBox which sington property determined by annotation */
+	public static BeanBox getBeanBox(BeanBoxContext ctx, Class<?> clazz) {
+		return getBeanBox(ctx, clazz, null);
+	}
+
 	/**
-	 * Translate a BeanBox class or normal class to a readOnly BeanBox instance
+	 * Get BeanBox for class, prototype can be null/true/false represents
+	 * default/prototype/sington 3 type beanbox
 	 */
-	public static BeanBox getUniqueBeanBox(BeanBoxContext ctx, Class<?> clazz) {
+	private static BeanBox getBeanBox(BeanBoxContext ctx, Class<?> clazz, Boolean singleton) {
 		BeanBoxException.assureNotNull(clazz, "Target class can not be null");
-		BeanBox box = ctx.beanBoxCache.get(clazz);
+		BeanBox box;
+		if (singleton == null) // is default
+			box = ctx.beanBoxCache.get(clazz);
+		else if (singleton) // is singleton
+			box = ctx.singletonBeanBoxCache.get(clazz);
+		else // is prototype
+			box = ctx.prototypeBeanBoxCache.get(clazz);
 		if (box != null)
 			return box;
-		if (BeanBox.class.isAssignableFrom(clazz))
+		BeanBox defaultBox = ctx.beanBoxCache.get(clazz); // default beanbox already?
+		if (defaultBox != null) {
+			if (singleton) {
+				box = defaultBox.newCopy().setSingleton(true);
+				ctx.singletonBeanBoxCache.put(clazz, box);
+			} else {
+				box = defaultBox.newCopy().setSingleton(false);
+				ctx.prototypeBeanBoxCache.put(clazz, box);
+			}
+			return box;
+		}
+		if (BeanBox.class.isAssignableFrom(clazz)) // not found beanbox
 			try {
 				box = (BeanBox) clazz.newInstance();
-				if (box.singleton == null)
-					box.singleton = true;
 			} catch (Exception e) {
 				BeanBoxException.throwEX(e);
 			}
 		else
 			box = doCreateBeanBox(ctx, clazz);
+		if (box.beanClass != null && PrototypeBean.class.isAssignableFrom(box.beanClass))// NOSONAR
+			box.setSingleton(false);
 		ctx.beanBoxCache.put(clazz, box);
 		return box;
 	}
@@ -78,7 +111,6 @@ public class BeanBoxUtils {// NOSONAR
 	private static BeanBox doCreateBeanBox(BeanBoxContext ctx, Class<?> clazz) {// NOSONAR
 		BeanBox box = new BeanBox();
 		box.setBeanClass(clazz);
-		box.setSingleton(true);// Annotated class, default is singleton
 
 		if (!ctx.isAllowAnnotation())
 			return box;
@@ -91,7 +123,7 @@ public class BeanBoxUtils {// NOSONAR
 			Map<String, Object> m = getAnnoAsMap(clazz, "org.springframework.context.annotation.Scope");
 			if (m != null)
 				for (Entry<String, Object> entry : m.entrySet())
-					if ("value".equals(entry.getKey())) {//NOSONAR
+					if ("value".equals(entry.getKey())) {// NOSONAR
 						if ("prototype".equalsIgnoreCase(String.valueOf(entry.getValue())))
 							box.setSingleton(false);
 						else if ("singleton".equalsIgnoreCase(String.valueOf(entry.getValue())))

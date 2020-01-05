@@ -51,9 +51,9 @@ public class HelloWorld {
 		User u1 = JBEANBOX.getInstance(User.class);
 		User u2 = JBEANBOX.getBean(UserBox.class);
 		User u3 = JBEANBOX.getBean(new BeanBox().injectConstruct(User.class, String.class, value("User3")));
-		User u4 = JBEANBOX.getBean(new BeanBox(User.class).injectValue("name", "User4" ));
+		User u4 = JBEANBOX.getBean(new BeanBox().setBeanClass(User.class).injectValue("name", "User4" ));
 		User u5 = JBEANBOX
-				.getBean(new BeanBox(User.class).injectMethod("setName", String.class, value("User5")));
+				.getBean(new BeanBox().setBeanClass(User.class).injectMethod("setName", String.class, value("User5")));
 		User u6 = JBEANBOX.getBean(new BeanBox().setBeanClass(User.class).setPostConstruct("init"));
 		User u7 = new UserBox7().getBean();
 		

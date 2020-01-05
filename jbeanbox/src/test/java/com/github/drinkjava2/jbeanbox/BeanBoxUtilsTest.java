@@ -41,7 +41,7 @@ public class BeanBoxUtilsTest {
 	}
 
 	public static BeanBox class2BeanBox(Class<?> clazz) {
-		return BeanBoxUtils.getUniqueBeanBox(BeanBoxContext.globalBeanBoxContext, clazz);
+		return BeanBoxUtils.getBeanBox(BeanBoxContext.globalBeanBoxContext, clazz);
 	}
 
 	protected void BindTest_____________________() {
@@ -274,9 +274,9 @@ public class BeanBoxUtilsTest {
 	}
 
 	@Test
-	public void createAndConfigMethodTest() throws SecurityException, NoSuchMethodException { 
+	public void createAndConfigMethodTest() throws SecurityException, NoSuchMethodException {
 		String[] arr = JBEANBOX.getBean(CreateAndConfigMethod1.class);
-		Assert.assertEquals("3", arr[1]); 
+		Assert.assertEquals("3", arr[1]);
 	}
 
 }

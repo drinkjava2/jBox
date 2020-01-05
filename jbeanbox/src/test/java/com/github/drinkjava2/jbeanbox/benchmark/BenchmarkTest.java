@@ -26,7 +26,7 @@ public class BenchmarkTest {
 			REPEAT_TIMES = 3;// warm up
 			runTestMethods();
 			PRINT_TIMEUSED = true;
-			REPEAT_TIMES = 500000;// change to 5000000 to do real test
+			REPEAT_TIMES = 5000;// change to 5000000 to do real test
 			System.out.println("Benchmark test for repeat " + REPEAT_TIMES + " times:");
 			runTestMethods();
 		} finally {
@@ -65,10 +65,14 @@ public class BenchmarkTest {
 	@Test
 	public void testAnnotationPrototype() {
 		BeanBoxContext.reset();
-		BeanBoxContext ctx = new BeanBoxContext();
-		ctx.getBeanBox(A.class).setPrototype(true);
 		for (int i = 0; i < REPEAT_TIMES; i++)
-			JBEANBOX.getBean(A.class);
+			JBEANBOX.getPrototypeBean(A.class);
+
+		JBEANBOX.reset();
+		A a1 = JBEANBOX.getPrototypeBean(A.class);
+		A a2 = JBEANBOX.getPrototypeBean(A.class);
+		Assert.assertTrue(a1 != a2);
+		Assert.assertTrue(a1.b.c.d1.e != a2.b.c.d1.e);
 	}
 
 	@Test

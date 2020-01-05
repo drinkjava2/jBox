@@ -10,8 +10,8 @@
 package com.github.drinkjava2.jbeanbox;
 
 /**
- * JBEANBOX store a default global BeanBoxContext, and have public static method to
- * access it
+ * JBEANBOX store a default global BeanBoxContext, and have public static method
+ * to access it
  * 
  * @author Yong Zhu
  * @since 2.4
@@ -35,17 +35,22 @@ public class JBEANBOX {// NOSONAR
 		bctx().close();
 	}
 
-	/** Use default global BeanBoxContext to create a prototype bean */
-	public static <T> T getPrototypeBean(Class<?> beanClass) {
-		return bctx().getBean(new BeanBox(beanClass));
-	}
-	
 	public static Object getObject(Object target) {
 		return bctx().getObject(target);
 	}
-	
+
 	public static <T> T getBean(Object target) {
 		return bctx().getBean(target);
+	}
+
+	/** Use default global BeanBoxContext to create a prototype bean */
+	public static <T> T getPrototypeBean(Class<?> beanClass) {
+		return BeanBoxUtils.getPrototypeBeanBox(bctx(), beanClass).getBean();
+	}
+
+	/** Use default global BeanBoxContext to create a singleton bean */
+	public static <T> T getSingleBean(Class<?> beanClass) {
+		return BeanBoxUtils.getSingletonBeanBox(bctx(), beanClass).getBean();
 	}
 
 	public static <T> T getBean(Object target, boolean required) {
@@ -65,9 +70,10 @@ public class JBEANBOX {// NOSONAR
 	}
 
 	public static BeanBox getBeanBox(Class<?> clazz) {
-		return BeanBoxUtils.getUniqueBeanBox(BeanBoxContext.globalBeanBoxContext, clazz);
+		return BeanBoxUtils.getBeanBox(BeanBoxContext.globalBeanBoxContext, clazz);
 	}
 
+	/** Equal to "@INJECT" annotation */
 	public static BeanBox autowired() {
 		return new BeanBox().setTarget(EMPTY.class);
 	}
@@ -81,10 +87,10 @@ public class JBEANBOX {// NOSONAR
 	public static BeanBox inject(Object target) {
 		return new BeanBox().setTarget(target);
 	}
- 
+
 	/** Equal to "@VALUE" annotation */
 	public static BeanBox value(Object value) {
 		return new BeanBox().setTarget(value).setPureValue(true).setRequired(true);
-	} 
+	}
 
 }
