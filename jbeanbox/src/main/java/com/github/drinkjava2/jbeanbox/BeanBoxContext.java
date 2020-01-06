@@ -149,19 +149,8 @@ public class BeanBoxContext {
 		if (target == null || EMPTY.class == target)
 			return (T) notfoundOrException(target, required);
 
-		if (target instanceof BeanBox) {
-			BeanBox bx = (BeanBox) target;
-			if (bx.isSingleton()) { // BeanBox already in singleton cache?
-				Object id = bx.getSingletonId();
-				if (id != null) {
-					Object existed = singletonCache.get(id);
-					if (existed != null && EMPTY.class != existed)
-						return (T) existed;
-				}
-			}
-			if (history != null && history.contains(target))
-				BeanBoxException.throwEX("Circular dependency found on: " + bx.getTarget());
-		}
+		if (history != null && target instanceof BeanBox && history.contains(target))
+			BeanBoxException.throwEX("Circular dependency found on :" + target);
 
 		Object result = null;
 		if (history == null)
@@ -185,13 +174,15 @@ public class BeanBoxContext {
 		return (T) result;
 	}
 
+	/** Check if class is a component and return its BeanBox */
 	private BeanBox searchComponent(Class<?> claz) {
-		if (Boolean.FALSE.equals(componentExistCache.get(claz))) // if already know no component exist
+		if (Boolean.FALSE == componentExistCache.get(claz)) // if already know no component exist
 			return null;
 		for (Class<?> compClaz : componentCache)
 			if (claz.isAssignableFrom(compClaz)) {
 
 			}
+		componentExistCache.put(claz, Boolean.FALSE);
 		return null;
 	}
 
