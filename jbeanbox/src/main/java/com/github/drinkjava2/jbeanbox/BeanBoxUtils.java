@@ -20,15 +20,19 @@ import java.util.Map.Entry;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Qualifier;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.github.drinkjava2.jbeanbox.annotation.AOP;
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
+import com.github.drinkjava2.jbeanbox.annotation.NAMED;
 import com.github.drinkjava2.jbeanbox.annotation.POSTCONSTRUCT;
 import com.github.drinkjava2.jbeanbox.annotation.PREDESTROY;
 import com.github.drinkjava2.jbeanbox.annotation.PROTOTYPE;
+import com.github.drinkjava2.jbeanbox.annotation.QUALIFILER;
 import com.github.drinkjava2.jbeanbox.annotation.VALUE;
 
 /**
@@ -125,11 +129,13 @@ public class BeanBoxUtils {// NOSONAR
 		}
 
 		// ======== Class inject, if @INJECT, @Qualifiler put on class
-		BeanBox v = getRequireFromAnno(clazz, allowSpringJsrAnno);
+		BeanBox v = getInjectBoxFromAnno(clazz, allowSpringJsrAnno);
 		if (v != null) {
 			box.setTarget(v.target);
 			box.setPureValue(v.pureValue);
 			box.setRequired(v.required);
+			box.setQualifierAnno(v.qualifierAnno);
+			box.setQualifierValue(v.qualifierValue);
 		}
 
 		// ======== AOP annotated annotations on class
@@ -147,10 +153,10 @@ public class BeanBoxUtils {// NOSONAR
 		// ========== Constructor inject
 		Constructor<?>[] constrs = clazz.getConstructors();
 		for (Constructor<?> constr : constrs) {
-			v = getRequireFromAnno(constr, allowSpringJsrAnno);
+			v = getInjectBoxFromAnno(constr, allowSpringJsrAnno);
 			if (v != null) {
 				box.setBeanClass(clazz);// anyway set beanClass first
-				if (v.target != null && EMPTY.class != v.target) {// 1 parameter only
+				if (v.target != null && AUTOWIRE.class != v.target) {// 1 parameter only
 					BeanBox inject = new BeanBox();
 					inject.setTarget(v.target);
 					inject.setPureValue(v.pureValue);
@@ -169,7 +175,7 @@ public class BeanBoxUtils {// NOSONAR
 		// =================Field inject=================
 		// @INJECT annotations on fields include super class's
 		for (Field f : ReflectionUtils.getSelfAndSuperClassFields(clazz)) {
-			v = getRequireFromAnno(f, allowSpringJsrAnno);
+			v = getInjectBoxFromAnno(f, allowSpringJsrAnno);
 			if (v != null) {
 				box.checkOrCreateFieldInjects();
 				BeanBox inject = new BeanBox();
@@ -210,14 +216,14 @@ public class BeanBoxUtils {// NOSONAR
 				}
 
 			// =========== method inject annotation ==============
-			v = getRequireFromAnno(m, allowSpringJsrAnno);
+			v = getInjectBoxFromAnno(m, allowSpringJsrAnno);
 			if (v != null) {
 				ReflectionUtils.makeAccessible(m);
 				BeanBox oneParam = new BeanBox();
 				oneParam.setTarget(v.target);
 				oneParam.setPureValue(v.pureValue);
 				oneParam.setRequired(v.required);
-				boolean haveOneParameter = v.target != null && EMPTY.class != v.target;
+				boolean haveOneParameter = v.target != null && AUTOWIRE.class != v.target;
 				if (haveOneParameter)
 					oneParam.setType(m.getParameterTypes()[0]); // set parameter type for 1 parameter
 				// @INJECT or @Inject or @Autowired normal method inject
@@ -235,32 +241,37 @@ public class BeanBoxUtils {// NOSONAR
 	}
 
 	/** Get wanted Inject info from target annotation */
-	private static BeanBox getRequireFromAnno(Object target, boolean allowSpringJsrAnno) {
+	private static BeanBox getInjectBoxFromAnno(Object target, boolean allowSpringJsrAnno) {
 		Annotation[] anno = getAnnotations(target);
-		return getRequireFromAnnos(anno, allowSpringJsrAnno);
+		return getInjectBoxFromAnnos(anno, allowSpringJsrAnno);
 	}
 
 	/**
 	 * get Inject As Object[4] Array, 0=value 1=isConstant 2=required
 	 * 3=annotationType, if not found annotation inject, return null
 	 */
-	private static BeanBox getRequireFromAnnos(Annotation[] anno, boolean allowSpringJsrAnno) {// NOSONAR
+	private static BeanBox getInjectBoxFromAnnos(Annotation[] anno, boolean allowSpringJsrAnno) {// NOSONAR
+		BeanBox box = null;
 		for (Annotation a : anno) {
 			Class<? extends Annotation> type = a.annotationType();
 			if (INJECT.class.equals(type)) {
 				INJECT i = (INJECT) a;
-				return new BeanBox().setTarget(i.value()).setRequired(i.required()).setPureValue(i.pureValue());
+				box = new BeanBox().setTarget(i.value()).setRequired(i.required()).setPureValue(i.pureValue());
 			}
 			if (VALUE.class.equals(type))
-				return new BeanBox().setTarget(((VALUE) a).value()).setRequired(true).setPureValue(true);
+				box = new BeanBox().setTarget(((VALUE) a).value()).setRequired(true).setPureValue(true);
 			if (allowSpringJsrAnno) {
 				if (Inject.class.equals(type))
-					return new BeanBox().setTarget(EMPTY.class).setPureValue(false);
+					box = new BeanBox().setTarget(AUTOWIRE.class).setPureValue(false);
 				if (Autowired.class.equals(type))
-					return new BeanBox().setTarget(EMPTY.class).setRequired(((Autowired) a).required());
+					box = new BeanBox().setTarget(AUTOWIRE.class).setRequired(((Autowired) a).required());
 			}
+			if (box != null)
+				break;
 		}
-		return null;// NOSONAR
+		for (Annotation a : anno)
+			BeanBoxUtils.fetchBoxQualifiler(box, a);
+		return box;
 	}
 
 	/** Get Parameter Inject as BeanBox[] Array */
@@ -278,7 +289,7 @@ public class BeanBoxUtils {// NOSONAR
 		BeanBox[] beanBoxes = new BeanBox[annoss.length];
 		for (int i = 0; i < annoss.length; i++) {
 			Annotation[] annos = annoss[i];
-			BeanBox v = getRequireFromAnnos(annos, allowSpringJsrAnno);
+			BeanBox v = getInjectBoxFromAnnos(annos, allowSpringJsrAnno);
 			BeanBox inject = new BeanBox();
 			if (v != null) { // if parameter has annotation
 				inject.setTarget(v.target);
@@ -372,4 +383,16 @@ public class BeanBoxUtils {// NOSONAR
 		return new BeanBox().setAsValue(param);
 	}
 
+	@SuppressWarnings("unchecked")
+	protected static void fetchBoxQualifiler(BeanBox box, Annotation anno) {
+		Class<? extends Annotation> qualiAnno = anno.annotationType();
+		if (BeanBoxUtils.ifSameOrChildAnno(qualiAnno, NAMED.class, Named.class, QUALIFILER.class, Qualifier.class,
+				org.springframework.beans.factory.annotation.Qualifier.class)) {
+			Map<String, Object> v = BeanBoxUtils.changeAnnotationValuesToMap(anno);
+			if (v.size() > 1)
+				BeanBoxException
+						.throwEX("jBeanBox does not support multiple property in Qualifier annotation: " + qualiAnno);
+			box.setQualifierAnno(qualiAnno).setQualifierValue(v.isEmpty() ? null : v.values().iterator().next());
+		}
+	}
 }

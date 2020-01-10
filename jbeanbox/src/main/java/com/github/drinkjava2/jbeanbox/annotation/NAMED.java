@@ -14,8 +14,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.github.drinkjava2.jbeanbox.EMPTY;
-
 /**
  * &#064;NAMED similar like JSR330's &#064;Named annotation
  * 
@@ -25,7 +23,7 @@ import com.github.drinkjava2.jbeanbox.EMPTY;
  */
 @QUALIFILER
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
+@Target({ ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
 public @interface NAMED {
-	public Class<?> value() default EMPTY.class; // In fact is BeanBox's target field
+	public String value() default "";
 }

@@ -25,6 +25,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import com.github.drinkjava2.jbeanbox.annotation.COMPONENT;
+import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 
 /**
  * Qualifer annotation Test
@@ -89,14 +90,50 @@ public class QualiferTest {
 
 	@Retention(RetentionPolicy.RUNTIME)
 	@Qualifier
-	public @interface Leather {
+	public @interface ColorRed {
 		Color color() default Color.RED;
 	}
 
-	@Retention(RetentionPolicy.RUNTIME)
 	@Qualifier
-	public @interface Leather2 {
-		Color color() default Color.TAN;
+	public @interface ColorAny {
+		Color value() default Color.BLACK;
+	}
+
+	public static interface Leather {
+
+	}
+
+	@ColorRed
+	public static class Leather1 implements Leather {
+
+	}
+
+	@ColorAny(Color.TAN)
+	public static class Leather2 implements Leather {
+
+	}
+
+	@ColorAny(Color.TAN)
+	@INJECT
+	public static class Leather3 {
+		@INJECT
+		@ColorRed
+		Leather l1;
+
+		@INJECT
+		@ColorAny(Color.TAN)
+		Leather l2;
+
+		@INJECT
+		Leather l3;
+
+		Leather l4;
+	}
+
+	@Test
+	public void testQuali1() {
+		BeanBox box = JBEANBOX.getBeanBox(Leather3.class);
+		System.out.println(box.getDebugInfo());
 	}
 
 }

@@ -20,15 +20,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.inject.Named;
-import javax.inject.Qualifier;
-
 import org.springframework.stereotype.Component;
 
 import com.github.drinkjava2.jbeanbox.ValueTranslator.DefaultValueTranslator;
 import com.github.drinkjava2.jbeanbox.annotation.COMPONENT;
-import com.github.drinkjava2.jbeanbox.annotation.NAMED;
-import com.github.drinkjava2.jbeanbox.annotation.QUALIFILER;
 
 /**
  * BeanBoxContext is the Context (i.e. BeanFactory) to create beans
@@ -57,31 +52,31 @@ public class BeanBoxContext {
 	protected static BeanBoxContext globalBeanBoxContext = new BeanBoxContext();// Global Bean context
 
 	// ==========AOP about=========
-	protected List<Object[]> aopRules;
+	protected List<Object[]> aopRules; // Store aop string match rules
 
 	public BeanBoxContext() {
-		bind(Object.class, EMPTY.class);
-		bind(String.class, EMPTY.class);
-		bind(Integer.class, EMPTY.class);
-		bind(Boolean.class, EMPTY.class);
-		bind(Byte.class, EMPTY.class);
-		bind(Long.class, EMPTY.class);
-		bind(Short.class, EMPTY.class);
-		bind(Float.class, EMPTY.class);
-		bind(Double.class, EMPTY.class);
-		bind(Character.class, EMPTY.class);
-		bind(List.class, EMPTY.class);
-		bind(Map.class, EMPTY.class);
-		bind(Set.class, EMPTY.class);
+		bind(Object.class, AUTOWIRE.class);
+		bind(String.class, AUTOWIRE.class);
+		bind(Integer.class, AUTOWIRE.class);
+		bind(Boolean.class, AUTOWIRE.class);
+		bind(Byte.class, AUTOWIRE.class);
+		bind(Long.class, AUTOWIRE.class);
+		bind(Short.class, AUTOWIRE.class);
+		bind(Float.class, AUTOWIRE.class);
+		bind(Double.class, AUTOWIRE.class);
+		bind(Character.class, AUTOWIRE.class);
+		bind(List.class, AUTOWIRE.class);
+		bind(Map.class, AUTOWIRE.class);
+		bind(Set.class, AUTOWIRE.class);
 
-		bind(int.class, EMPTY.class);
-		bind(boolean.class, EMPTY.class);
-		bind(byte.class, EMPTY.class);
-		bind(long.class, EMPTY.class);
-		bind(short.class, EMPTY.class);
-		bind(float.class, EMPTY.class);
-		bind(double.class, EMPTY.class);
-		bind(char.class, EMPTY.class);
+		bind(int.class, AUTOWIRE.class);
+		bind(boolean.class, AUTOWIRE.class);
+		bind(byte.class, AUTOWIRE.class);
+		bind(long.class, AUTOWIRE.class);
+		bind(short.class, AUTOWIRE.class);
+		bind(float.class, AUTOWIRE.class);
+		bind(double.class, AUTOWIRE.class);
+		bind(char.class, AUTOWIRE.class);
 	}
 
 	/**
@@ -146,7 +141,7 @@ public class BeanBoxContext {
 		if (target != null && singletonCache.containsKey(target))
 			return (T) singletonCache.get(target);
 
-		if (target == null || EMPTY.class == target)
+		if (target == null || AUTOWIRE.class == target)
 			return (T) notfoundOrException(target, required);
 
 		if (history != null && target instanceof BeanBox && history.contains(target))
@@ -165,7 +160,7 @@ public class BeanBoxContext {
 			if (box == null) // TODO if not a component, directly create the instance for this class
 				box = BeanBoxUtils.getBeanBox(this, (Class<?>) target);
 			result = getBean(box, box.required, history);
-			if (EMPTY.class != result && box.isSingleton()) {
+			if (AUTOWIRE.class != result && box.isSingleton()) {
 				singletonCache.put(target, result);
 			}
 		} else
@@ -200,9 +195,9 @@ public class BeanBoxContext {
 		if (box.isPureValue()) // if constant?
 			return box.getTarget();
 		if (box.getTarget() != null) {// if target?
-			if (EMPTY.class != box.getTarget())
+			if (AUTOWIRE.class != box.getTarget())//
 				return getBean(box.getTarget(), box.required, history);
-			if (box.getType() != null)
+			if (box.getType() != null) // now is AUTOWIRE, it means it's a @INJECT parameter
 				return getBean(box.getType(), box.required, history);
 			else
 				return notfoundOrException(box.getTarget(), box.required);
@@ -242,8 +237,8 @@ public class BeanBoxContext {
 						return BeanBoxException.throwEX(e);
 					}
 			} else if (box.getBeanClass() != null) { // is normal bean
-				if (EMPTY.class == box.getBeanClass())
-					return notfoundOrException(EMPTY.class, box.required);
+				if (AUTOWIRE.class == box.getBeanClass())
+					return notfoundOrException(AUTOWIRE.class, box.required);
 				try {
 					bean = box.getBeanClass().newInstance();
 				} catch (Exception e) {
@@ -273,7 +268,7 @@ public class BeanBoxContext {
 				Field f = entry.getKey();
 				BeanBox b = entry.getValue();
 				Object fieldValue = this.getBeanFromBox(b, history);
-				if (fieldValue != null && EMPTY.class != fieldValue) {
+				if (fieldValue != null && AUTOWIRE.class != fieldValue) {
 					if (fieldValue != null && fieldValue instanceof String)
 						fieldValue = this.valueTranslator.translate((String) fieldValue, b.getType());
 					ReflectionUtils.setField(f, bean, fieldValue);
@@ -318,31 +313,19 @@ public class BeanBoxContext {
 						bind(s, box);
 					}
 
-					for (Annotation otherAnno : claz.getAnnotations()) {// check qualifiler or named annotation family
-						Class<? extends Annotation> qualiAnno = otherAnno.annotationType();
-						if (BeanBoxUtils.ifSameOrChildAnno(qualiAnno, NAMED.class, Named.class, QUALIFILER.class,
-								Qualifier.class, org.springframework.beans.factory.annotation.Qualifier.class)) {
-							Map<String, Object> v = BeanBoxUtils.changeAnnotationValuesToMap(otherAnno);
-							if (v.size() > 1)
-								BeanBoxException
-										.throwEX("jBeanBox does not support multiple property in Qualifier annotation: "
-												+ qualiAnno);
-							box.setQualifierAnno(qualiAnno)
-									.setQualifierValue(v.isEmpty() ? null : v.values().iterator().next());
-						}
-					}
+//					for (Annotation otherAnno : claz.getAnnotations()) {// check qualifiler or named annotation family
+//						BeanBoxUtils.fetchBoxQualifiler(box, otherAnno);
+//					}
 				}
 			}
 	}
 
 	/** Bind a targe on a bean id, if id already exist, throw BeanBoxException */
 	public BeanBoxContext bind(Object id, Object target) {
-		BeanBoxException.assureNotNull(id, "bind id can not be empty");
 		if (bindCache.containsKey(id))
 			BeanBoxException.throwEX("Binding already exists on bean id '" + id
 					+ "', consider use 'rebind' method to allow override existed binding");
-		bindCache.put(id, target);
-		return this;
+		return rebind(id, target);
 	}
 
 	/** Bind a targe on a bean id, if id already exist, override it */
@@ -384,7 +367,7 @@ public class BeanBoxContext {
 		if (required)
 			return BeanBoxException.throwEX("BeanBox target not found: " + target);
 		else
-			return EMPTY.class;
+			return AUTOWIRE.class;
 	}
 
 	protected void staticGetterAndSetters________________________() {// NOSONAR

@@ -95,6 +95,8 @@ public class BeanBox {
 		sb.append("preDestorys=" + this.preDestroy).append("\r\n");
 		sb.append("fieldInjects=" + this.fieldInjects).append("\r\n");
 		sb.append("methodInjects=" + this.methodInjects).append("\r\n");
+		sb.append("qualifierAnno=" + this.qualifierAnno).append("\r\n");
+		sb.append("qualifierValue=" + this.qualifierValue).append("\r\n");
 		sb.append("========BeanBox Debug Info End===========");
 		return sb.toString();
 	}
