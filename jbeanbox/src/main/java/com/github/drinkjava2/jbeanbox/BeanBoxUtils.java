@@ -130,13 +130,8 @@ public class BeanBoxUtils {// NOSONAR
 
 		// ======== Class inject, if @INJECT, @Qualifiler put on class
 		BeanBox v = getInjectBoxFromAnno(clazz, allowSpringJsrAnno);
-		if (v != null) {
-			box.setTarget(v.target);
-			box.setPureValue(v.pureValue);
-			box.setRequired(v.required);
-			box.setQualifierAnno(v.qualifierAnno);
-			box.setQualifierValue(v.qualifierValue);
-		}
+		if (v != null) 
+			copyBoxValues(v, box);
 
 		// ======== AOP annotated annotations on class
 		Annotation[] annos = clazz.getAnnotations();
@@ -158,9 +153,7 @@ public class BeanBoxUtils {// NOSONAR
 				box.setBeanClass(clazz);// anyway set beanClass first
 				if (v.target != null && AUTOWIRE.class != v.target) {// 1 parameter only
 					BeanBox inject = new BeanBox();
-					inject.setTarget(v.target);
-					inject.setPureValue(v.pureValue);
-					inject.setRequired(v.required);
+					copyBoxValues(v, inject);					
 					inject.setType(constr.getParameterTypes()[0]);
 					box.setConstructor(constr);
 					box.setConstructorParams(new BeanBox[] { inject });
@@ -183,6 +176,8 @@ public class BeanBoxUtils {// NOSONAR
 				inject.setPureValue(v.pureValue);
 				inject.setRequired(v.required);
 				inject.setType(f.getType());
+				inject.setQualifierAnno(v.qualifierAnno);
+				inject.setQualifierValue(v.qualifierValue);
 				ReflectionUtils.makeAccessible(f);
 				box.getFieldInjects().put(f, inject);
 			}
@@ -240,16 +235,22 @@ public class BeanBoxUtils {// NOSONAR
 
 	}
 
+	private static void copyBoxValues(BeanBox from, BeanBox to) {
+		to.setTarget(from.target);
+		to.setPureValue(from.pureValue);
+		to.setRequired(from.required);
+		to.setQualifierAnno(from.qualifierAnno);
+		to.setQualifierValue(from.qualifierValue);
+	}
+
 	/** Get wanted Inject info from target annotation */
 	private static BeanBox getInjectBoxFromAnno(Object target, boolean allowSpringJsrAnno) {
 		Annotation[] anno = getAnnotations(target);
 		return getInjectBoxFromAnnos(anno, allowSpringJsrAnno);
 	}
 
-	/**
-	 * get Inject As Object[4] Array, 0=value 1=isConstant 2=required
-	 * 3=annotationType, if not found annotation inject, return null
-	 */
+	/** Get a BeanBox instance from annotation array */
+	@SuppressWarnings("unchecked")
 	private static BeanBox getInjectBoxFromAnnos(Annotation[] anno, boolean allowSpringJsrAnno) {// NOSONAR
 		BeanBox box = null;
 		for (Annotation a : anno) {
@@ -257,20 +258,29 @@ public class BeanBoxUtils {// NOSONAR
 			if (INJECT.class.equals(type)) {
 				INJECT i = (INJECT) a;
 				box = new BeanBox().setTarget(i.value()).setRequired(i.required()).setPureValue(i.pureValue());
-			}
-			if (VALUE.class.equals(type))
+			} else if (VALUE.class.equals(type))
 				box = new BeanBox().setTarget(((VALUE) a).value()).setRequired(true).setPureValue(true);
-			if (allowSpringJsrAnno) {
+			else if (allowSpringJsrAnno) {
 				if (Inject.class.equals(type))
 					box = new BeanBox().setTarget(AUTOWIRE.class).setPureValue(false);
 				if (Autowired.class.equals(type))
 					box = new BeanBox().setTarget(AUTOWIRE.class).setRequired(((Autowired) a).required());
 			}
-			if (box != null)
-				break;
 		}
-		for (Annotation a : anno)
-			BeanBoxUtils.fetchBoxQualifiler(box, a);
+		for (Annotation a : anno) {
+			Class<? extends Annotation> type = a.annotationType();
+			if (BeanBoxUtils.ifSameOrChildAnno(type, NAMED.class, QUALIFILER.class) // if have qualifiler anno?
+					|| (allowSpringJsrAnno && BeanBoxUtils.ifSameOrChildAnno(type, Named.class, Qualifier.class,
+							org.springframework.beans.factory.annotation.Qualifier.class))) {
+				Map<String, Object> v = BeanBoxUtils.changeAnnotationValuesToMap(a);
+				if (v.size() > 1)
+					BeanBoxException
+							.throwEX("jBeanBox does not support multiple property in Qualifier annotation: " + type);
+				if (box == null)
+					box = new BeanBox();
+				box.setQualifierAnno(type).setQualifierValue(v.isEmpty() ? null : v.values().iterator().next());
+			}
+		}
 		return box;
 	}
 
@@ -383,16 +393,4 @@ public class BeanBoxUtils {// NOSONAR
 		return new BeanBox().setAsValue(param);
 	}
 
-	@SuppressWarnings("unchecked")
-	protected static void fetchBoxQualifiler(BeanBox box, Annotation anno) {
-		Class<? extends Annotation> qualiAnno = anno.annotationType();
-		if (BeanBoxUtils.ifSameOrChildAnno(qualiAnno, NAMED.class, Named.class, QUALIFILER.class, Qualifier.class,
-				org.springframework.beans.factory.annotation.Qualifier.class)) {
-			Map<String, Object> v = BeanBoxUtils.changeAnnotationValuesToMap(anno);
-			if (v.size() > 1)
-				BeanBoxException
-						.throwEX("jBeanBox does not support multiple property in Qualifier annotation: " + qualiAnno);
-			box.setQualifierAnno(qualiAnno).setQualifierValue(v.isEmpty() ? null : v.values().iterator().next());
-		}
-	}
 }

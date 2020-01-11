@@ -11,8 +11,10 @@
  */
 package com.github.drinkjava2.jbeanbox;
 
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 import javax.inject.Qualifier;
 
@@ -26,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import com.github.drinkjava2.jbeanbox.annotation.COMPONENT;
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
+import com.github.drinkjava2.jbeanbox.annotation.NAMED;
 
 /**
  * Qualifer annotation Test
@@ -89,11 +92,14 @@ public class QualiferTest {
 	}
 
 	@Retention(RetentionPolicy.RUNTIME)
+	@Target({ ElementType.FIELD, ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
 	@Qualifier
 	public @interface ColorRed {
 		Color color() default Color.RED;
 	}
 
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target({ ElementType.FIELD, ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
 	@Qualifier
 	public @interface ColorAny {
 		Color value() default Color.BLACK;
@@ -114,7 +120,6 @@ public class QualiferTest {
 	}
 
 	@ColorAny(Color.TAN)
-	@INJECT
 	public static class Leather3 {
 		@INJECT
 		@ColorRed
@@ -125,15 +130,33 @@ public class QualiferTest {
 		Leather l2;
 
 		@INJECT
+		@NAMED("somename")
 		Leather l3;
 
-		Leather l4;
 	}
 
 	@Test
 	public void testQuali1() {
 		BeanBox box = JBEANBOX.getBeanBox(Leather3.class);
-		System.out.println(box.getDebugInfo());
+		Assert.assertEquals(Color.TAN, box.getQualifierValue());
+		Assert.assertEquals(ColorAny.class, box.getQualifierAnno());
+
+		int count = 0;
+		for (BeanBox b : box.getFieldInjects().values()) {
+			if (ColorRed.class.equals(b.getQualifierAnno())) {
+				count++;
+				Assert.assertEquals(Color.RED, b.getQualifierValue());
+			}
+			if (ColorAny.class.equals(b.getQualifierAnno())) {
+				count++;
+				Assert.assertEquals(Color.TAN, b.getQualifierValue());
+			}
+			if (NAMED.class.equals(b.getQualifierAnno())) {
+				count++;
+				Assert.assertEquals("somename", b.getQualifierValue());
+			}
+		}
+		Assert.assertEquals(3, count);
 	}
 
 }
