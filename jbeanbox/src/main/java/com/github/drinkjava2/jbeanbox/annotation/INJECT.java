@@ -14,7 +14,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.github.drinkjava2.jbeanbox.AUTOWIRE;
+import com.github.drinkjava2.jbeanbox.EMPTY;
 
 /**
  * INJECT used to inject BeanBox class for class, fields, method, parameter
@@ -27,7 +27,7 @@ import com.github.drinkjava2.jbeanbox.AUTOWIRE;
 @Target({ ElementType.ANNOTATION_TYPE, ElementType.FIELD, ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
 public @interface INJECT {
 
-	public Class<?> value() default AUTOWIRE.class; // Default value is AUTOWIRE.class
+	public Class<?> value() default EMPTY.class; // Default value is EMPTY.class
 
 	public boolean pureValue() default false; // if true mean values is a pure class value, otherwise value is a target
 

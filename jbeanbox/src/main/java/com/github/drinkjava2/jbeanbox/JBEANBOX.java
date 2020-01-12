@@ -10,8 +10,8 @@
 package com.github.drinkjava2.jbeanbox;
 
 /**
- * JBEANBOX store a default global BeanBoxContext, and have public static method
- * to access it
+ * JBEANBOX use default global BeanBoxContext, and have public static method to
+ * access it, JBEANBOX is not a key class in project
  * 
  * @author Yong Zhu
  * @since 2.4
@@ -75,12 +75,12 @@ public class JBEANBOX {// NOSONAR
 
 	/** Equal to "@INJECT" annotation */
 	public static BeanBox autowired() {
-		return new BeanBox().setTarget(AUTOWIRE.class);
+		return new BeanBox().setTarget(EMPTY.class);
 	}
 
 	/** Equal to "@INJECT" annotation */
 	public static BeanBox inject() {
-		return new BeanBox().setTarget(AUTOWIRE.class);
+		return new BeanBox().setTarget(EMPTY.class);
 	}
 
 	/** Equal to "@INJECT" annotation */

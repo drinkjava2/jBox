@@ -55,28 +55,28 @@ public class BeanBoxContext {
 	protected List<Object[]> aopRules; // Store aop string match rules
 
 	public BeanBoxContext() {
-		bind(Object.class, AUTOWIRE.class);
-		bind(String.class, AUTOWIRE.class);
-		bind(Integer.class, AUTOWIRE.class);
-		bind(Boolean.class, AUTOWIRE.class);
-		bind(Byte.class, AUTOWIRE.class);
-		bind(Long.class, AUTOWIRE.class);
-		bind(Short.class, AUTOWIRE.class);
-		bind(Float.class, AUTOWIRE.class);
-		bind(Double.class, AUTOWIRE.class);
-		bind(Character.class, AUTOWIRE.class);
-		bind(List.class, AUTOWIRE.class);
-		bind(Map.class, AUTOWIRE.class);
-		bind(Set.class, AUTOWIRE.class);
+		bind(Object.class, EMPTY.class);
+		bind(String.class, EMPTY.class);
+		bind(Integer.class, EMPTY.class);
+		bind(Boolean.class, EMPTY.class);
+		bind(Byte.class, EMPTY.class);
+		bind(Long.class, EMPTY.class);
+		bind(Short.class, EMPTY.class);
+		bind(Float.class, EMPTY.class);
+		bind(Double.class, EMPTY.class);
+		bind(Character.class, EMPTY.class);
+		bind(List.class, EMPTY.class);
+		bind(Map.class, EMPTY.class);
+		bind(Set.class, EMPTY.class);
 
-		bind(int.class, AUTOWIRE.class);
-		bind(boolean.class, AUTOWIRE.class);
-		bind(byte.class, AUTOWIRE.class);
-		bind(long.class, AUTOWIRE.class);
-		bind(short.class, AUTOWIRE.class);
-		bind(float.class, AUTOWIRE.class);
-		bind(double.class, AUTOWIRE.class);
-		bind(char.class, AUTOWIRE.class);
+		bind(int.class, EMPTY.class);
+		bind(boolean.class, EMPTY.class);
+		bind(byte.class, EMPTY.class);
+		bind(long.class, EMPTY.class);
+		bind(short.class, EMPTY.class);
+		bind(float.class, EMPTY.class);
+		bind(double.class, EMPTY.class);
+		bind(char.class, EMPTY.class);
 	}
 
 	/**
@@ -141,7 +141,7 @@ public class BeanBoxContext {
 		if (target != null && singletonCache.containsKey(target))
 			return (T) singletonCache.get(target);
 
-		if (target == null || AUTOWIRE.class == target)
+		if (target == null || EMPTY.class == target)
 			return (T) notfoundOrException(target, required);
 
 		if (history != null && target instanceof BeanBox && history.contains(target))
@@ -154,13 +154,13 @@ public class BeanBoxContext {
 		if (bindCache.containsKey(target)) {
 			result = getBean(bindCache.get(target), required, history);
 		} else if (target instanceof BeanBox) { // is a BeanBox instance?
-			result = getBeanFromBox((BeanBox) target, history);
+			result = getBeanFromBox((BeanBox) target, required, history);
 		} else if (target instanceof Class) { // is a class?
 			BeanBox box = searchComponent((Class<?>) target); // first search in components
 			if (box == null) // TODO if not a component, directly create the instance for this class
 				box = BeanBoxUtils.getBeanBox(this, (Class<?>) target);
-			result = getBean(box, box.required, history);
-			if (AUTOWIRE.class != result && box.isSingleton()) {
+			result = getBean(box, required, history);
+			if (EMPTY.class != result && box.isSingleton()) {
 				singletonCache.put(target, result);
 			}
 		} else
@@ -182,7 +182,7 @@ public class BeanBoxContext {
 	}
 
 	/** Get Bean From BeanBox instance */
-	private Object getBeanFromBox(BeanBox box, Set<Object> history) {// NOSONAR
+	private Object getBeanFromBox(BeanBox box, boolean required, Set<Object> history) {// NOSONAR
 		// System.out.println(" Box=> box=" + box + " history=" + history);
 		BeanBoxException.assureNotNull(box, "Fail to build instance for a null beanBox");
 		Object bean = null;
@@ -195,9 +195,9 @@ public class BeanBoxContext {
 		if (box.isPureValue()) // if constant?
 			return box.getTarget();
 		if (box.getTarget() != null) {// if target?
-			if (AUTOWIRE.class != box.getTarget())//
+			if (EMPTY.class != box.getTarget())//
 				return getBean(box.getTarget(), box.required, history);
-			if (box.getType() != null) // now is AUTOWIRE, it means it's a @INJECT parameter
+			if (box.getType() != null) // now is EMPTY, it means it's a @INJECT parameter
 				return getBean(box.getType(), box.required, history);
 			else
 				return notfoundOrException(box.getTarget(), box.required);
@@ -237,12 +237,12 @@ public class BeanBoxContext {
 						return BeanBoxException.throwEX(e);
 					}
 			} else if (box.getBeanClass() != null) { // is normal bean
-				if (AUTOWIRE.class == box.getBeanClass())
-					return notfoundOrException(AUTOWIRE.class, box.required);
+				if (EMPTY.class == box.getBeanClass() || box.getBeanClass().isInterface())
+					return notfoundOrException(box.getBeanClass(), required);
 				try {
 					bean = box.getBeanClass().newInstance();
 				} catch (Exception e) {
-					BeanBoxException.throwEX("Failed to call 0 parameter constructor of: " + box.getBeanClass(), e);
+					return notfoundOrException(box.getBeanClass(), required);
 				}
 			} else
 				return notfoundOrException(null, box.required); // return null or throw EX
@@ -267,8 +267,8 @@ public class BeanBoxContext {
 			for (Entry<Field, BeanBox> entry : box.getFieldInjects().entrySet()) {
 				Field f = entry.getKey();
 				BeanBox b = entry.getValue();
-				Object fieldValue = this.getBeanFromBox(b, history);
-				if (fieldValue != null && AUTOWIRE.class != fieldValue) {
+				Object fieldValue = this.getBeanFromBox(b, b.required, history);
+				if (fieldValue != null && EMPTY.class != fieldValue) {
 					if (fieldValue != null && fieldValue instanceof String)
 						fieldValue = this.valueTranslator.translate((String) fieldValue, b.getType());
 					ReflectionUtils.setField(f, bean, fieldValue);
@@ -299,7 +299,8 @@ public class BeanBoxContext {
 		for (Class claz : classes)
 			for (Annotation anno : claz.getAnnotations()) {
 				Class<? extends Annotation> aType = anno.annotationType();
-				if (BeanBoxUtils.ifSameOrChildAnno(aType, COMPONENT.class, Component.class)) {
+				if (BeanBoxUtils.ifSameOrChildAnno(aType, COMPONENT.class)
+						|| (allowSpringJsrAnnotation && BeanBoxUtils.ifSameOrChildAnno(aType, Component.class))) {
 					componentCache.add(claz);// add class as component
 					BeanBox box = getBeanBox(claz);
 					Map<String, Object> values = BeanBoxUtils.changeAnnotationValuesToMap(anno);
@@ -312,10 +313,6 @@ public class BeanBoxContext {
 									.toString();
 						bind(s, box);
 					}
-
-//					for (Annotation otherAnno : claz.getAnnotations()) {// check qualifiler or named annotation family
-//						BeanBoxUtils.fetchBoxQualifiler(box, otherAnno);
-//					}
 				}
 			}
 	}
@@ -353,7 +350,7 @@ public class BeanBoxContext {
 	private Object[] param2RealObjects(BeanBox[] boxes, Set<Object> history) {
 		Object[] result = new Object[boxes.length];
 		for (int i = 0; i < boxes.length; i++) {
-			result[i] = getBeanFromBox(boxes[i], history);
+			result[i] = getBeanFromBox(boxes[i], boxes[i].required, history);
 			if (result[i] != null && result[i] instanceof String)
 				result[i] = valueTranslator.translate((String) result[i], boxes[i].getType());
 		}
@@ -365,9 +362,9 @@ public class BeanBoxContext {
 
 	private static Object notfoundOrException(Object target, boolean required) {
 		if (required)
-			return BeanBoxException.throwEX("BeanBox target not found: " + target);
+			return BeanBoxException.throwEX("Can not create instance for target: " + target);
 		else
-			return AUTOWIRE.class;
+			return EMPTY.class;
 	}
 
 	protected void staticGetterAndSetters________________________() {// NOSONAR

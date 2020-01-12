@@ -121,23 +121,27 @@ public class QualiferTest {
 
 	@ColorAny(Color.TAN)
 	public static class Leather3 {
-		@INJECT
+		@INJECT(required = false)
 		@ColorRed
 		Leather l1;
 
-		@INJECT
+		@INJECT(required = false)
 		@ColorAny(Color.TAN)
 		Leather l2;
 
-		@INJECT
-		@NAMED("somename")
+		@INJECT(required = false)
+		@NAMED("foo")
 		Leather l3;
 
+		@INJECT(required = false)
+		Leather l4;
 	}
 
 	@Test
 	public void testQuali1() {
 		BeanBox box = JBEANBOX.getBeanBox(Leather3.class);
+		box.getBean();// test required=false
+
 		Assert.assertEquals(Color.TAN, box.getQualifierValue());
 		Assert.assertEquals(ColorAny.class, box.getQualifierAnno());
 
@@ -153,7 +157,7 @@ public class QualiferTest {
 			}
 			if (NAMED.class.equals(b.getQualifierAnno())) {
 				count++;
-				Assert.assertEquals("somename", b.getQualifierValue());
+				Assert.assertEquals("foo", b.getQualifierValue());
 			}
 		}
 		Assert.assertEquals(3, count);

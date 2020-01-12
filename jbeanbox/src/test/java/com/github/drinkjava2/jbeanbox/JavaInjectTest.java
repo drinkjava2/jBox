@@ -267,7 +267,7 @@ public class JavaInjectTest {
 		box.injectValue("field4", true);
 		box.injectValue("field5", 5L);
 		box.injectField("field6", value("6"));
-		box.injectField("field7", inject(AUTOWIRE.class).setRequired(false));
+		box.injectField("field7", inject(EMPTY.class).setRequired(false));
 		box.injectField("field8", inject());
 		box.injectField("field9", autowired());
 

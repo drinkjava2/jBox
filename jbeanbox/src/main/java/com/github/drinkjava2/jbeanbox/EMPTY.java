@@ -10,11 +10,11 @@
 package com.github.drinkjava2.jbeanbox;
 
 /**
- * AUTOWIRE used to mark a AUTOWIRE value
+ * EMPTY used to mark a EMPTY value
  * 
  * @author Yong Zhu
  * @since 2.4.8
  *
  */
-public final class AUTOWIRE {// NOSONAR
+public final class EMPTY {// NOSONAR
 }
