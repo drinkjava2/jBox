@@ -47,7 +47,7 @@ public class BeanBoxContext {
 
 	protected Map<Object, Object> singletonCache = new ConcurrentHashMap<>(); // class or BeanBox as key
 	protected Set<Class<?>> componentCache = new HashSet<>(); // component cache
-	protected Map<Class<?>, Boolean> componentExistCache = new ConcurrentHashMap<>();// as title
+	protected Map<String, BeanBox> componentSearchCache = new ConcurrentHashMap<>();// as title
 
 	protected static BeanBoxContext globalBeanBoxContext = new BeanBoxContext();// Global Bean context
 
@@ -156,9 +156,8 @@ public class BeanBoxContext {
 		} else if (target instanceof BeanBox) { // is a BeanBox instance?
 			result = getBeanFromBox((BeanBox) target, required, history);
 		} else if (target instanceof Class) { // is a class?
-			BeanBox box = searchComponent((Class<?>) target); // first search in components
-			if (box == null) // TODO if not a component, directly create the instance for this class
-				box = BeanBoxUtils.getBeanBox(this, (Class<?>) target);
+			BeanBox box = BeanBoxUtils.getBeanBox(this, (Class<?>) target);
+			box = searchComponent(box);
 			result = getBean(box, required, history);
 			if (EMPTY.class != result && box.isSingleton()) {
 				singletonCache.put(target, result);
@@ -167,18 +166,6 @@ public class BeanBoxContext {
 			result = notfoundOrException(target, required);
 		history.remove(target);
 		return (T) result;
-	}
-
-	/** Check if class is a component and return its BeanBox */
-	private BeanBox searchComponent(Class<?> claz) {
-		if (Boolean.FALSE == componentExistCache.get(claz)) // if already know no component exist
-			return null;
-		for (Class<?> compClaz : componentCache)
-			if (claz.isAssignableFrom(compClaz)) {
-
-			}
-		componentExistCache.put(claz, Boolean.FALSE);
-		return null;
 	}
 
 	/** Get Bean From BeanBox instance */
@@ -197,9 +184,10 @@ public class BeanBoxContext {
 		if (box.getTarget() != null) {// if target?
 			if (EMPTY.class != box.getTarget())//
 				return getBean(box.getTarget(), box.required, history);
-			if (box.getType() != null) // now is EMPTY, it means it's a @INJECT parameter
-				return getBean(box.getType(), box.required, history);
-			else
+			if (box.getType() != null) { // now is EMPTY, it means it's a @INJECT parameter
+				BeanBox bx = searchComponent(box);
+				return getBean(bx, box.required, history);
+			} else
 				return notfoundOrException(box.getTarget(), box.required);
 		}
 
@@ -287,6 +275,32 @@ public class BeanBoxContext {
 			}
 		}
 		return bean;
+	}
+
+	/** Check if class is a component and return its BeanBox */
+	private BeanBox searchComponent(BeanBox box) {
+		if (box.type == null || componentCache.isEmpty()) // if know no component?
+			return box;
+		String key = new StringBuilder().append(box.type.getName()).append(":").append(box.qualifierAnno)
+				.append(":").append(box.qualifierValue).toString();
+		BeanBox result = componentSearchCache.get(key);
+		if (result != null) // already know no match
+			return result;
+		for (Class<?> compClass : componentCache)
+			if (box.type.isAssignableFrom(compClass)) {
+				BeanBox compBox = BeanBoxUtils.getBeanBox(this, compClass);
+				if (box.qualifierAnno == compBox.qualifierAnno && box.qualifierValue == compBox.qualifierValue) {
+					if (result != null)
+						BeanBoxException.throwEX("Multiple component " + compClass + " and " + result.beanClass
+								+ " found for type: " + box.type);
+					result = compBox;
+				}
+			}
+		if (result != null) {
+			componentSearchCache.put(key, result);
+			return result;
+		}
+		return box;
 	}
 
 	/**

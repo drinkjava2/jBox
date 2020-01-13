@@ -84,7 +84,7 @@ public class QualiferTest {
 		Assert.assertEquals(A4.class, JBEANBOX.getObject("a-4").getClass());
 	}
 
-	protected void qualifierTests_____________________() {
+	protected void qualifierAnnoTests_____________________() {
 	}
 
 	public enum Color {
@@ -106,21 +106,24 @@ public class QualiferTest {
 	}
 
 	public static interface Leather {
-
 	}
 
+	@COMPONENT
+	@NAMED("red")
+	public static class LeatherRed1 implements Leather {
+	}
+
+	@COMPONENT
 	@ColorRed
-	public static class Leather1 implements Leather {
-
+	public static class LeatherRed2 implements Leather {
 	}
 
+	@COMPONENT("tan")
 	@ColorAny(Color.TAN)
-	public static class Leather2 implements Leather {
-
+	public static class LeatherTan implements Leather {
 	}
 
-	@ColorAny(Color.TAN)
-	public static class Leather3 {
+	public static class Bean1 {
 		@INJECT(required = false)
 		@ColorRed
 		Leather l1;
@@ -130,21 +133,22 @@ public class QualiferTest {
 		Leather l2;
 
 		@INJECT(required = false)
-		@NAMED("foo")
+		@NAMED("red")
 		Leather l3;
 
 		@INJECT(required = false)
+		@NAMED("tan")
 		Leather l4;
+
+		@INJECT(required = false)
+		Leather l5;
 	}
 
 	@Test
 	public void testQuali1() {
-		BeanBox box = JBEANBOX.getBeanBox(Leather3.class);
-		box.getBean();// test required=false
-
-		Assert.assertEquals(Color.TAN, box.getQualifierValue());
-		Assert.assertEquals(ColorAny.class, box.getQualifierAnno());
-
+		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
+		BeanBox box = JBEANBOX.getBeanBox(Bean1.class);
+ 
 		int count = 0;
 		for (BeanBox b : box.getFieldInjects().values()) {
 			if (ColorRed.class.equals(b.getQualifierAnno())) {
@@ -155,12 +159,61 @@ public class QualiferTest {
 				count++;
 				Assert.assertEquals(Color.TAN, b.getQualifierValue());
 			}
-			if (NAMED.class.equals(b.getQualifierAnno())) {
+			if ("red".equals(b.getQualifierValue())) {
 				count++;
-				Assert.assertEquals("foo", b.getQualifierValue());
+				Assert.assertEquals(NAMED.class, b.getQualifierAnno());
+			}
+			if ("tan".equals(b.getQualifierValue())) {
+				count++;
+				Assert.assertEquals(NAMED.class, b.getQualifierAnno());
 			}
 		}
-		Assert.assertEquals(3, count);
+		Assert.assertEquals(4, count);
 	}
 
+	public static class QualifierBeanTests_____________________ {
+	}
+
+	public static interface Egg {
+	}
+
+	@COMPONENT
+	public static class BirdEgg implements Egg { // the only implements of Egg
+	}
+
+	@ColorAny(Color.TAN)
+	public static class Bean2 {
+		@INJECT
+		Egg egg;
+
+		@INJECT
+		@NAMED("red")
+		Leather l1;
+ 
+		@INJECT
+		@ColorRed
+		Leather l2;
+
+		@INJECT
+		@ColorAny(Color.TAN)
+		Leather l3;
+
+		// @INJECT(required = false)
+		// @NAMED("tan")
+		// Leather l4;
+		//
+		// @INJECT(required = false)
+		// Leather l5;
+	}
+
+	@Test
+	public void testBean2() {
+		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
+		Bean2 bean = JBEANBOX.getBean(Bean2.class);
+		Assert.assertTrue(bean.egg.getClass() == BirdEgg.class);
+		
+		Assert.assertTrue(bean.l1.getClass() == LeatherRed1.class);
+		Assert.assertTrue(bean.l2.getClass() == LeatherRed2.class);
+		Assert.assertTrue(bean.l3.getClass() == LeatherTan.class);
+	}
 }

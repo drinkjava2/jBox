@@ -86,8 +86,10 @@ public class CircularDependencyTest {
 	}
 
 	public static class C {
+		public D d;
 		@Inject
 		public C(D d) {
+			this.d=d;
 		}
 	}
 
@@ -99,7 +101,12 @@ public class CircularDependencyTest {
 	/** Constructor circular dependency will throw exception */
 	@Test(expected = BeanBoxException.class)
 	public void badCircularTest() {
-		JBEANBOX.getBean(C.class);
+		C c=JBEANBOX.getBean(C.class);
+		D d=JBEANBOX.getBean(D.class);
+		System.out.println(c);
+		System.out.println(d);
+		System.out.println(c.d);
+		System.out.println(d.c);
 	}
 
 	public void _________________________() {
