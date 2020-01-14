@@ -157,8 +157,11 @@ public class BeanBoxContext {
 			result = getBeanFromBox((BeanBox) target, required, history);
 		} else if (target instanceof Class) { // is a class?
 			BeanBox box = BeanBoxUtils.getBeanBox(this, (Class<?>) target);
-			box = searchComponent(box);
-			result = getBean(box, required, history);
+			BeanBox bx = searchComponent(box);
+			if (bx != null)
+				result = getBean(bx, required, history);
+			else
+				result = getBean(box, required, history);
 			if (EMPTY.class != result && box.isSingleton()) {
 				singletonCache.put(target, result);
 			}
@@ -186,7 +189,10 @@ public class BeanBoxContext {
 				return getBean(box.getTarget(), box.required, history);
 			if (box.getType() != null) { // now is EMPTY, it means it's a @INJECT parameter
 				BeanBox bx = searchComponent(box);
-				return getBean(bx, box.required, history);
+				if (bx != null)
+					return getBean(bx, box.required, history);
+				else
+					return getBean(box.getType(), box.required, history);
 			} else
 				return notfoundOrException(box.getTarget(), box.required);
 		}
@@ -279,17 +285,18 @@ public class BeanBoxContext {
 
 	/** Check if class is a component and return its BeanBox */
 	private BeanBox searchComponent(BeanBox box) {
-		if (box.type == null || componentCache.isEmpty()) // if know no component?
-			return box;
-		String key = new StringBuilder().append(box.type.getName()).append(":").append(box.qualifierAnno)
-				.append(":").append(box.qualifierValue).toString();
+		if (box.type == null || componentCache.isEmpty())
+			return null;
+		String key = new StringBuilder().append(box.type.getName()).append(":").append(box.qualifierAnno).append(":")
+				.append(box.qualifierValue).toString();
 		BeanBox result = componentSearchCache.get(key);
-		if (result != null) // already know no match
+		if (result != null) // already in cache?
 			return result;
 		for (Class<?> compClass : componentCache)
 			if (box.type.isAssignableFrom(compClass)) {
 				BeanBox compBox = BeanBoxUtils.getBeanBox(this, compClass);
-				if (box.qualifierAnno == compBox.qualifierAnno && box.qualifierValue == compBox.qualifierValue) {
+				if (box.qualifierAnno == null || (box.qualifierAnno == compBox.qualifierAnno
+						&& ((box.qualifierValue == null) || (box.qualifierValue.equals(compBox.qualifierValue))))) {
 					if (result != null)
 						BeanBoxException.throwEX("Multiple component " + compClass + " and " + result.beanClass
 								+ " found for type: " + box.type);
@@ -300,7 +307,7 @@ public class BeanBoxContext {
 			componentSearchCache.put(key, result);
 			return result;
 		}
-		return box;
+		return null;
 	}
 
 	/**
