@@ -187,12 +187,14 @@ public class BeanBoxContext {
 		if (box.getTarget() != null) {// if target?
 			if (EMPTY.class != box.getTarget())//
 				return getBean(box.getTarget(), box.required, history);
-			if (box.getType() != null) { // now is EMPTY, it means it's a @INJECT parameter
+			if (box.type != null) { // now is EMPTY, it means it's a @INJECT parameter
 				BeanBox bx = searchComponent(box);
+				if (bx == null && box.qualifierAnno != null)
+					return notfoundOrException(box.type, box.required);
 				if (bx != null)
 					return getBean(bx, box.required, history);
 				else
-					return getBean(box.getType(), box.required, history);
+					return getBean(box.type, box.required, history);
 			} else
 				return notfoundOrException(box.getTarget(), box.required);
 		}
@@ -264,7 +266,7 @@ public class BeanBoxContext {
 				Object fieldValue = this.getBeanFromBox(b, b.required, history);
 				if (fieldValue != null && EMPTY.class != fieldValue) {
 					if (fieldValue != null && fieldValue instanceof String)
-						fieldValue = this.valueTranslator.translate((String) fieldValue, b.getType());
+						fieldValue = this.valueTranslator.translate((String) fieldValue, b.type);
 					ReflectionUtils.setField(f, bean, fieldValue);
 				}
 			}
@@ -373,7 +375,7 @@ public class BeanBoxContext {
 		for (int i = 0; i < boxes.length; i++) {
 			result[i] = getBeanFromBox(boxes[i], boxes[i].required, history);
 			if (result[i] != null && result[i] instanceof String)
-				result[i] = valueTranslator.translate((String) result[i], boxes[i].getType());
+				result[i] = valueTranslator.translate((String) result[i], boxes[i].type);
 		}
 		return result;
 	}

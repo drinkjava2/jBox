@@ -11,6 +11,13 @@
  */
 package com.github.drinkjava2.jbeanbox;
 
+import static java.lang.annotation.ElementType.CONSTRUCTOR;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -26,6 +33,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
+import com.github.drinkjava2.jbeanbox.QualiferTest.Color;
 import com.github.drinkjava2.jbeanbox.annotation.COMPONENT;
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 import com.github.drinkjava2.jbeanbox.annotation.NAMED;
@@ -88,7 +96,7 @@ public class QualiferTest {
 	}
 
 	public enum Color {
-		RED, BLACK, TAN
+		BLACK, RED, GREEN, BLUE, YELLOW
 	}
 
 	@Retention(RetentionPolicy.RUNTIME)
@@ -98,8 +106,8 @@ public class QualiferTest {
 		Color color() default Color.RED;
 	}
 
-	@Retention(RetentionPolicy.RUNTIME)
-	@Target({ ElementType.FIELD, ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
+	@Retention(RUNTIME)
+	@Target({ FIELD, TYPE, CONSTRUCTOR, METHOD, PARAMETER })
 	@Qualifier
 	public @interface ColorAny {
 		Color value() default Color.BLACK;
@@ -109,110 +117,70 @@ public class QualiferTest {
 	}
 
 	@COMPONENT
-	@NAMED("red")
-	public static class LeatherRed1 implements Leather {
+	@ColorRed
+	public static class LeatherRed implements Leather {
 	}
 
 	@COMPONENT
-	@ColorRed
-	public static class LeatherRed2 implements Leather {
+	@ColorAny(Color.GREEN)
+	public static class LeatherGreen implements Leather {
 	}
 
-	@COMPONENT("tan")
-	@ColorAny(Color.TAN)
-	public static class LeatherTan implements Leather {
+	@COMPONENT
+	@NAMED("blue")
+	public static class LeatherBlue implements Leather {
 	}
 
-	public static class Bean1 {
-		@INJECT(required = false)
+	@COMPONENT("yellow")
+	public static class LeatherYellow implements Leather {
+	}
+
+	public static class Bean {
+		@INJECT 
 		@ColorRed
-		Leather l1;
+		Leather red;
 
-		@INJECT(required = false)
-		@ColorAny(Color.TAN)
-		Leather l2;
+		@INJECT 
+		@ColorAny(Color.GREEN)
+		Leather green;
 
-		@INJECT(required = false)
-		@NAMED("red")
-		Leather l3;
+		@INJECT 
+		@NAMED("blue")
+		Leather blue;
+
+		@INJECT(LeatherYellow.class)
+		Leather yellow;
 
 		@INJECT(required = false)
 		@NAMED("tan")
-		Leather l4;
-
-		@INJECT(required = false)
-		Leather l5;
+		Leather tan;
 	}
 
 	@Test
-	public void testQuali1() {
+	public void testBean() {
 		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
-		BeanBox box = JBEANBOX.getBeanBox(Bean1.class);
-
-		int count = 0;
-		for (BeanBox b : box.getFieldInjects().values()) {
-			if (ColorRed.class.equals(b.getQualifierAnno())) {
-				count++;
-				Assert.assertEquals(Color.RED, b.getQualifierValue());
-			}
-			if (ColorAny.class.equals(b.getQualifierAnno())) {
-				count++;
-				Assert.assertEquals(Color.TAN, b.getQualifierValue());
-			}
-			if ("red".equals(b.getQualifierValue())) {
-				count++;
-				Assert.assertEquals(NAMED.class, b.getQualifierAnno());
-			}
-			if ("tan".equals(b.getQualifierValue())) {
-				count++;
-				Assert.assertEquals(NAMED.class, b.getQualifierAnno());
-			}
-		}
-		Assert.assertEquals(4, count);
+		Bean bean = JBEANBOX.getBean(Bean.class);
+		Assert.assertEquals("LeatherRed", "" + bean.red.getClass().getSimpleName());
+		Assert.assertEquals("LeatherGreen", "" + bean.green.getClass().getSimpleName());
+		Assert.assertEquals("LeatherBlue", "" + bean.blue.getClass().getSimpleName());
+		Assert.assertEquals("LeatherYellow", "" + bean.yellow.getClass().getSimpleName());
+		Assert.assertEquals(null, bean.tan);
 	}
 
-	public static class QualifierBeanTests_____________________ {
+	public static class Bean2 { 
+		@INJECT(required = false)
+		Leather other;
 	}
-
-	public static interface Egg {
-	}
-
-	@COMPONENT
-	public static class BirdEgg implements Egg { // the only implements of Egg
-	}
-
-	@ColorAny(Color.TAN)
-	public static class Bean2 {
-		// @INJECT
-		// Egg egg;
-
-		@INJECT
-		@NAMED("red")
-		Leather l1;
-		
-		 @INJECT
-		 @ColorRed
-		 Leather l2;
-		
-		 @INJECT
-		 @ColorAny(Color.TAN)
-		 Leather l3;
-		
-		 @INJECT 
-		 @NAMED("aaa")
-		 Leather l4;
-		//
-		// @INJECT(required = false)
-		// Leather l5;
-	}
-
+	
 	@Test
 	public void testBean2() {
 		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
-		Bean2 bean = JBEANBOX.getBean(Bean2.class);
-//		Assert.assertTrue(bean.egg.getClass() == BirdEgg.class);
-//		Assert.assertTrue(bean.l1.getClass() == LeatherRed1.class);
-//		Assert.assertTrue(bean.l2.getClass() == LeatherRed2.class);
-//		Assert.assertTrue(bean.l3.getClass() == LeatherTan.class);
+		Bean bean = JBEANBOX.getBean(Bean.class);
+		Assert.assertEquals("LeatherRed", "" + bean.red.getClass().getSimpleName());
+		Assert.assertEquals("LeatherGreen", "" + bean.green.getClass().getSimpleName());
+		Assert.assertEquals("LeatherBlue", "" + bean.blue.getClass().getSimpleName());
+		Assert.assertEquals("LeatherYellow", "" + bean.yellow.getClass().getSimpleName());
+		Assert.assertEquals(null, bean.tan);
 	}
+
 }

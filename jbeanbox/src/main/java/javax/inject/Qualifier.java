@@ -46,8 +46,8 @@ import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
  *   &#064;java.lang.annotation.Retention(RUNTIME)
  *   &#064;javax.inject.Qualifier
  *   public @interface Leather {
- *     Color color() default Color.TAN;
- *     public enum Color { RED, BLACK, TAN }
+ *     Color color() default Color.YELLOW;
+ *     public enum Color { RED, BLACK, YELLOW }
  *   }</pre>
  *
  * @see javax.inject.Named @Named
