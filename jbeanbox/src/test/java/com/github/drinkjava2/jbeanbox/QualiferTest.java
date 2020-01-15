@@ -135,16 +135,21 @@ public class QualiferTest {
 	public static class LeatherYellow implements Leather {
 	}
 
+	@COMPONENT
+	public static class LeatherPurple implements Leather {
+	}
+ 
+	
 	public static class Bean {
-		@INJECT 
+		@INJECT
 		@ColorRed
 		Leather red;
 
-		@INJECT 
+		@INJECT
 		@ColorAny(Color.GREEN)
 		Leather green;
 
-		@INJECT 
+		@INJECT
 		@NAMED("blue")
 		Leather blue;
 
@@ -152,8 +157,8 @@ public class QualiferTest {
 		Leather yellow;
 
 		@INJECT(required = false)
-		@NAMED("tan")
-		Leather tan;
+		@NAMED("notExist")
+		Leather notExist;
 	}
 
 	@Test
@@ -164,23 +169,18 @@ public class QualiferTest {
 		Assert.assertEquals("LeatherGreen", "" + bean.green.getClass().getSimpleName());
 		Assert.assertEquals("LeatherBlue", "" + bean.blue.getClass().getSimpleName());
 		Assert.assertEquals("LeatherYellow", "" + bean.yellow.getClass().getSimpleName());
-		Assert.assertEquals(null, bean.tan);
+		Assert.assertEquals(null, bean.notExist);
 	}
 
-	public static class Bean2 { 
+	public static class Bean2 {
 		@INJECT(required = false)
 		Leather other;
 	}
-	
-	@Test
+
+	@Test(expected = BeanBoxException.class)
 	public void testBean2() {
 		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
-		Bean bean = JBEANBOX.getBean(Bean.class);
-		Assert.assertEquals("LeatherRed", "" + bean.red.getClass().getSimpleName());
-		Assert.assertEquals("LeatherGreen", "" + bean.green.getClass().getSimpleName());
-		Assert.assertEquals("LeatherBlue", "" + bean.blue.getClass().getSimpleName());
-		Assert.assertEquals("LeatherYellow", "" + bean.yellow.getClass().getSimpleName());
-		Assert.assertEquals(null, bean.tan);
+		JBEANBOX.getBean(Bean2.class);
 	}
 
 }

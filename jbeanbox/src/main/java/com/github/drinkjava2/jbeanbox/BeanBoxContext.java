@@ -300,8 +300,8 @@ public class BeanBoxContext {
 				if (box.qualifierAnno == null || (box.qualifierAnno == compBox.qualifierAnno
 						&& ((box.qualifierValue == null) || (box.qualifierValue.equals(compBox.qualifierValue))))) {
 					if (result != null)
-						BeanBoxException.throwEX("Multiple component " + compClass + " and " + result.beanClass
-								+ " found for type: " + box.type);
+						BeanBoxException.throwEX("2 components " + compClass.getName() + " and "
+								+ result.beanClass.getName() + " found for type: " + box.type);
 					result = compBox;
 				}
 			}
