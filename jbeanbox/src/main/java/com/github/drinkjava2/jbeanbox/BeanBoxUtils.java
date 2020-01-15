@@ -130,7 +130,7 @@ public class BeanBoxUtils {// NOSONAR
 
 		// ======== Class inject, if @INJECT, @Qualifiler put on class
 		BeanBox v = getInjectBoxFromAnno(clazz, allowSpringJsrAnno);
-		if (v != null) 
+		if (v != null)
 			copyBoxValues(v, box);
 
 		// ======== AOP annotated annotations on class
@@ -149,11 +149,11 @@ public class BeanBoxUtils {// NOSONAR
 		Constructor<?>[] constrs = clazz.getConstructors();
 		for (Constructor<?> constr : constrs) {
 			v = getInjectBoxFromAnno(constr, allowSpringJsrAnno);
-			if (v != null) {
+			if (v != null) { // has constr inject
 				box.setBeanClass(clazz);// anyway set beanClass first
 				if (v.target != null && EMPTY.class != v.target) {// 1 parameter only
 					BeanBox inject = new BeanBox();
-					copyBoxValues(v, inject);					
+					copyBoxValues(v, inject);
 					inject.setType(constr.getParameterTypes()[0]);
 					box.setConstructor(constr);
 					box.setConstructorParams(new BeanBox[] { inject });
@@ -277,7 +277,7 @@ public class BeanBoxUtils {// NOSONAR
 					BeanBoxException
 							.throwEX("jBeanBox does not support multiple property in Qualifier annotation: " + type);
 				if (box == null)
-					box = new BeanBox();
+					box = new BeanBox().setTarget(EMPTY.class);
 				box.setQualifierAnno(type).setQualifierValue(v.isEmpty() ? null : v.values().iterator().next());
 			}
 		}
@@ -295,16 +295,14 @@ public class BeanBoxUtils {// NOSONAR
 			annoss = ((Constructor<?>) o).getParameterAnnotations();
 			paramTypes = ((Constructor<?>) o).getParameterTypes();
 		} else
-			return BeanBoxException.throwEX("Only method or Constructor are allowed at here for:" + o);
+			return BeanBoxException.throwEX("Only method or Constructor are allowed for:" + o);
 		BeanBox[] beanBoxes = new BeanBox[annoss.length];
 		for (int i = 0; i < annoss.length; i++) {
 			Annotation[] annos = annoss[i];
 			BeanBox v = getInjectBoxFromAnnos(annos, allowSpringJsrAnno);
 			BeanBox inject = new BeanBox();
 			if (v != null) { // if parameter has annotation
-				inject.setTarget(v.target);
-				inject.setPureValue(v.pureValue);
-				inject.setRequired(v.required);
+				copyBoxValues(v, inject);
 				inject.setType(paramTypes[i]);
 			} else // if parameter no annotation
 				inject.setTarget(paramTypes[i]);

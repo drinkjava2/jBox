@@ -27,7 +27,7 @@ import com.github.drinkjava2.jbeanbox.EMPTY;
 @Target({ ElementType.ANNOTATION_TYPE, ElementType.FIELD, ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER })
 public @interface INJECT {
 
-	public Class<?> value() default EMPTY.class; // Default value is EMPTY.class
+	public Class<?> value() default EMPTY.class; // the target, default is EMPTY.class
 
 	public boolean pureValue() default false; // if true mean values is a pure class value, otherwise value is a target
 

@@ -285,6 +285,8 @@ public class BeanBoxContext {
 		return bean;
 	}
 
+	private static final BeanBox NO_THIS_COMPONENT = new BeanBox();
+
 	/** Check if class is a component and return its BeanBox */
 	private BeanBox searchComponent(BeanBox box) {
 		if (box.type == null || componentCache.isEmpty())
@@ -292,23 +294,29 @@ public class BeanBoxContext {
 		String key = new StringBuilder().append(box.type.getName()).append(":").append(box.qualifierAnno).append(":")
 				.append(box.qualifierValue).toString();
 		BeanBox result = componentSearchCache.get(key);
+		if (result == NO_THIS_COMPONENT) // already know not found
+			return null;
 		if (result != null) // already in cache?
 			return result;
-		for (Class<?> compClass : componentCache)
-			if (box.type.isAssignableFrom(compClass)) {
-				BeanBox compBox = BeanBoxUtils.getBeanBox(this, compClass);
-				if (box.qualifierAnno == null || (box.qualifierAnno == compBox.qualifierAnno
-						&& ((box.qualifierValue == null) || (box.qualifierValue.equals(compBox.qualifierValue))))) {
-					if (result != null)
-						BeanBoxException.throwEX("2 components " + compClass.getName() + " and "
-								+ result.beanClass.getName() + " found for type: " + box.type);
-					result = compBox;
+		if (box.qualifierAnno != null && box.qualifierAnno.getSimpleName().equalsIgnoreCase("named"))
+			result = (BeanBox) bindCache.get(box.getQualifierValue());
+		if (result == null)
+			for (Class<?> compClass : componentCache)
+				if (box.type.isAssignableFrom(compClass)) {
+					BeanBox compBox = BeanBoxUtils.getBeanBox(this, compClass);
+					if (box.qualifierAnno == null || (box.qualifierAnno == compBox.qualifierAnno
+							&& ((box.qualifierValue == null) || (box.qualifierValue.equals(compBox.qualifierValue))))) {
+						if (result != null)
+							BeanBoxException.throwEX("2 components " + compClass.getName() + " and "
+									+ result.beanClass.getName() + " found for type: " + box.type);
+						result = compBox;
+					}
 				}
-			}
 		if (result != null) {
 			componentSearchCache.put(key, result);
 			return result;
-		}
+		} else
+			componentSearchCache.put(key, NO_THIS_COMPONENT);
 		return null;
 	}
 
@@ -331,10 +339,12 @@ public class BeanBoxContext {
 						this.bind(values.get("value"), box);
 					else {
 						String s = claz.getSimpleName(); // else use first char lower case class name as bean name
-						if (!Character.isLowerCase(s.charAt(0)))
+						bind(s, box); // use class name as bind key
+						if (!Character.isLowerCase(s.charAt(0))) {
 							s = (new StringBuilder()).append(Character.toLowerCase(s.charAt(0))).append(s.substring(1))
 									.toString();
-						bind(s, box);
+							bind(s, box); // also bind the key start wtih lower case
+						}
 					}
 				}
 			}

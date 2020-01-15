@@ -33,7 +33,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
-import com.github.drinkjava2.jbeanbox.QualiferTest.Color;
 import com.github.drinkjava2.jbeanbox.annotation.COMPONENT;
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 import com.github.drinkjava2.jbeanbox.annotation.NAMED;
@@ -45,6 +44,7 @@ import com.github.drinkjava2.jbeanbox.annotation.NAMED;
  * @since 2.5.0
  *
  */
+@SuppressWarnings("all")
 public class QualiferTest {
 
 	@Before
@@ -71,7 +71,7 @@ public class QualiferTest {
 	public static class A3 implements A {
 	}
 
-	@Controller("a-4")
+	@Controller("a4")
 	public static class A4 implements A {
 	}
 
@@ -89,10 +89,10 @@ public class QualiferTest {
 		Assert.assertEquals(A1.class, JBEANBOX.getObject("a1").getClass());
 		Assert.assertEquals(A2.class, JBEANBOX.getObject("a2").getClass());
 		Assert.assertEquals(A3.class, JBEANBOX.getObject("a3").getClass());
-		Assert.assertEquals(A4.class, JBEANBOX.getObject("a-4").getClass());
+		Assert.assertEquals(A4.class, JBEANBOX.getObject("a4").getClass());
 	}
 
-	protected void qualifierAnnoTests_____________________() {
+	protected void fieldQualifierAnnoTests_____________________() {
 	}
 
 	public enum Color {
@@ -138,49 +138,129 @@ public class QualiferTest {
 	@COMPONENT
 	public static class LeatherPurple implements Leather {
 	}
- 
-	
+
+	public static class PurpleBox extends BeanBox {
+		{
+			beanClass = LeatherPurple.class;
+		}
+	}
+
+	public static class PurpleBox2 extends BeanBox {
+		{
+			this.setTarget("leatherPurple");
+		}
+	}
+
 	public static class Bean {
 		@INJECT
 		@ColorRed
 		Leather red;
 
-		@INJECT
-		@ColorAny(Color.GREEN)
-		Leather green;
+//		@INJECT
+//		@ColorAny(Color.GREEN)
+//		Leather green;
+//
+//		@INJECT
+//		@NAMED("blue")
+//		Leather blue;
+//
+//		@INJECT
+//		@NAMED("yellow")
+//		Leather yellow;
+//
+//		@INJECT(LeatherPurple.class)
+//		Leather purple1;
+//
+//		@INJECT
+//		@NAMED("leatherPurple")
+//		Leather purple2;
+//
+//		@INJECT
+//		@NAMED("LeatherPurple")
+//		Leather purple3;
+//
+//		@INJECT(PurpleBox.class)
+//		Leather purple4;
 
-		@INJECT
-		@NAMED("blue")
-		Leather blue;
-
-		@INJECT(LeatherYellow.class)
-		Leather yellow;
-
-		@INJECT(required = false)
-		@NAMED("notExist")
-		Leather notExist;
+//		@INJECT(required = false)
+//		@NAMED("notExist")
+//		Leather notExist;
 	}
 
 	@Test
 	public void testBean() {
 		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
 		Bean bean = JBEANBOX.getBean(Bean.class);
-		Assert.assertEquals("LeatherRed", "" + bean.red.getClass().getSimpleName());
-		Assert.assertEquals("LeatherGreen", "" + bean.green.getClass().getSimpleName());
-		Assert.assertEquals("LeatherBlue", "" + bean.blue.getClass().getSimpleName());
-		Assert.assertEquals("LeatherYellow", "" + bean.yellow.getClass().getSimpleName());
-		Assert.assertEquals(null, bean.notExist);
+//		Assert.assertEquals("LeatherRed", "" + bean.red.getClass().getSimpleName());
+//		Assert.assertEquals("LeatherGreen", "" + bean.green.getClass().getSimpleName());
+//		Assert.assertEquals("LeatherBlue", "" + bean.blue.getClass().getSimpleName());
+//		Assert.assertEquals("LeatherYellow", "" + bean.yellow.getClass().getSimpleName());
+//		Assert.assertEquals("LeatherPurple", "" + bean.purple1.getClass().getSimpleName());
+//		Assert.assertEquals("LeatherPurple", "" + bean.purple2.getClass().getSimpleName());
+//		Assert.assertEquals("LeatherPurple", "" + bean.purple3.getClass().getSimpleName());
+//		Assert.assertEquals("LeatherPurple", "" + bean.purple4.getClass().getSimpleName());
+		//Assert.assertEquals(null, bean.notExist);
+	}
+
+	protected void DuplicateComponetsTest_____________________() {
 	}
 
 	public static class Bean2 {
-		@INJECT(required = false)
-		Leather other;
+		@INJECT
+		Leather other; // error! becuase more than 1 Leather components
 	}
 
 	@Test(expected = BeanBoxException.class)
-	public void testBean2() {
+	public void testDuplicateComponentsError() {
 		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
 		JBEANBOX.getBean(Bean2.class);
+	}
+
+	protected void ConstrParamQualifierAnnoTests_____________________() {
+	}
+
+	public static class ConstrBean {
+		Leather l1;
+		Leather l2;
+		Leather l3;
+		Leather l4;
+		Leather l5;
+		Leather l6;
+		Leather l7;
+
+		@INJECT
+		public ConstrBean( // the constructor injection
+				@ColorRed Leather l1
+
+//				@ColorAny(Color.GREEN) Leather l2,
+//
+//				@NAMED("blue") Leather l3,
+//
+//				@NAMED("yellow") Leather l4,
+//
+//				@INJECT(LeatherPurple.class) Leather l5,
+//
+//				@NAMED("leatherPurple") Leather l6,
+//
+//				@NAMED("LeatherPurple") Leather l7,
+//
+//				@INJECT(PurpleBox.class) Leather purple4
+
+		) {
+			this.l1 = l1;
+			this.l2 = l2;
+			this.l3 = l3;
+			this.l4 = l4;
+			this.l5 = l5;
+			this.l6 = l6;
+			this.l7 = l7;
+		}
+	}
+
+	@Test
+	public void testConstrBean() {
+		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
+		ConstrBean bean = JBEANBOX.getBean(ConstrBean.class);
 	}
 
 }
