@@ -78,9 +78,9 @@ public class BeanBox {
 		return BeanBoxContext.globalBeanBoxContext.getBean(this);
 	}
 
-	/** For debug only, will delete in future version */
+	/** For debug purpose */
 	public String getDebugInfo() {
-		StringBuilder sb = new StringBuilder("\r\n========BeanBox Debug for " + this + "===========\r\n");
+		StringBuilder sb = new StringBuilder("\r\n BeanBox properties:\r\n");
 		sb.append("target=" + this.target).append("\r\n");
 		sb.append("pureValue=" + this.pureValue).append("\r\n");
 		sb.append("type=" + this.type).append("\r\n");
@@ -96,8 +96,7 @@ public class BeanBox {
 		sb.append("fieldInjects=" + this.fieldInjects).append("\r\n");
 		sb.append("methodInjects=" + this.methodInjects).append("\r\n");
 		sb.append("qualifierAnno=" + this.qualifierAnno).append("\r\n");
-		sb.append("qualifierValue=" + this.qualifierValue).append("\r\n");
-		sb.append("========BeanBox Debug Info End===========");
+		sb.append("qualifierValue=" + this.qualifierValue);
 		return sb.toString();
 	}
 

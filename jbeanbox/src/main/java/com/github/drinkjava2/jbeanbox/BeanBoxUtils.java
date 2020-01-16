@@ -277,7 +277,7 @@ public class BeanBoxUtils {// NOSONAR
 					BeanBoxException
 							.throwEX("jBeanBox does not support multiple property in Qualifier annotation: " + type);
 				if (box == null)
-					box = new BeanBox().setTarget(EMPTY.class);
+					box = new BeanBox();
 				box.setQualifierAnno(type).setQualifierValue(v.isEmpty() ? null : v.values().iterator().next());
 			}
 		}

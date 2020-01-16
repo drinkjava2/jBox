@@ -142,7 +142,7 @@ public class BeanBoxContext {
 			return (T) singletonCache.get(target);
 
 		if (target == null || EMPTY.class == target)
-			return (T) notfoundOrException(target, required);
+			return (T) notfoundOrException(target, required, null);
 
 		if (history != null && target instanceof BeanBox && history.contains(target))
 			BeanBoxException.throwEX("Circular dependency found on :" + target);
@@ -166,7 +166,7 @@ public class BeanBoxContext {
 				singletonCache.put(target, result);
 			}
 		} else
-			result = notfoundOrException(target, required);
+			result = notfoundOrException(target, required, null);
 		history.remove(target);
 		return (T) result;
 	}
@@ -190,13 +190,13 @@ public class BeanBoxContext {
 			if (box.type != null) { // now is EMPTY, it means it's a @INJECT parameter
 				BeanBox bx = searchComponent(box);
 				if (bx == null && box.qualifierAnno != null)
-					return notfoundOrException(box.type, box.required);
+					return notfoundOrException(box.type, box.required, box);
 				if (bx != null)
 					return getBean(bx, box.required, history);
 				else
 					return getBean(box.type, box.required, history);
 			} else
-				return notfoundOrException(box.getTarget(), box.required);
+				return notfoundOrException(box.getTarget(), box.required, box);
 		}
 
 		boolean aopFound = false;// is AOP?
@@ -234,14 +234,14 @@ public class BeanBoxContext {
 					}
 			} else if (box.getBeanClass() != null) { // is normal bean
 				if (EMPTY.class == box.getBeanClass() || box.getBeanClass().isInterface())
-					return notfoundOrException(box.getBeanClass(), required);
+					return notfoundOrException(box.getBeanClass(), required, box);
 				try {
 					bean = box.getBeanClass().newInstance();
 				} catch (Exception e) {
-					return notfoundOrException(box.getBeanClass(), required);
+					return notfoundOrException(box.getBeanClass(), required, box);
 				}
 			} else
-				return notfoundOrException(null, box.required); // return null or throw EX
+				return notfoundOrException(null, box.required, box); // return null or throw EX
 
 		// Now Bean is ready
 
@@ -393,9 +393,10 @@ public class BeanBoxContext {
 	protected void staticMethods________________________() {// NOSONAR
 	}
 
-	private static Object notfoundOrException(Object target, boolean required) {
+	private static Object notfoundOrException(Object target, boolean required, BeanBox box) {
 		if (required)
-			return BeanBoxException.throwEX("Can not create instance for target: " + target);
+			return BeanBoxException
+					.throwEX("Can not create instance for: " + target + (box == null ? "" : box.getDebugInfo()));
 		else
 			return EMPTY.class;
 	}
