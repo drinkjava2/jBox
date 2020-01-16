@@ -19,7 +19,7 @@ import java.util.*;
 
 import com.github.drinkjava2.asm.*;
 import com.github.drinkjava2.cglib.core.ClassGenerator;
-
+@SuppressWarnings("all") // Yong
 public class TransformingClassLoader extends AbstractClassLoader {
     private ClassTransformerFactory t;
     

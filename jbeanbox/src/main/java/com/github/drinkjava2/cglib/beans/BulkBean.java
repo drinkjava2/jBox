@@ -27,6 +27,7 @@ import com.github.drinkjava2.cglib.core.*;
 /**
  * @author Juozas Baliuka
  */
+@SuppressWarnings("all") // Yong
 abstract public class BulkBean
 {
     private static final BulkBeanKey KEY_FACTORY =

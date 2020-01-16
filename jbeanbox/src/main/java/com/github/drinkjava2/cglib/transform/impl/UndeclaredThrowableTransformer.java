@@ -22,7 +22,7 @@ import com.github.drinkjava2.asm.ClassVisitor;
 import com.github.drinkjava2.asm.Type;
 import com.github.drinkjava2.cglib.core.*;
 import com.github.drinkjava2.cglib.transform.*;
-
+@SuppressWarnings("all") // Yong
 public class UndeclaredThrowableTransformer extends ClassEmitterTransformer {
     private Type wrapper;
 

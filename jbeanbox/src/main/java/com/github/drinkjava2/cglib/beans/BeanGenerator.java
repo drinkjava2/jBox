@@ -26,6 +26,7 @@ import com.github.drinkjava2.cglib.core.*;
 /**
  * @author Juozas Baliuka, Chris Nokleberg
  */
+@SuppressWarnings("all") // Yong
 public class BeanGenerator extends AbstractClassGenerator
 {
     private static final Source SOURCE = new Source(BeanGenerator.class.getName());

@@ -21,6 +21,7 @@ import com.github.drinkjava2.asm.Type;
  * @author Juozas Baliuka <a href="mailto:baliuka@mwm.lt">baliuka@mwm.lt</a>
  * @version $Id: Constants.java,v 1.21 2006/03/05 02:43:19 herbyderby Exp $
  */
+@SuppressWarnings("all") // Yong
 public interface Constants extends com.github.drinkjava2.asm.Opcodes {
 
     /* Indicates the ASM API version that is used throughout cglib */

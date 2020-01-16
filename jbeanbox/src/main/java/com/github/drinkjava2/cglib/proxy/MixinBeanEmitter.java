@@ -24,6 +24,7 @@ import com.github.drinkjava2.cglib.core.ReflectUtils;
  * @author Chris Nokleberg
  * @version $Id: MixinBeanEmitter.java,v 1.2 2004/06/24 21:15:20 herbyderby Exp $
  */
+@SuppressWarnings("all") // Yong
 class MixinBeanEmitter extends MixinEmitter {
     public MixinBeanEmitter(ClassVisitor v, String className, Class[] classes) {
         super(v, className, classes, null);

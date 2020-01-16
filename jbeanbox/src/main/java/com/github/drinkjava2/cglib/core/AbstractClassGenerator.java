@@ -32,6 +32,7 @@ import java.util.WeakHashMap;
  * customizing the <code>ClassLoader</code>, name of the generated class, and transformations
  * applied before generation.
  */
+@SuppressWarnings("all") // Yong
 abstract public class AbstractClassGenerator<T>
 implements ClassGenerator
 {

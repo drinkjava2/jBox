@@ -23,6 +23,7 @@ import com.github.drinkjava2.asm.*;
 /**
  * @author Juozas Baliuka, Chris Nokleberg
  */
+@SuppressWarnings("all") // Yong
 public class CodeEmitter extends LocalVariablesSorter {
     private static final Signature BOOLEAN_VALUE =
       TypeUtils.parseSignature("boolean booleanValue()");

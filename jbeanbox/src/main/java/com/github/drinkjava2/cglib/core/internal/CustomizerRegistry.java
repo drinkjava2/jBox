@@ -5,7 +5,7 @@ import java.util.*;
 import com.github.drinkjava2.cglib.core.Customizer;
 import com.github.drinkjava2.cglib.core.FieldTypeCustomizer;
 import com.github.drinkjava2.cglib.core.KeyFactoryCustomizer;
-
+@SuppressWarnings("all") // Yong
 public class CustomizerRegistry {
     private final Class[] customizerTypes;
     private Map<Class, List<KeyFactoryCustomizer>> customizers = new HashMap<Class, List<KeyFactoryCustomizer>>();

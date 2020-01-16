@@ -22,7 +22,7 @@ import com.github.drinkjava2.asm.ClassVisitor;
 import com.github.drinkjava2.asm.Label;
 import com.github.drinkjava2.asm.Type;
 import com.github.drinkjava2.cglib.core.*;
-
+@SuppressWarnings("all") // Yong
 class BeanMapEmitter extends ClassEmitter {
     private static final Type BEAN_MAP =
       TypeUtils.parseType("com.github.drinkjava2.cglib.beans.BeanMap");

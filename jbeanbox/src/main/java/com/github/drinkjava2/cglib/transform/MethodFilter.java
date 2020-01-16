@@ -16,7 +16,7 @@
 package com.github.drinkjava2.cglib.transform;
 
 import com.github.drinkjava2.asm.Attribute;
-
+@SuppressWarnings("all") // Yong
 public interface MethodFilter {
     // TODO: pass class name too?
     boolean accept(int access, String name, String desc, String signature, String[] exceptions);

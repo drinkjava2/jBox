@@ -21,6 +21,7 @@ import com.github.drinkjava2.asm.ClassReader;
 import com.github.drinkjava2.asm.ClassVisitor;
 
 // TODO: optimize (ClassReader buffers entire class before accept)
+@SuppressWarnings("all") // Yong
 public class ClassNameReader {
     private ClassNameReader() {
     }

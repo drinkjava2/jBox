@@ -1,7 +1,7 @@
 package com.github.drinkjava2.cglib.core.internal;
 
 import java.util.concurrent.*;
-
+@SuppressWarnings("all") // Yong
 public class LoadingCache<K, KK, V> {
     protected final ConcurrentMap<KK, Object> map;
     protected final Function<K, V> loader;

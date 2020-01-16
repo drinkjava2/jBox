@@ -29,6 +29,7 @@ import com.github.drinkjava2.asm.Type;
 /**
  * @version $Id: ReflectUtils.java,v 1.30 2009/01/11 19:47:49 herbyderby Exp $
  */
+@SuppressWarnings("all") // Yong
 public class ReflectUtils {
     private ReflectUtils() { }
     

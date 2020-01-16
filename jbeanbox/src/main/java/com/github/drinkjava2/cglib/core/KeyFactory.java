@@ -55,6 +55,7 @@ import java.util.List;
  *
  * @version $Id: KeyFactory.java,v 1.26 2006/03/05 02:43:19 herbyderby Exp $
  */
+@SuppressWarnings("all") // Yong
 abstract public class KeyFactory {
     private static final Signature GET_NAME =
       TypeUtils.parseSignature("String getName()");

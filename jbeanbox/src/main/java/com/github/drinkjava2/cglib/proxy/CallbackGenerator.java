@@ -18,7 +18,7 @@ package com.github.drinkjava2.cglib.proxy;
 import java.util.List;
 
 import com.github.drinkjava2.cglib.core.*;
-
+@SuppressWarnings("all") // Yong
 interface CallbackGenerator
 {
     void generate(ClassEmitter ce, Context context, List methods) throws Exception;

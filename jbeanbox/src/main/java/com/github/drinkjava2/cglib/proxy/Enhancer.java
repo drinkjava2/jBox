@@ -60,6 +60,7 @@ import com.github.drinkjava2.cglib.core.*;
  * For an almost drop-in replacement for
  * <code>java.lang.reflect.Proxy</code>, see the {@link Proxy} class.
  */
+@SuppressWarnings("all") // Yong
 public class Enhancer extends AbstractClassGenerator
 {
     private static final CallbackFilter ALL_ZERO = new CallbackFilter(){

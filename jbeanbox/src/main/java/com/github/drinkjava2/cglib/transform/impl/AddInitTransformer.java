@@ -29,6 +29,7 @@ import com.github.drinkjava2.cglib.transform.ClassEmitterTransformer;
 /**
  * @author	Mark Hobson
  */
+@SuppressWarnings("all") // Yong
 public class AddInitTransformer extends ClassEmitterTransformer {
     private MethodInfo info;
     

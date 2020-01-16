@@ -19,7 +19,7 @@ import java.util.*;
 
 import com.github.drinkjava2.asm.Type;
 import com.github.drinkjava2.cglib.core.*;
-
+@SuppressWarnings("all") // Yong
 class DispatcherGenerator implements CallbackGenerator {
     public static final DispatcherGenerator INSTANCE =
       new DispatcherGenerator(false);

@@ -21,7 +21,7 @@ import java.lang.reflect.Modifier;
 import com.github.drinkjava2.asm.ClassVisitor;
 import com.github.drinkjava2.asm.Type;
 import com.github.drinkjava2.cglib.core.*;
-
+@SuppressWarnings("all") // Yong
 class ParallelSorterEmitter extends ClassEmitter {
     private static final Type PARALLEL_SORTER =
       TypeUtils.parseType("com.github.drinkjava2.cglib.util.ParallelSorter");

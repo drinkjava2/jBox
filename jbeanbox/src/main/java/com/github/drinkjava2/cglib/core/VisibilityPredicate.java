@@ -18,7 +18,7 @@ package com.github.drinkjava2.cglib.core;
 import java.lang.reflect.*;
 
 import com.github.drinkjava2.asm.Type;
-
+@SuppressWarnings("all") // Yong
 public class VisibilityPredicate implements Predicate {
     private boolean protectedOk;
     private String pkg;

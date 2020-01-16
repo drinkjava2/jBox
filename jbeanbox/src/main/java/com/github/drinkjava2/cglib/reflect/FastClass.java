@@ -23,7 +23,7 @@ import java.security.ProtectionDomain;
 import com.github.drinkjava2.asm.ClassVisitor;
 import com.github.drinkjava2.asm.Type;
 import com.github.drinkjava2.cglib.core.*;
-
+@SuppressWarnings("all") // Yong
 abstract public class FastClass
 {
     private Class type;

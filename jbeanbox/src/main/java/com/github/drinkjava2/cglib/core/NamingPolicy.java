@@ -20,6 +20,7 @@ import java.util.Set;
 /**
  * Customize the generated class name for {@link AbstractClassGenerator}-based utilities.
  */
+@SuppressWarnings("all") // Yong
 public interface NamingPolicy {
     /**
      * Choose a name for a generated class.

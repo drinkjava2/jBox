@@ -32,6 +32,7 @@ import com.github.drinkjava2.cglib.core.*;
  * supported (the key set is fixed).
  * @author Chris Nokleberg
  */
+@SuppressWarnings("all") // Yong
 abstract public class BeanMap implements Map {
     /**
      * Limit the properties reflected in the key set of the map

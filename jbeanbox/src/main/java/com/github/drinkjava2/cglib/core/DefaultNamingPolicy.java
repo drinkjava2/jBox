@@ -27,6 +27,7 @@ import java.util.Set;
  * name has been previously been used in the same <code>ClassLoader</code>, a
  * suffix is added to ensure uniqueness.
  */
+@SuppressWarnings("all") // Yong
 public class DefaultNamingPolicy implements NamingPolicy {
     public static final DefaultNamingPolicy INSTANCE = new DefaultNamingPolicy();
 

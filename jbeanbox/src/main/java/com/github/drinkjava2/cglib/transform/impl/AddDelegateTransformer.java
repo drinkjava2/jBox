@@ -26,6 +26,7 @@ import com.github.drinkjava2.cglib.transform.*;
 /**
  * @author Juozas Baliuka
  */
+@SuppressWarnings("all") // Yong
 public class AddDelegateTransformer extends ClassEmitterTransformer {
     private static final String DELEGATE = "$CGLIB_DELEGATE";
     private static final Signature CSTRUCT_OBJECT =

@@ -28,6 +28,7 @@ import java.util.*;
 /**
  * @author Chris Nokleberg
  */
+@SuppressWarnings("all") // Yong
 abstract public class BeanCopier
 {
     private static final BeanCopierKey KEY_FACTORY =

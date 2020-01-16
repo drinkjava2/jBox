@@ -46,6 +46,7 @@ import com.github.drinkjava2.cglib.core.*;
  *
  * @author Chris Nokleberg
  */
+@SuppressWarnings("all") // Yong
 abstract public class ParallelSorter extends SorterTemplate {
     protected Object[] a;
     private Comparer comparer;

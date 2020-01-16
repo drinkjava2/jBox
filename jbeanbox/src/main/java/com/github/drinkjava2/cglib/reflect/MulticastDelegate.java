@@ -23,7 +23,7 @@ import com.github.drinkjava2.asm.ClassVisitor;
 import com.github.drinkjava2.asm.MethodVisitor;
 import com.github.drinkjava2.asm.Type;
 import com.github.drinkjava2.cglib.core.*;
-
+@SuppressWarnings("all") // Yong
 abstract public class MulticastDelegate implements Cloneable {
     protected Object[] targets = {};
 

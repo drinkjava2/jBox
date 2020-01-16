@@ -16,7 +16,7 @@
 package com.github.drinkjava2.cglib.beans;
 
 import java.util.*;
-
+@SuppressWarnings("all") // Yong
 public /* need it for class loading  */ class FixedKeySet extends AbstractSet {
     private Set set;
     private int size;

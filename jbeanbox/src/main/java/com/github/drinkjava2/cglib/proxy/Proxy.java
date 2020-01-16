@@ -37,6 +37,7 @@ import java.lang.reflect.Member;
  * <p>
  * @version $Id: Proxy.java,v 1.6 2004/06/24 21:15:19 herbyderby Exp $
  */
+@SuppressWarnings("all") // Yong
 public class Proxy implements Serializable {
     protected InvocationHandler h;
 

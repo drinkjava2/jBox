@@ -22,6 +22,7 @@ import java.lang.reflect.Array;
  * @author Chris Nokleberg
  * @version $Id: CollectionUtils.java,v 1.7 2004/06/24 21:15:21 herbyderby Exp $
  */
+@SuppressWarnings("all") // Yong
 public class CollectionUtils {
     private CollectionUtils() { }
 

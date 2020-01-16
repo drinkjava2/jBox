@@ -40,6 +40,7 @@ import com.github.drinkjava2.cglib.core.Signature;
  *
  * @author sberlin@gmail.com (Sam Berlin)
  */
+@SuppressWarnings("all") // Yong
 class BridgeMethodResolver {
 
     private final Map/* <Class, Set<Signature> */declToBridge;

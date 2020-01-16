@@ -22,7 +22,7 @@ import com.github.drinkjava2.asm.ClassReader;
 import com.github.drinkjava2.asm.ClassVisitor;
 import com.github.drinkjava2.asm.ClassWriter;
 import com.github.drinkjava2.asm.Opcodes;
-
+@SuppressWarnings("all") // Yong
 public class DebuggingClassWriter extends ClassVisitor {
     
     public static final String DEBUG_LOCATION_PROPERTY = "cglib.debugLocation";

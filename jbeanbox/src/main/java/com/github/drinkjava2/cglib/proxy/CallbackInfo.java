@@ -16,7 +16,7 @@
 package com.github.drinkjava2.cglib.proxy;
 
 import com.github.drinkjava2.asm.Type;
-
+@SuppressWarnings("all") // Yong
 class CallbackInfo
 {
     public static Type[] determineTypes(Class[] callbackTypes) {

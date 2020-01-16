@@ -44,7 +44,7 @@ import com.github.drinkjava2.jbeanbox.annotation.NAMED;
  * @since 2.5.0
  *
  */
-@SuppressWarnings("all")
+@SuppressWarnings("all") // Yong
 public class QualiferTest {
 
 	@Before

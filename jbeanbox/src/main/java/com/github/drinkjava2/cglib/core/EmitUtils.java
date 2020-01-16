@@ -22,7 +22,7 @@ import java.util.*;
 import com.github.drinkjava2.asm.Label;
 import com.github.drinkjava2.asm.Type;
 import com.github.drinkjava2.cglib.core.internal.CustomizerRegistry;
-
+@SuppressWarnings("all") // Yong
 public class EmitUtils {
     private static final Signature CSTRUCT_NULL =
       TypeUtils.parseConstructor("");

@@ -19,7 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.github.drinkjava2.cglib.core.*;
-
+@SuppressWarnings("all") // Yong
 class NoOpGenerator
 implements CallbackGenerator
 {

@@ -27,6 +27,7 @@ import java.util.Map;
 /**
  * @author Juozas Baliuka, Chris Nokleberg
  */
+@SuppressWarnings("all") // Yong
 public class ClassEmitter extends ClassTransformer {
     private ClassInfo classInfo;
     private Map fieldInfo;

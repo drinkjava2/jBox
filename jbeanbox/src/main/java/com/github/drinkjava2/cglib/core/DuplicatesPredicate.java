@@ -29,7 +29,7 @@ import com.github.drinkjava2.asm.ClassReader;
 import com.github.drinkjava2.asm.ClassVisitor;
 import com.github.drinkjava2.asm.MethodVisitor;
 import com.github.drinkjava2.asm.Opcodes;
-
+@SuppressWarnings("all") // Yong
 public class DuplicatesPredicate implements Predicate {
   private final Set unique;
   private final Set rejected;

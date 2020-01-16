@@ -25,6 +25,7 @@ import com.github.drinkjava2.cglib.core.*;
 /**
  * This class implements a simple String->int mapping for a fixed set of keys.
  */
+@SuppressWarnings("all") // Yong
 abstract public class StringSwitcher {
     private static final Type STRING_SWITCHER =
       TypeUtils.parseType("com.github.drinkjava2.cglib.util.StringSwitcher");

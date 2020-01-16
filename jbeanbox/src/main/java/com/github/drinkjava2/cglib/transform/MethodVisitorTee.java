@@ -17,7 +17,7 @@ package com.github.drinkjava2.cglib.transform;
 
 import com.github.drinkjava2.asm.*;
 import com.github.drinkjava2.cglib.core.Constants;
-
+@SuppressWarnings("all") // Yong
 public class MethodVisitorTee extends MethodVisitor {
     private final MethodVisitor mv1;
     private final MethodVisitor mv2;
@@ -115,7 +115,7 @@ public class MethodVisitorTee extends MethodVisitor {
         mv2.visitIincInsn(var, increment);
     }
     
-    public void visitTableSwitchInsn(int min, int max, Label dflt, Label labels[]) {
+    public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {//label[] change to label...
         mv1.visitTableSwitchInsn(min, max, dflt, labels);
         mv2.visitTableSwitchInsn(min, max, dflt, labels);
     }

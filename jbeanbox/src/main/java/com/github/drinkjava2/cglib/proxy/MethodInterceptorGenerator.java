@@ -21,7 +21,7 @@ import java.util.*;
 import com.github.drinkjava2.asm.Label;
 import com.github.drinkjava2.asm.Type;
 import com.github.drinkjava2.cglib.core.*;
-
+@SuppressWarnings("all") // Yong
 class MethodInterceptorGenerator
 implements CallbackGenerator
 {

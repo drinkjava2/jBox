@@ -24,6 +24,7 @@ import com.github.drinkjava2.asm.ClassVisitor;
 import com.github.drinkjava2.asm.Type;
 import com.github.drinkjava2.cglib.core.*;
     
+@SuppressWarnings("all") // Yong
 class BulkBeanEmitter extends ClassEmitter {
     private static final Signature GET_PROPERTY_VALUES =
       TypeUtils.parseSignature("void getPropertyValues(Object, Object[])");

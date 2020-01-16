@@ -25,6 +25,7 @@ import com.github.drinkjava2.cglib.core.*;
 /**
  * @author Chris Nokleberg
  */
+@SuppressWarnings("all") // Yong
 public class ImmutableBean
 {
     private static final Type ILLEGAL_STATE_EXCEPTION =

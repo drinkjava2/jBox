@@ -16,7 +16,7 @@
 package com.github.drinkjava2.cglib.beans;
 
 import com.github.drinkjava2.cglib.core.CodeGenerationException;
-
+@SuppressWarnings("all") // Yong
 public class BulkBeanException extends RuntimeException
 {
     private int index;

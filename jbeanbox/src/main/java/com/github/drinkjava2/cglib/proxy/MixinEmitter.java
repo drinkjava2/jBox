@@ -26,6 +26,7 @@ import com.github.drinkjava2.cglib.core.*;
  * @author Chris Nokleberg
  * @version $Id: MixinEmitter.java,v 1.9 2006/08/27 21:04:37 herbyderby Exp $
  */
+@SuppressWarnings("all") // Yong
 class MixinEmitter extends ClassEmitter {
     private static final String FIELD_NAME = "CGLIB$DELEGATES";
     private static final Signature CSTRUCT_OBJECT_ARRAY =

@@ -29,6 +29,7 @@ import com.github.drinkjava2.cglib.transform.TransformingClassGenerator;
  * causes all undeclared exceptions thrown from within a proxied method to be wrapped
  * in an alternative exception of your choice.
  */
+@SuppressWarnings("all") // Yong
 public class UndeclaredThrowableStrategy extends DefaultGeneratorStrategy {
     
 

@@ -11,6 +11,7 @@ import java.lang.ref.WeakReference;
  *
  * @param <T> type of the reference
  */
+@SuppressWarnings("all") // Yong
 public class WeakCacheKey<T> extends WeakReference<T> {
     private final int hash;
 

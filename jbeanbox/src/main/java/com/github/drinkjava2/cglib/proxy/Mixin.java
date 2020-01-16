@@ -33,6 +33,7 @@ import com.github.drinkjava2.cglib.core.*;
  * @author Chris Nokleberg
  * @version $Id: Mixin.java,v 1.7 2005/09/27 11:42:27 baliuka Exp $
  */
+@SuppressWarnings("all") // Yong
 abstract public class Mixin {
     private static final MixinKey KEY_FACTORY =
       (MixinKey)KeyFactory.create(MixinKey.class, KeyFactory.CLASS_BY_NAME);

@@ -22,7 +22,7 @@ import com.github.drinkjava2.asm.Label;
 import com.github.drinkjava2.asm.Type;
 import com.github.drinkjava2.cglib.core.*;
 import com.github.drinkjava2.cglib.transform.*;
-
+@SuppressWarnings("all") // Yong
 public class FieldProviderTransformer extends ClassEmitterTransformer {
     
     private static final String FIELD_NAMES = "CGLIB$FIELD_NAMES";

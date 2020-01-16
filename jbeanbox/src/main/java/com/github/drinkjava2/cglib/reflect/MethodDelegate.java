@@ -106,6 +106,7 @@ import com.github.drinkjava2.cglib.core.*;
  *
  * @version $Id: MethodDelegate.java,v 1.25 2006/03/05 02:43:19 herbyderby Exp $
  */
+@SuppressWarnings("all") // Yong
 abstract public class MethodDelegate {
     private static final MethodDelegateKey KEY_FACTORY =
       (MethodDelegateKey)KeyFactory.create(MethodDelegateKey.class, KeyFactory.CLASS_BY_NAME);

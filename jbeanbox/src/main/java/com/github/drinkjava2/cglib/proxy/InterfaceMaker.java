@@ -30,6 +30,7 @@ import com.github.drinkjava2.cglib.core.*;
  * @author Chris Nokleberg
  * @version $Id: InterfaceMaker.java,v 1.4 2006/03/05 02:43:19 herbyderby Exp $
  */
+@SuppressWarnings("all") // Yong
 public class InterfaceMaker extends AbstractClassGenerator
 {
     private static final Source SOURCE = new Source(InterfaceMaker.class.getName());
