@@ -15,25 +15,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Qualifier;
 
 import org.aopalliance.intercept.MethodInterceptor;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.github.drinkjava2.jbeanbox.annotation.AOP;
-import com.github.drinkjava2.jbeanbox.annotation.INJECT;
-import com.github.drinkjava2.jbeanbox.annotation.NAMED;
-import com.github.drinkjava2.jbeanbox.annotation.POSTCONSTRUCT;
-import com.github.drinkjava2.jbeanbox.annotation.PREDESTROY;
-import com.github.drinkjava2.jbeanbox.annotation.PROTOTYPE;
-import com.github.drinkjava2.jbeanbox.annotation.QUALIFILER;
-import com.github.drinkjava2.jbeanbox.annotation.VALUE;
 
 /**
  * BeanBoxUtils store public static methods used inside of this project
@@ -81,7 +64,7 @@ public class BeanBoxUtils {// NOSONAR
 				BeanBoxException.throwEX(e);
 			}
 		else
-			box = doCreateBeanBox(ctx, clazz);
+			box = ctx.doCreateBeanBox(clazz);
 		if (box.beanClass != null && PrototypeBean.class.isAssignableFrom(box.beanClass))// NOSONAR
 			box.setSingleton(false);
 		ctx.beanBoxCache.put(clazz, box);
@@ -101,141 +84,9 @@ public class BeanBoxUtils {// NOSONAR
 	protected static void belowArePrivateStaticMethods__________________________() {// NOSONAR
 	}
 
-	/** Read Bean annotations to build a BeanBox instance */
-	private static BeanBox doCreateBeanBox(BeanBoxContext ctx, Class<?> clazz) {// NOSONAR
-		BeanBox box = new BeanBox();
-		box.setBeanClass(clazz);
-		box.setSingleton(true); // for static class default set to singleton
+ 
 
-		if (!ctx.isAllowAnnotation())
-			return box;
-		boolean allowSpringJsrAnno = ctx.allowSpringJsrAnnotation;
-
-		// ========= singleton or prototype
-		if (checkAnnoExist(clazz, PROTOTYPE.class))
-			box.setSingleton(false);
-		else if (allowSpringJsrAnno) {
-			Map<String, Object> m = getAnnoAsMap(clazz, "org.springframework.context.annotation.Scope");
-			if (m != null)
-				for (Entry<String, Object> entry : m.entrySet())
-					if ("value".equals(entry.getKey())) {// NOSONAR
-						if ("prototype".equalsIgnoreCase(String.valueOf(entry.getValue())))
-							box.setSingleton(false);
-						else if ("singleton".equalsIgnoreCase(String.valueOf(entry.getValue())))
-							box.setSingleton(true);
-						else
-							BeanBoxException.throwEX("'prototype' or 'singleton' required in @Scope annotation");
-					}
-		}
-
-		// ======== Class inject, if @INJECT, @Qualifiler put on class
-		BeanBox v = getInjectBoxFromAnno(clazz, allowSpringJsrAnno);
-		if (v != null)
-			copyBoxValues(v, box);
-
-		// ======== AOP annotated annotations on class
-		Annotation[] annos = clazz.getAnnotations();
-		for (Annotation anno : annos) {
-			if (anno.annotationType().isAnnotationPresent(AOP.class)) {
-				Map<String, Object> annoMap = changeAnnotationValuesToMap(anno);
-				Object aop = annoMap.get("value");
-				String methodNameRule = (String) annoMap.get("method");// name must be method
-				if (methodNameRule != null && methodNameRule.length() > 0 && aop != null)
-					box.addBeanAop(aop, methodNameRule);
-			}
-		}
-
-		// ========== Constructor inject
-		Constructor<?>[] constrs = clazz.getConstructors();
-		for (Constructor<?> constr : constrs) {
-			v = getInjectBoxFromAnno(constr, allowSpringJsrAnno);
-			if (v != null) { // has constr inject
-				box.setBeanClass(clazz);// anyway set beanClass first
-				if (v.target != null && EMPTY.class != v.target) {// 1 parameter only
-					BeanBox inject = new BeanBox();
-					copyBoxValues(v, inject);
-					inject.setType(constr.getParameterTypes()[0]);
-					box.setConstructor(constr);
-					box.setConstructorParams(new BeanBox[] { inject });
-				} else { // no or many parameter
-					BeanBox[] paramInjects = getParameterInjectAsBeanBoxArray(constr, allowSpringJsrAnno);
-					box.setConstructor(constr);
-					box.setConstructorParams(paramInjects);
-				}
-			}
-		}
-
-		// =================Field inject=================
-		// @INJECT annotations on fields include super class's
-		for (Field f : ReflectionUtils.getSelfAndSuperClassFields(clazz)) {
-			v = getInjectBoxFromAnno(f, allowSpringJsrAnno);
-			if (v != null) {
-				box.checkOrCreateFieldInjects();
-				BeanBox inject = new BeanBox();
-				inject.setTarget(v.target);
-				inject.setPureValue(v.pureValue);
-				inject.setRequired(v.required);
-				inject.setType(f.getType());
-				inject.setQualifierAnno(v.qualifierAnno);
-				inject.setQualifierValue(v.qualifierValue);
-				ReflectionUtils.makeAccessible(f);
-				box.getFieldInjects().put(f, inject);
-			}
-		}
-
-		// @INJECT annotations on methods include super class's
-		Method[] methods = ReflectionUtils.getAllDeclaredMethods(clazz);
-		for (Method m : methods) {
-			// ========== @PostConstruct and @PreDestory
-			if (m.getAnnotation(POSTCONSTRUCT.class) != null || m.getAnnotation(PostConstruct.class) != null) {
-				if (m.getParameterTypes().length > 0)
-					BeanBoxException.throwEX("In jBeanBox, PostConstruct should have no parameter.");
-				ReflectionUtils.makeAccessible(m);
-				box.setPostConstruct(m);
-			}
-			if (m.getAnnotation(PREDESTROY.class) != null || m.getAnnotation(PreDestroy.class) != null) {
-				if (m.getParameterTypes().length > 0)
-					BeanBoxException.throwEX("In jBeanBox, PostConstruct should have no parameter.");
-				ReflectionUtils.makeAccessible(m);
-				box.setPreDestroy(m);
-			}
-
-			// ========== AOP about annotation =========
-			Annotation[] mtdAnnos = m.getAnnotations();
-			for (Annotation anno : mtdAnnos)
-				if (anno.annotationType().isAnnotationPresent(AOP.class)) {
-					Map<String, Object> annoMap = changeAnnotationValuesToMap(anno);
-					Object aop = annoMap.get("value");
-					if (aop != null)
-						box.addMethodAop(aop, m);
-				}
-
-			// =========== method inject annotation ==============
-			v = getInjectBoxFromAnno(m, allowSpringJsrAnno);
-			if (v != null) {
-				ReflectionUtils.makeAccessible(m);
-				BeanBox oneParam = new BeanBox();
-				oneParam.setTarget(v.target);
-				oneParam.setPureValue(v.pureValue);
-				oneParam.setRequired(v.required);
-				boolean haveOneParameter = v.target != null && EMPTY.class != v.target;
-				if (haveOneParameter)
-					oneParam.setType(m.getParameterTypes()[0]); // set parameter type for 1 parameter
-				// @INJECT or @Inject or @Autowired normal method inject
-				box.checkOrCreateMethodInjects();
-				if (haveOneParameter) // 1 parameter only
-					box.getMethodInjects().put(m, new BeanBox[] { oneParam });
-				else { // no or many parameter
-					BeanBox[] paramInjects = getParameterInjectAsBeanBoxArray(m, allowSpringJsrAnno);
-					box.getMethodInjects().put(m, paramInjects);
-				}
-			}
-		}
-		return box;
-
-	}
-
-	private static void copyBoxValues(BeanBox from, BeanBox to) {
+	static void copyBoxValues(BeanBox from, BeanBox to) {
 		to.setTarget(from.target);
 		to.setPureValue(from.pureValue);
 		to.setRequired(from.required);
@@ -243,76 +94,10 @@ public class BeanBoxUtils {// NOSONAR
 		to.setQualifierValue(from.qualifierValue);
 	}
 
-	/** Get wanted Inject info from target annotation */
-	private static BeanBox getInjectBoxFromAnno(Object target, boolean allowSpringJsrAnno) {
-		Annotation[] anno = getAnnotations(target);
-		return getInjectBoxFromAnnos(anno, allowSpringJsrAnno);
-	}
-
-	/** Get a BeanBox instance from annotation array */
-	@SuppressWarnings("unchecked")
-	private static BeanBox getInjectBoxFromAnnos(Annotation[] anno, boolean allowSpringJsrAnno) {// NOSONAR
-		BeanBox box = null;
-		for (Annotation a : anno) {
-			Class<? extends Annotation> type = a.annotationType();
-			if (INJECT.class.equals(type)) {
-				INJECT i = (INJECT) a;
-				box = new BeanBox().setTarget(i.value()).setRequired(i.required()).setPureValue(i.pureValue());
-			} else if (VALUE.class.equals(type))
-				box = new BeanBox().setTarget(((VALUE) a).value()).setRequired(true).setPureValue(true);
-			else if (allowSpringJsrAnno) {
-				if (Inject.class.equals(type))
-					box = new BeanBox().setTarget(EMPTY.class).setPureValue(false);
-				if (Autowired.class.equals(type))
-					box = new BeanBox().setTarget(EMPTY.class).setRequired(((Autowired) a).required());
-			}
-		}
-		for (Annotation a : anno) {
-			Class<? extends Annotation> type = a.annotationType();
-			if (BeanBoxUtils.ifSameOrChildAnno(type, NAMED.class, QUALIFILER.class) // if have qualifiler anno?
-					|| (allowSpringJsrAnno && BeanBoxUtils.ifSameOrChildAnno(type, Named.class, Qualifier.class,
-							org.springframework.beans.factory.annotation.Qualifier.class))) {
-				Map<String, Object> v = BeanBoxUtils.changeAnnotationValuesToMap(a);
-				if (v.size() > 1)
-					BeanBoxException
-							.throwEX("jBeanBox does not support multiple property in Qualifier annotation: " + type);
-				if (box == null)
-					box = new BeanBox();
-				box.setQualifierAnno(type).setQualifierValue(v.isEmpty() ? null : v.values().iterator().next());
-			}
-		}
-		return box;
-	}
-
-	/** Get Parameter Inject as BeanBox[] Array */
-	private static BeanBox[] getParameterInjectAsBeanBoxArray(Object o, boolean allowSpringJsrAnno) {
-		Annotation[][] annoss = null;
-		Class<?>[] paramTypes = null;
-		if (o instanceof Method) {
-			annoss = ((Method) o).getParameterAnnotations();
-			paramTypes = ((Method) o).getParameterTypes();
-		} else if (o instanceof Constructor) {
-			annoss = ((Constructor<?>) o).getParameterAnnotations();
-			paramTypes = ((Constructor<?>) o).getParameterTypes();
-		} else
-			return BeanBoxException.throwEX("Only method or Constructor are allowed for:" + o);
-		BeanBox[] beanBoxes = new BeanBox[annoss.length];
-		for (int i = 0; i < annoss.length; i++) {
-			Annotation[] annos = annoss[i];
-			BeanBox v = getInjectBoxFromAnnos(annos, allowSpringJsrAnno);
-			BeanBox inject = new BeanBox();
-			if (v != null) { // if parameter has annotation
-				copyBoxValues(v, inject);
-				inject.setType(paramTypes[i]);
-			} else // if parameter no annotation
-				inject.setTarget(paramTypes[i]);
-			beanBoxes[i] = inject;
-		}
-		return beanBoxes;
-	}
+	 
 
 	/** give a class or Field or Method, return annotations */
-	private static Annotation[] getAnnotations(Object targetClass) {
+	static Annotation[] getAnnotations(Object targetClass) {
 		if (targetClass instanceof Field)
 			return ((Field) targetClass).getAnnotations();
 		else if (targetClass instanceof Method)
@@ -326,7 +111,7 @@ public class BeanBoxUtils {// NOSONAR
 	}
 
 	/** Return all annotations for Class or Field */
-	private static Map<String, Object> getAnnoAsMap(Object targetClass, String annoFullName) {
+	static Map<String, Object> getAnnoAsMap(Object targetClass, String annoFullName) {
 		Annotation[] anno = getAnnotations(targetClass);
 		for (Annotation a : anno) {
 			Class<? extends Annotation> type = a.annotationType();
@@ -345,7 +130,7 @@ public class BeanBoxUtils {// NOSONAR
 	}
 
 	/** Check if annotation exist in Class or Field */
-	private static boolean checkAnnoExist(Object targetClass, Class<?> annoClass) {
+	 static boolean checkAnnoExist(Object targetClass, Class<?> annoClass) {
 		Annotation[] anno = getAnnotations(targetClass);
 		for (Annotation annotation : anno) {
 			Class<? extends Annotation> type = annotation.annotationType();

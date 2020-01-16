@@ -49,12 +49,15 @@ public class SingletonPrototypeTest {
 
 	@Test
 	public void testPrototypeAnno() {
-		BeanBox box1 = JBEANBOX.getBeanBox(B.class);
-		BeanBox box2 = JBEANBOX.getBeanBox(C.class);
-		Assert.assertFalse(box1.isSingleton());
-		Assert.assertFalse(box2.isSingleton());
-		Assert.assertTrue(box1.getBean() != box1.getBean());
-		Assert.assertTrue(box2.getBean() != box2.getBean());
+		BeanBox boxA = JBEANBOX.getBeanBox(A.class);
+		BeanBox boxB = JBEANBOX.getBeanBox(B.class);
+		BeanBox boxC = JBEANBOX.getBeanBox(C.class);
+		Assert.assertTrue(boxA.isSingleton());
+		Assert.assertFalse(boxB.isSingleton());
+		Assert.assertFalse(boxC.isSingleton());
+		Assert.assertTrue(boxA.getBean() == boxA.getBean());
+		Assert.assertTrue(boxB.getBean() != boxB.getBean());
+		Assert.assertTrue(boxC.getBean() != boxC.getBean());
 	}
 
 }
