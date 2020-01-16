@@ -45,12 +45,12 @@ public class JBEANBOX {// NOSONAR
 
 	/** Use default global BeanBoxContext to create a prototype bean */
 	public static <T> T getPrototypeBean(Class<?> beanClass) {
-		return BeanBoxUtils.getPrototypeBeanBox(bctx(), beanClass).getBean();
+		return BeanBoxContext.globalBeanBoxContext.getPrototypeBeanBox(beanClass).getBean();
 	}
 
 	/** Use default global BeanBoxContext to create a singleton bean */
 	public static <T> T getSingleBean(Class<?> beanClass) {
-		return BeanBoxUtils.getSingletonBeanBox(bctx(), beanClass).getBean();
+		return BeanBoxContext.globalBeanBoxContext.getSingletonBeanBox(beanClass).getBean();
 	}
 
 	public static <T> T getBean(Object target, boolean required) {
@@ -70,7 +70,7 @@ public class JBEANBOX {// NOSONAR
 	}
 
 	public static BeanBox getBeanBox(Class<?> clazz) {
-		return BeanBoxUtils.getBeanBox(BeanBoxContext.globalBeanBoxContext, clazz);
+		return BeanBoxContext.globalBeanBoxContext.getBeanBox(clazz);
 	}
 
 	/** Equal to "@INJECT" annotation */

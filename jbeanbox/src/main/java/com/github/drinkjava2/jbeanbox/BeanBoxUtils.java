@@ -19,57 +19,12 @@ import java.util.Map;
 import org.aopalliance.intercept.MethodInterceptor;
 
 /**
- * BeanBoxUtils store public static methods used inside of this project
+ * BeanBoxUtils store public static methods used only for this project
  * 
  * @author Yong Zhu
  * @since 2.4.7
  */
 public class BeanBoxUtils {// NOSONAR
-
-	/** Get a class BeanBox which sington property is ture */
-	public static BeanBox getSingletonBeanBox(BeanBoxContext ctx, Class<?> clazz) {
-		return getBeanBox(ctx, clazz, true);
-	}
-
-	/** Get a class BeanBox which sington property is false */
-	public static BeanBox getPrototypeBeanBox(BeanBoxContext ctx, Class<?> clazz) {
-		return getBeanBox(ctx, clazz, false);
-	}
-
-	/** Get a class BeanBox which sington property determined by annotation */
-	public static BeanBox getBeanBox(BeanBoxContext ctx, Class<?> clazz) {
-		return getBeanBox(ctx, clazz, null);
-	}
-
-	/**
-	 * Get BeanBox for class, prototype can be null/true/false represents
-	 * default/prototype/sington 3 type beanbox
-	 */
-	private static BeanBox getBeanBox(BeanBoxContext ctx, Class<?> clazz, Boolean singleton) {
-		BeanBoxException.assureNotNull(clazz, "Target class can not be null");
-		BeanBox box = ctx.beanBoxCache.get(clazz);
-		if (box != null) {
-			if (singleton == null)
-				return box;
-			if (singleton && box.isSingleton())
-				return box;
-			return box.newCopy().setSingleton(singleton);
-		}
-		if (BeanBox.class.isAssignableFrom(clazz)) // not found beanbox
-			try {
-				box = (BeanBox) clazz.newInstance();
-				if (box.singleton == null)
-					box.singleton = true;
-			} catch (Exception e) {
-				BeanBoxException.throwEX(e);
-			}
-		else
-			box = ctx.doCreateBeanBox(clazz);
-		if (box.beanClass != null && PrototypeBean.class.isAssignableFrom(box.beanClass))// NOSONAR
-			box.setSingleton(false);
-		ctx.beanBoxCache.put(clazz, box);
-		return box;
-	}
 
 	public static Constructor<?> getConstructor(Class<?> clazz, Class<?>... paramTypes) {// NOSONAR
 		try {
@@ -81,12 +36,8 @@ public class BeanBoxUtils {// NOSONAR
 		}
 	}
 
-	protected static void belowArePrivateStaticMethods__________________________() {// NOSONAR
-	}
-
- 
-
-	static void copyBoxValues(BeanBox from, BeanBox to) {
+	/** Copy target, pureValue, required, qualifier setting from from to to */
+	public static void copyBoxValues(BeanBox from, BeanBox to) {
 		to.setTarget(from.target);
 		to.setPureValue(from.pureValue);
 		to.setRequired(from.required);
@@ -94,10 +45,8 @@ public class BeanBoxUtils {// NOSONAR
 		to.setQualifierValue(from.qualifierValue);
 	}
 
-	 
-
 	/** give a class or Field or Method, return annotations */
-	static Annotation[] getAnnotations(Object targetClass) {
+	public static Annotation[] getAnnotations(Object targetClass) {
 		if (targetClass instanceof Field)
 			return ((Field) targetClass).getAnnotations();
 		else if (targetClass instanceof Method)
@@ -111,7 +60,7 @@ public class BeanBoxUtils {// NOSONAR
 	}
 
 	/** Return all annotations for Class or Field */
-	static Map<String, Object> getAnnoAsMap(Object targetClass, String annoFullName) {
+	public static Map<String, Object> getAnnoAsMap(Object targetClass, String annoFullName) {
 		Annotation[] anno = getAnnotations(targetClass);
 		for (Annotation a : anno) {
 			Class<? extends Annotation> type = a.annotationType();
@@ -121,7 +70,7 @@ public class BeanBoxUtils {// NOSONAR
 		return null;
 	}
 
-	protected static boolean ifSameOrChildAnno(Class<? extends Annotation> annoType,
+	public static boolean ifSameOrChildAnno(Class<? extends Annotation> annoType,
 			@SuppressWarnings("unchecked") Class<? extends Annotation>... annoTypes) {
 		for (Class<? extends Annotation> a : annoTypes)
 			if (annoType.equals(a) || annoType.isAnnotationPresent(a))
@@ -130,7 +79,7 @@ public class BeanBoxUtils {// NOSONAR
 	}
 
 	/** Check if annotation exist in Class or Field */
-	 static boolean checkAnnoExist(Object targetClass, Class<?> annoClass) {
+	public static boolean checkAnnoExist(Object targetClass, Class<?> annoClass) {
 		Annotation[] anno = getAnnotations(targetClass);
 		for (Annotation annotation : anno) {
 			Class<? extends Annotation> type = annotation.annotationType();
@@ -141,7 +90,7 @@ public class BeanBoxUtils {// NOSONAR
 	}
 
 	/** This used for unknown Annotation, change values to a Map */
-	protected static Map<String, Object> changeAnnotationValuesToMap(Annotation annotation) {
+	public static Map<String, Object> changeAnnotationValuesToMap(Annotation annotation) {
 		Map<String, Object> result = new HashMap<>();
 		for (Method method : annotation.annotationType().getDeclaredMethods())
 			try {
@@ -155,7 +104,7 @@ public class BeanBoxUtils {// NOSONAR
 	 * If aop is a instance of Aop alliance Interceptor, wrap it to a BeanBox and
 	 * set as purevalue, otherwise direct return it (class or BeanBox)
 	 */
-	protected static Object checkAOP(Object aop) {
+	public static Object checkAOP(Object aop) {
 		if (aop != null && aop instanceof MethodInterceptor)
 			return new BeanBox().setTarget(aop).setPureValue(true);
 		else
@@ -166,7 +115,7 @@ public class BeanBoxUtils {// NOSONAR
 	 * If param is class, wrap it to BeanBox, if param is BeanBox instance, direct
 	 * return it, otherwise wrap it as pure Value BeanBox
 	 */
-	protected static BeanBox wrapParamToBox(Object param) {
+	public static BeanBox wrapParamToBox(Object param) {
 		if (param != null) {
 			if (param instanceof Class)
 				return new BeanBox().setTarget(param);

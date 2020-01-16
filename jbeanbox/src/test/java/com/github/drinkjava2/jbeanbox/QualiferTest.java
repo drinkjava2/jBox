@@ -156,50 +156,50 @@ public class QualiferTest {
 		@ColorRed
 		Leather red;
 
-//		@INJECT
-//		@ColorAny(Color.GREEN)
-//		Leather green;
-//
-//		@INJECT
-//		@NAMED("blue")
-//		Leather blue;
-//
-//		@INJECT
-//		@NAMED("yellow")
-//		Leather yellow;
-//
-//		@INJECT(LeatherPurple.class)
-//		Leather purple1;
-//
-//		@INJECT
-//		@NAMED("leatherPurple")
-//		Leather purple2;
-//
-//		@INJECT
-//		@NAMED("LeatherPurple")
-//		Leather purple3;
-//
-//		@INJECT(PurpleBox.class)
-//		Leather purple4;
+		@INJECT
+		@ColorAny(Color.GREEN)
+		Leather green;
 
-//		@INJECT(required = false)
-//		@NAMED("notExist")
-//		Leather notExist;
+		@INJECT
+		@NAMED("blue")
+		Leather blue;
+
+		@INJECT
+		@NAMED("yellow")
+		Leather yellow;
+
+		@INJECT(LeatherPurple.class)
+		Leather purple1;
+
+		@INJECT
+		@NAMED("leatherPurple")
+		Leather purple2;
+
+		@INJECT
+		@NAMED("LeatherPurple")
+		Leather purple3;
+
+		@INJECT(PurpleBox.class)
+		Leather purple4;
+
+		@INJECT(required = false)
+		@NAMED("notExist")
+		Leather notExist;
 	}
 
 	@Test
 	public void testBean() {
 		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
 		Bean bean = JBEANBOX.getBean(Bean.class);
-//		Assert.assertEquals("LeatherRed", "" + bean.red.getClass().getSimpleName());
-//		Assert.assertEquals("LeatherGreen", "" + bean.green.getClass().getSimpleName());
-//		Assert.assertEquals("LeatherBlue", "" + bean.blue.getClass().getSimpleName());
-//		Assert.assertEquals("LeatherYellow", "" + bean.yellow.getClass().getSimpleName());
-//		Assert.assertEquals("LeatherPurple", "" + bean.purple1.getClass().getSimpleName());
-//		Assert.assertEquals("LeatherPurple", "" + bean.purple2.getClass().getSimpleName());
-//		Assert.assertEquals("LeatherPurple", "" + bean.purple3.getClass().getSimpleName());
-//		Assert.assertEquals("LeatherPurple", "" + bean.purple4.getClass().getSimpleName());
-		//Assert.assertEquals(null, bean.notExist);
+		Assert.assertEquals("LeatherRed", "" + bean.red.getClass().getSimpleName());
+		Assert.assertEquals("LeatherGreen", "" + bean.green.getClass().getSimpleName());
+		Assert.assertEquals("LeatherBlue", "" + bean.blue.getClass().getSimpleName());
+		Assert.assertEquals("LeatherYellow", "" + bean.yellow.getClass().getSimpleName());
+		Assert.assertEquals("LeatherPurple", "" + bean.purple1.getClass().getSimpleName());
+		Assert.assertEquals("LeatherPurple", "" + bean.purple2.getClass().getSimpleName());
+		Assert.assertEquals("LeatherPurple", "" + bean.purple3.getClass().getSimpleName());
+		Assert.assertEquals("LeatherPurple", "" + bean.purple4.getClass().getSimpleName());
+		// Assert.assertEquals(null, bean.notExist);
 	}
 
 	protected void DuplicateComponetsTest_____________________() {
@@ -232,19 +232,19 @@ public class QualiferTest {
 		public ConstrBean( // the constructor injection
 				@ColorRed Leather l1
 
-//				@ColorAny(Color.GREEN) Leather l2,
-//
-//				@NAMED("blue") Leather l3,
-//
-//				@NAMED("yellow") Leather l4,
-//
-//				@INJECT(LeatherPurple.class) Leather l5,
-//
-//				@NAMED("leatherPurple") Leather l6,
-//
-//				@NAMED("LeatherPurple") Leather l7,
-//
-//				@INJECT(PurpleBox.class) Leather purple4
+		// @ColorAny(Color.GREEN) Leather l2,
+		//
+		// @NAMED("blue") Leather l3,
+		//
+		// @NAMED("yellow") Leather l4,
+		//
+		// @INJECT(LeatherPurple.class) Leather l5,
+		//
+		// @NAMED("leatherPurple") Leather l6,
+		//
+		// @NAMED("LeatherPurple") Leather l7,
+		//
+		// @INJECT(PurpleBox.class) Leather purple4
 
 		) {
 			this.l1 = l1;

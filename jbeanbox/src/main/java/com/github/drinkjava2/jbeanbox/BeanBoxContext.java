@@ -151,6 +151,51 @@ public class BeanBoxContext {
 		return getBean(target, true, null);
 	}
 
+	/** Get a class BeanBox which sington property is ture */
+	public BeanBox getSingletonBeanBox(Class<?> clazz) {
+		return getBeanBox(clazz, true);
+	}
+
+	/** Get a class BeanBox which sington property is false */
+	public BeanBox getPrototypeBeanBox(Class<?> clazz) {
+		return getBeanBox(clazz, false);
+	}
+
+	/** Get a class BeanBox which sington property determined by annotation */
+	public BeanBox getBeanBox(Class<?> clazz) {
+		return getBeanBox(clazz, null);
+	}
+
+	/**
+	 * Get BeanBox for class, prototype can be null/true/false represents
+	 * default/prototype/sington 3 type beanbox
+	 */
+	private BeanBox getBeanBox(Class<?> clazz, Boolean singleton) {
+		BeanBoxException.assureNotNull(clazz, "Target class can not be null");
+		BeanBox box = this.beanBoxCache.get(clazz);
+		if (box != null) {
+			if (singleton == null)
+				return box;
+			if (singleton && box.isSingleton())
+				return box;
+			return box.newCopy().setSingleton(singleton);
+		}
+		if (BeanBox.class.isAssignableFrom(clazz)) // not found beanbox
+			try {
+				box = (BeanBox) clazz.newInstance();
+				if (box.singleton == null)
+					box.singleton = true;
+			} catch (Exception e) {
+				BeanBoxException.throwEX(e);
+			}
+		else
+			box = this.doCreateBeanBox(clazz);
+		if (box.beanClass != null && PrototypeBean.class.isAssignableFrom(box.beanClass))// NOSONAR
+			box.setSingleton(false);
+		this.beanBoxCache.put(clazz, box);
+		return box;
+	}
+
 	/** Read Bean annotations to build a BeanBox instance */
 	public BeanBox doCreateBeanBox(Class<?> clazz) {// NOSONAR
 		BeanBox box = new BeanBox();
@@ -304,7 +349,7 @@ public class BeanBoxContext {
 		} else if (target instanceof BeanBox) { // is a BeanBox instance?
 			result = getBeanFromBox((BeanBox) target, required, history);
 		} else if (target instanceof Class) { // is a class?
-			BeanBox box = BeanBoxUtils.getBeanBox(this, (Class<?>) target);
+			BeanBox box = getBeanBox((Class<?>) target);
 			BeanBox bx = searchComponent(box);
 			if (bx != null)
 				result = getBean(bx, required, history);
@@ -451,7 +496,7 @@ public class BeanBoxContext {
 		if (result == null)
 			for (Class<?> compClass : componentCache)
 				if (box.type.isAssignableFrom(compClass)) {
-					BeanBox compBox = BeanBoxUtils.getBeanBox(this, compClass);
+					BeanBox compBox = getBeanBox(compClass);
 					if (box.qualifierAnno == null || (box.qualifierAnno == compBox.qualifierAnno
 							&& ((box.qualifierValue == null) || (box.qualifierValue.equals(compBox.qualifierValue))))) {
 						if (result != null)
@@ -522,10 +567,6 @@ public class BeanBoxContext {
 
 	public BeanBoxContext addContextAop(Object aop, Class<?> clazz, String methodNameRegex) {
 		return addContextAop(aop, clazz.getName() + "*", methodNameRegex);
-	}
-
-	public BeanBox getBeanBox(Class<?> clazz) {
-		return BeanBoxUtils.getBeanBox(this, clazz);
 	}
 
 	private Object[] param2RealObjects(BeanBox[] boxes, Set<Object> history) {
