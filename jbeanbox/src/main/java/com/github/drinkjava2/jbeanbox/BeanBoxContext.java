@@ -646,7 +646,8 @@ public class BeanBoxContext {
 				if (inject.target == null)
 					inject.target = EMPTY.class;
 			} else // if parameter no annotation
-				inject.setTarget(paramTypes[i]);
+				inject.setTarget(EMPTY.class);
+			inject.setType(paramTypes[i]);
 			beanBoxes[i] = inject;
 		}
 		return beanBoxes;

@@ -113,6 +113,13 @@ public class QualiferTest {
 		Color value() default Color.BLACK;
 	}
 
+	public static interface Egg {
+	}
+
+	@COMPONENT
+	public static class OnlyEgg implements Egg {
+	}
+
 	public static interface Leather {
 	}
 
@@ -153,6 +160,9 @@ public class QualiferTest {
 
 	public static class Bean {
 		@INJECT
+		Egg egg;
+
+		@INJECT
 		@ColorRed
 		Leather red;
 
@@ -175,12 +185,8 @@ public class QualiferTest {
 		@NAMED("leatherPurple")
 		Leather purple2;
 
-		@INJECT
-		@NAMED("LeatherPurple")
-		Leather purple3;
-
 		@INJECT(PurpleBox.class)
-		Leather purple4;
+		Leather purple3;
 
 		@INJECT(required = false)
 		@NAMED("notExist")
@@ -191,6 +197,7 @@ public class QualiferTest {
 	public void testBean() {
 		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
 		Bean bean = JBEANBOX.getBean(Bean.class);
+		Assert.assertEquals("OnlyEgg", "" + bean.egg.getClass().getSimpleName());
 		Assert.assertEquals("LeatherRed", "" + bean.red.getClass().getSimpleName());
 		Assert.assertEquals("LeatherGreen", "" + bean.green.getClass().getSimpleName());
 		Assert.assertEquals("LeatherBlue", "" + bean.blue.getClass().getSimpleName());
@@ -198,7 +205,6 @@ public class QualiferTest {
 		Assert.assertEquals("LeatherPurple", "" + bean.purple1.getClass().getSimpleName());
 		Assert.assertEquals("LeatherPurple", "" + bean.purple2.getClass().getSimpleName());
 		Assert.assertEquals("LeatherPurple", "" + bean.purple3.getClass().getSimpleName());
-		Assert.assertEquals("LeatherPurple", "" + bean.purple4.getClass().getSimpleName());
 		// Assert.assertEquals(null, bean.notExist);
 	}
 
@@ -220,40 +226,42 @@ public class QualiferTest {
 	}
 
 	public static class ConstrBean {
-		Leather l1;
-		Leather l2;
-		Leather l3;
-		Leather l4;
-		Leather l5;
-		Leather l6;
-		Leather l7;
+		Egg egg;
+		Leather red;
+		Leather green;
+		Leather blue;
+		Leather yellow;
+		Leather purple1;
+		Leather purple2;
+		Leather purple3;
 
 		@INJECT
 		public ConstrBean( // the constructor injection
-				@ColorRed Leather l1
+				Egg egg,
 
-		// @ColorAny(Color.GREEN) Leather l2,
-		//
-		// @NAMED("blue") Leather l3,
-		//
-		// @NAMED("yellow") Leather l4,
-		//
-		// @INJECT(LeatherPurple.class) Leather l5,
-		//
-		// @NAMED("leatherPurple") Leather l6,
-		//
-		// @NAMED("LeatherPurple") Leather l7,
-		//
-		// @INJECT(PurpleBox.class) Leather purple4
+				@ColorRed Leather red,
+
+				@ColorAny(Color.GREEN) Leather green,
+
+				@NAMED("blue") Leather blue,
+
+				@NAMED("yellow") Leather yellow,
+
+				@INJECT(LeatherPurple.class) Leather purple1,
+
+				@NAMED("leatherPurple") Leather purple2,
+
+				@INJECT(PurpleBox.class) Leather purple3
 
 		) {
-			this.l1 = l1;
-			this.l2 = l2;
-			this.l3 = l3;
-			this.l4 = l4;
-			this.l5 = l5;
-			this.l6 = l6;
-			this.l7 = l7;
+			this.egg = egg;
+			this.red = red;
+			this.green = green;
+			this.blue = blue;
+			this.yellow = yellow;
+			this.purple1 = purple1;
+			this.purple2 = purple2;
+			this.purple3 = purple3;
 		}
 	}
 
@@ -261,6 +269,32 @@ public class QualiferTest {
 	public void testConstrBean() {
 		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
 		ConstrBean bean = JBEANBOX.getBean(ConstrBean.class);
+		Assert.assertEquals("OnlyEgg", "" + bean.egg.getClass().getSimpleName());
+		Assert.assertEquals("LeatherRed", "" + bean.red.getClass().getSimpleName());
+		Assert.assertEquals("LeatherGreen", "" + bean.green.getClass().getSimpleName());
+		Assert.assertEquals("LeatherBlue", "" + bean.blue.getClass().getSimpleName());
+		Assert.assertEquals("LeatherYellow", "" + bean.yellow.getClass().getSimpleName());
+		Assert.assertEquals("LeatherPurple", "" + bean.purple1.getClass().getSimpleName());
+		Assert.assertEquals("LeatherPurple", "" + bean.purple2.getClass().getSimpleName());
+		Assert.assertEquals("LeatherPurple", "" + bean.purple3.getClass().getSimpleName());
 	}
 
+	protected void Constr1ParamQualifierAnnoTests_____________________() {
+	}
+
+	public static class ConstrBean1Param {
+		Leather purple;
+
+		@INJECT(PurpleBox.class)
+		public ConstrBean1Param(Leather purple) {// the constructor injection
+			this.purple = purple;
+		}
+	}
+
+	@Test
+	public void testConstrBean1Param() {
+		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
+		ConstrBean1Param bean = JBEANBOX.getBean(ConstrBean1Param.class);
+		Assert.assertEquals("LeatherPurple", "" + bean.purple.getClass().getSimpleName());
+	}
 }
