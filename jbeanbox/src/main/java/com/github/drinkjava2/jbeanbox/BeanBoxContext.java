@@ -28,6 +28,7 @@ import javax.inject.Named;
 import javax.inject.Qualifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.github.drinkjava2.jbeanbox.ValueTranslator.DefaultValueTranslator;
@@ -197,16 +198,8 @@ public class BeanBoxContext {
 			}
 	}
 
-	/** Bind a targe on a bean id, if id already exist, throw BeanBoxException */
-	public BeanBoxContext bind(Object id, Object target) {
-		if (bindCache.containsKey(id))
-			BeanBoxException.throwEX("Binding already exists on bean id '" + id
-					+ "', consider use 'rebind' method to allow override existed binding");
-		return rebind(id, target);
-	}
-
 	/** Bind a targe on a bean id, if id already exist, override it */
-	public BeanBoxContext rebind(Object id, Object target) {
+	public BeanBoxContext bind(Object id, Object target) {
 		BeanBoxException.assureNotNull(id, "bind id can not be empty");
 		bindCache.put(id, target);
 		return this;
@@ -294,17 +287,10 @@ public class BeanBoxContext {
 		// =================Field inject=================
 		// @INJECT annotations on fields include super class's
 		for (Field f : ReflectionUtils.getSelfAndSuperClassFields(clazz)) {
-			v = getInjectBoxFromAnno(f);
-			if (v != null) {
+			BeanBox inject = getInjectBoxFromAnno(f);
+			if (inject != null) {
 				box.checkOrCreateFieldInjects();
-				BeanBox inject = new BeanBox();
-				
-				inject.setTarget(v.target);
-				inject.setPureValue(v.pureValue);
-				inject.setRequired(v.required);
 				inject.setType(f.getType());
-				inject.setQualifierAnno(v.qualifierAnno);
-				inject.setQualifierValue(v.qualifierValue);
 				ReflectionUtils.makeAccessible(f);
 				box.getFieldInjects().put(f, inject);
 			}
@@ -341,20 +327,18 @@ public class BeanBoxContext {
 			v = getInjectBoxFromAnno(m);
 			if (v != null) {
 				ReflectionUtils.makeAccessible(m);
-				BeanBox oneParam = new BeanBox();
-				oneParam.setTarget(v.target);
-				oneParam.setPureValue(v.pureValue);
-				oneParam.setRequired(v.required);
-				boolean haveOneParameter = v.target != null && EMPTY.class != v.target;
-				if (haveOneParameter)
-					oneParam.setType(m.getParameterTypes()[0]); // set parameter type for 1 parameter
-				// @INJECT or @Inject or @Autowired normal method inject
+				BeanBox[] paramInjects = getParameterInjectAsBeanBoxArray(m);
 				box.checkOrCreateMethodInjects();
-				if (haveOneParameter) // 1 parameter only
-					box.getMethodInjects().put(m, new BeanBox[] { oneParam });
-				else { // no or many parameter
-					BeanBox[] paramInjects = getParameterInjectAsBeanBoxArray(m);
-					box.getMethodInjects().put(m, paramInjects);
+				box.getMethodInjects().put(m, paramInjects);
+				if (paramInjects.length == 1) {
+					if (v.target != null && v.target != EMPTY.class)
+						paramInjects[0].setTarget(v.target);
+					if (v.pureValue)
+						paramInjects[0].setPureValue(true);
+					if (v.qualifierAnno != null) {
+						paramInjects[0].setQualifierAnno(v.qualifierAnno);
+						paramInjects[0].setQualifierValue(v.qualifierValue);
+					}
 				}
 			}
 		}
@@ -576,12 +560,12 @@ public class BeanBoxContext {
 	/** Get wanted Inject info from target annotation */
 	private BeanBox getInjectBoxFromAnno(Object target) {
 		Annotation[] anno = BeanBoxUtils.getAnnotations(target);
-		return getInjectBoxFromAnnos(anno, target.getClass());
+		return getInjectBoxFromAnnos(anno);
 	}
 
 	/** Get a BeanBox instance from annotation array */
 	@SuppressWarnings("unchecked")
-	private BeanBox getInjectBoxFromAnnos(Annotation[] anno, Class<?> srcType) {// NOSONAR
+	private BeanBox getInjectBoxFromAnnos(Annotation[] anno) {// NOSONAR
 		BeanBox box = null;
 		for (Annotation a : anno) {
 			Class<? extends Annotation> type = a.annotationType();
@@ -593,8 +577,10 @@ public class BeanBoxContext {
 			else if (allowSpringJsrAnnotation) {
 				if (Inject.class.equals(type))
 					box = new BeanBox().setTarget(EMPTY.class).setPureValue(false);
-				if (Autowired.class.equals(type))
+				else if (Autowired.class.equals(type))
 					box = new BeanBox().setTarget(EMPTY.class).setRequired(((Autowired) a).required());
+				else if (Value.class.equals(type))
+					box = new BeanBox().setTarget(((Value) a).value()).setRequired(true).setPureValue(true);
 			}
 		}
 		for (Annotation a : anno) {
@@ -611,8 +597,6 @@ public class BeanBoxContext {
 				box.setQualifierAnno(type).setQualifierValue(v.isEmpty() ? null : v.values().iterator().next());
 			}
 		}
-		if (box != null)
-			box.setType(srcType);
 		return box;
 	}
 
@@ -631,7 +615,7 @@ public class BeanBoxContext {
 		BeanBox[] beanBoxes = new BeanBox[annoss.length];
 		for (int i = 0; i < annoss.length; i++) {
 			Annotation[] annos = annoss[i];
-			BeanBox v = getInjectBoxFromAnnos(annos, paramTypes[i]);
+			BeanBox v = getInjectBoxFromAnnos(annos);
 			BeanBox inject = new BeanBox();
 			if (v != null) { // if parameter has annotation
 				BeanBoxUtils.copyBoxValues(v, inject);

@@ -16,14 +16,11 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.github.drinkjava2.jbeanbox.aop.AnnotationAopTest.BeanAop;
-
 /**
  * @author Yong Zhu
  * @since 2.5.0
  */
 @SuppressWarnings("rawtypes")
-@BeanAop
 public class ClassScannerTest {
 
 	@Test
@@ -31,14 +28,11 @@ public class ClassScannerTest {
 		List<Class> cList1 = ClassScanner.scanPackages("com.github.drinkjava2.jbeanbox");
 		Assert.assertTrue(cList1.size() > 0);
 
-		List<Class> cList2 = ClassScanner.scanByAnno(BeanAop.class, "com.github.drinkjava2.jbeanbox");
+		List<Class> cList2 = ClassScanner.scanByName("com.github.drinkjava2.jbeanbox.annotation.PR*",
+				"com.github.drinkjava2.jbeanbox");
 		Assert.assertTrue(cList2.size() > 0);
 
-		List<Class> cList3 = ClassScanner.scanByName("com.github.drinkjava2.jbeanbox.annotation.PR*",
-				"com.github.drinkjava2.jbeanbox");
+		List<Class> cList3 = ClassScanner.scanPackages("org.junit");
 		Assert.assertTrue(cList3.size() > 0);
-
-		List<Class> cList4 = ClassScanner.scanPackages("org.junit");
-		Assert.assertTrue(cList4.size() > 0);
 	}
 }

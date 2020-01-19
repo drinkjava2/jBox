@@ -20,6 +20,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 import com.github.drinkjava2.jbeanbox.annotation.POSTCONSTRUCT;
@@ -139,7 +140,7 @@ public class AnnotationInjectTest {
 	public static class C1 { int i = 0; @INJECT public C1() { i = 2; } } 
 	public static class C2 { int i = 0; @INJECT public C2(@VALUE("2") int a) { i = a; } }
 	public static class C3 { int i = 0; @VALUE("2") public C3(int a) { i = a; } }
-	public static class C4 { int i = 0; @INJECT public C4(@VALUE("2") Integer a,@VALUE("2") byte b ) { i = b; } }
+	public static class C4 { int i = 0; @INJECT public C4(@Value("2") Integer a,@VALUE("2") byte b ) { i = b; } }
 	public static class C5 { Object o ; @INJECT(value=Bar.class, pureValue=true) public C5(Object a) { o = a; } }
 	public static class C6 { Object o1,o2 ; @INJECT public C6(CA a, CB b) { o1 = a; o2=b; } }
 	//@formatter:on
@@ -272,7 +273,7 @@ public class AnnotationInjectTest {
 		@VALUE("5")
 		private long field5;
 
-		@VALUE("6")
+		@Value("6")
 		private Long field6;
 
 		@Autowired(required = false)
@@ -300,6 +301,25 @@ public class AnnotationInjectTest {
 		Assert.assertEquals(CB.class, bean.cb.getClass());
 	}
 
+	public static class FieldInject3 {
+		@INJECT(required = false)
+		public String field0 = "aa";
+
+		@INJECT(required = false)
+		public String field1;
+
+		@Value("cc")
+		public String field2;
+	}
+
+	@Test
+	public void fieldInjectTest2() {
+		FieldInject3 bean = JBEANBOX.getBean(FieldInject3.class);
+		Assert.assertEquals("aa", bean.field0);
+		Assert.assertEquals(null, bean.field1);
+		Assert.assertEquals("cc", bean.field2);
+	}
+
 	protected void MethodInject_______________() {
 	}
 
@@ -325,11 +345,6 @@ public class AnnotationInjectTest {
 				RED, BLACK, TAN
 			}
 		}
-
-		// @INJECT
-		// private void method2(@MyQualificer(Color.BLACK) String a) {
-		// s2 = a;
-		// }
 
 		@INJECT
 		private void method2a(@INJECT(HelloBox.class) String a) {

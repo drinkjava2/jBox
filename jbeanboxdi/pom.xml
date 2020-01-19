@@ -4,7 +4,7 @@
  
  <groupId>com.github.drinkjava2</groupId>
  <artifactId>jbeanboxdi</artifactId>
- <version>2.5.0</version>
+ <version>4.0</version>
  <packaging>jar</packaging> 
  
  <name>jBeanBoxDI</name>
@@ -51,7 +51,7 @@
  </dependencies>
 
  <properties>
-        <version.java>1.6</version.java>
+       <version.java>1.8</version.java>
         <version.javadoc>6</version.javadoc>
         <version.compiler-plugin>3.3</version.compiler-plugin>
         <version.war-plugin>2.6</version.war-plugin>

@@ -13,7 +13,6 @@ package com.github.drinkjava2.jbeanbox;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import java.beans.beancontext.BeanContext;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -30,6 +29,7 @@ import org.springframework.stereotype.Service;
 import com.github.drinkjava2.jbeanbox.annotation.COMPONENT;
 import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 import com.github.drinkjava2.jbeanbox.annotation.NAMED;
+import com.github.drinkjava2.jbeanbox.annotation.VALUE;
 
 /**
  * Qualifer annotation Test
@@ -347,4 +347,149 @@ public class QualiferTest {
 		ConstrBean4 bean = JBEANBOX.getBean(ConstrBean4.class);
 		Assert.assertEquals("LeatherPurple", "" + bean.purple.getClass().getSimpleName());
 	}
+
+	protected void MethodQualifierAnnoTests_____________________() {
+	}
+
+	public static class MethodBean {
+		Egg egg;
+		Leather red;
+		Leather green;
+		Leather blue;
+		Leather yellow;
+		Leather purple1;
+		Leather purple2;
+		Leather purple3;
+		int i;
+		String s;
+
+		@INJECT
+		public void theMethod( // the constructor injection
+				Egg egg,
+
+				@ColorRed Leather red,
+
+				@ColorAny(Color.GREEN) Leather green,
+
+				@NAMED("blue") Leather blue,
+
+				@NAMED("yellow") Leather yellow,
+
+				@INJECT(LeatherPurple.class) Leather purple1,
+
+				@NAMED("leatherPurple") Leather purple2,
+
+				@INJECT(PurpleBox.class) Leather purple3,
+
+				@VALUE("1") int i,
+
+				@VALUE("2") String s
+
+		) {
+			this.egg = egg;
+			this.red = red;
+			this.green = green;
+			this.blue = blue;
+			this.yellow = yellow;
+			this.purple1 = purple1;
+			this.purple2 = purple2;
+			this.purple3 = purple3;
+			this.i = i;
+			this.s = s;
+		}
+	}
+
+	@Test
+	public void testMethodBean() {
+		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
+		MethodBean bean = JBEANBOX.getBean(MethodBean.class);
+		Assert.assertEquals("OnlyEgg", "" + bean.egg.getClass().getSimpleName());
+		Assert.assertEquals("LeatherRed", "" + bean.red.getClass().getSimpleName());
+		Assert.assertEquals("LeatherGreen", "" + bean.green.getClass().getSimpleName());
+		Assert.assertEquals("LeatherBlue", "" + bean.blue.getClass().getSimpleName());
+		Assert.assertEquals("LeatherYellow", "" + bean.yellow.getClass().getSimpleName());
+		Assert.assertEquals("LeatherPurple", "" + bean.purple1.getClass().getSimpleName());
+		Assert.assertEquals("LeatherPurple", "" + bean.purple2.getClass().getSimpleName());
+		Assert.assertEquals("LeatherPurple", "" + bean.purple3.getClass().getSimpleName());
+		Assert.assertEquals(1, bean.i);
+		Assert.assertEquals("2", bean.s);
+	}
+
+	protected void MethodParamQualifierAnnoTests1_____________________() {
+	}
+
+	public static class MethodBean1 {
+		Leather purple;
+
+		@INJECT(PurpleBox.class)
+		public void theMethod(Leather purple) {// the constructor injection
+			this.purple = purple;
+		}
+	}
+
+	@Test
+	public void testMethodBean1() {
+		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
+		MethodBean1 bean = JBEANBOX.getBean(MethodBean1.class);
+		Assert.assertEquals("LeatherPurple", "" + bean.purple.getClass().getSimpleName());
+	}
+
+	protected void MethodParamQualifierAnnoTests2_____________________() {
+	}
+
+	public static class MethodBean2 {
+		Egg egg;
+
+		@INJECT
+		public void theMethod(Egg egg) {// the constructor injection
+			this.egg = egg;
+		}
+	}
+
+	@Test
+	public void testMethodBean2() {
+		JBEANBOX.bind(Egg.class, OnlyEgg.class);
+		MethodBean2 bean = JBEANBOX.getBean(MethodBean2.class);
+		Assert.assertEquals("OnlyEgg", "" + bean.egg.getClass().getSimpleName());
+	}
+
+	protected void MethodParamQualifierAnnoTests3_____________________() {
+	}
+
+	public static class MethodBean3 {
+		Leather purple;
+
+		@INJECT
+		public void theMethod(@NAMED("leatherPurple") Leather purple) {// the constructor injection
+			this.purple = purple;
+		}
+	}
+
+	@Test
+	public void testMethodBean3() {
+		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
+		MethodBean3 bean = JBEANBOX.getBean(MethodBean3.class);
+		Assert.assertEquals("LeatherPurple", "" + bean.purple.getClass().getSimpleName());
+	}
+
+	protected void MethodParamQualifierAnnoTests4_____________________() {
+	}
+
+	public static class MethodBean4 {
+		Leather purple;
+
+		@INJECT
+		@NAMED("LeatherPurple")
+		public void theMethod(Leather purple) {// the constructor injection
+			this.purple = purple;
+		}
+	}
+
+	@Test
+	public void testMethodBean4() {
+		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
+		MethodBean4 bean = JBEANBOX.getBean(MethodBean4.class);
+		Assert.assertEquals("LeatherPurple", "" + bean.purple.getClass().getSimpleName());
+	}
+
 }
