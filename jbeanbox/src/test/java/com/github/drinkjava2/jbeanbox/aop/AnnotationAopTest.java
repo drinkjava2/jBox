@@ -37,7 +37,7 @@ public class AnnotationAopTest {
 
 	@Before
 	public void init() {
-		BeanBoxContext.reset();
+		JBEANBOX.reset();
 	}
 
 	public static class Interceptor1 implements MethodInterceptor {

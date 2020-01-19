@@ -55,9 +55,9 @@ public class NameMatchingAopTest {
 
 	@Test
 	public void aopTest1() {
-		BeanBoxContext.reset();
+		JBEANBOX.reset();
 		// Only setName and setAddress be AOPed.
-		JBEANBOX.bctx().addContextAop(ContextAOP.class, AopDemo1.class, "setN*|*Address");
+		JBEANBOX.ctx().addContextAop(ContextAOP.class, AopDemo1.class, "setN*|*Address");
 		AopDemo1 demo = JBEANBOX.getBean(AopDemo1.class);
 		demo.setName("foo");
 		Assert.assertEquals("bar", demo.name);

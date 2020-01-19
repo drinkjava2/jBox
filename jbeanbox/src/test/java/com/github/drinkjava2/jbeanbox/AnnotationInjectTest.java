@@ -38,7 +38,7 @@ public class AnnotationInjectTest {
 
 	@Before
 	public void init() {
-		BeanBoxContext.reset();
+		JBEANBOX.reset();
 	}
 
 	protected void singletonTest_____________________() {
@@ -112,7 +112,7 @@ public class AnnotationInjectTest {
 
 	@Test
 	public void classInjectTest() {
-		BeanBoxContext.reset();
+		JBEANBOX.reset();
 		Object bean = JBEANBOX.getBean(Demo4.class);
 		Assert.assertTrue(JBEANBOX.getBean(Demo4.class) == JBEANBOX.getBean(Demo4.class));
 		Assert.assertEquals("3", bean);
@@ -145,22 +145,37 @@ public class AnnotationInjectTest {
 	//@formatter:on
 
 	@Test
-	public void ConstructInjectTest() {
+	public void ConstructInjectTest1() {
 		C1 bean = JBEANBOX.getInstance(C1.class);
 		Assert.assertEquals(2, bean.i);
+	}
 
+	@Test
+	public void ConstructInjectTest2() {
 		C2 bean2 = JBEANBOX.getInstance(C2.class);
 		Assert.assertEquals(2, bean2.i);
+	}
 
+	@Test
+	public void ConstructInjectTest3() {
 		C3 bean3 = JBEANBOX.getInstance(C3.class);
 		Assert.assertEquals(2, bean3.i);
+	}
 
+	@Test
+	public void ConstructInjectTest4() {
 		C4 bean4 = JBEANBOX.getInstance(C4.class);
 		Assert.assertEquals(2, bean4.i);
+	}
 
+	@Test
+	public void ConstructInjectTest5() {
 		C5 bean5 = JBEANBOX.getInstance(C5.class);
 		Assert.assertEquals(Bar.class, bean5.o);
+	}
 
+	@Test
+	public void ConstructInjectTest6() {
 		C6 bean6 = JBEANBOX.getInstance(C6.class);
 		Assert.assertEquals(CA.class, bean6.o1.getClass());
 		Assert.assertEquals(CB.class, bean6.o2.getClass());

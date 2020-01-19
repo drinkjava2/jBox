@@ -43,6 +43,7 @@ public class BeanBoxUtils {// NOSONAR
 		to.setRequired(from.required);
 		to.setQualifierAnno(from.qualifierAnno);
 		to.setQualifierValue(from.qualifierValue);
+		to.setType(from.type);
 	}
 
 	/** give a class or Field or Method, return annotations */

@@ -13,6 +13,7 @@ package com.github.drinkjava2.jbeanbox;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import java.beans.beancontext.BeanContext;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -303,19 +304,20 @@ public class QualiferTest {
 
 	@Test
 	public void testConstrBean2() {
-		JBEANBOX.bind(Egg.class,OnlyEgg.class);
+		JBEANBOX.bind(Egg.class, OnlyEgg.class);
 		ConstrBean2 bean = JBEANBOX.getBean(ConstrBean2.class);
 		Assert.assertEquals("OnlyEgg", "" + bean.egg.getClass().getSimpleName());
 	}
+
 	protected void Constr1ParamQualifierAnnoTests3_____________________() {
 	}
 
 	public static class ConstrBean3 {
-		Leather red;
+		Leather purple;
 
 		@INJECT
-		public ConstrBean3(Leather red) {// the constructor injection
-			this.red = red;
+		public ConstrBean3(@NAMED("leatherPurple") Leather purple) {// the constructor injection
+			this.purple = purple;
 		}
 	}
 
@@ -323,6 +325,26 @@ public class QualiferTest {
 	public void testConstrBean3() {
 		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
 		ConstrBean3 bean = JBEANBOX.getBean(ConstrBean3.class);
-		Assert.assertEquals("LeatherRed", "" + bean.red.getClass().getSimpleName());
+		Assert.assertEquals("LeatherPurple", "" + bean.purple.getClass().getSimpleName());
+	}
+
+	protected void Constr1ParamQualifierAnnoTests4_____________________() {
+	}
+
+	public static class ConstrBean4 {
+		Leather purple;
+
+		@INJECT
+		@NAMED("LeatherPurple")
+		public ConstrBean4(Leather purple) {// the constructor injection
+			this.purple = purple;
+		}
+	}
+
+	@Test
+	public void testConstrBean4() {
+		JBEANBOX.scanComponents(QualiferTest.class.getPackage().getName());
+		ConstrBean4 bean = JBEANBOX.getBean(ConstrBean4.class);
+		Assert.assertEquals("LeatherPurple", "" + bean.purple.getClass().getSimpleName());
 	}
 }

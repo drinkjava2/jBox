@@ -34,7 +34,7 @@ public class JavaAopTest {
 
 	@Before
 	public void init() {
-		BeanBoxContext.reset();
+		JBEANBOX.reset();
 	}
 
 	public static class AopDemo1 {
@@ -96,7 +96,7 @@ public class JavaAopTest {
 
 	@Test
 	public void aopTest1() {
-		JBEANBOX.bctx().addContextAop(ContextAOP.class, AopDemo1.class, "setEm*");
+		JBEANBOX.ctx().addContextAop(ContextAOP.class, AopDemo1.class, "setEm*");
 		AopDemo1 demo = JBEANBOX.getBean(AopDemo1Box.class);
 		demo.setName("--");
 		Assert.assertEquals("1", demo.name);

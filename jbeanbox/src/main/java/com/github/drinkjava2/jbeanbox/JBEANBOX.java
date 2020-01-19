@@ -19,28 +19,24 @@ package com.github.drinkjava2.jbeanbox;
  */
 public class JBEANBOX {// NOSONAR
 
-	public static BeanBoxContext bctx() {
+	public static BeanBoxContext ctx() {
 		return BeanBoxContext.globalBeanBoxContext;
 	}
 
 	public static void scanComponents(String... packages) {
-		bctx().scanComponents(packages);
+		BeanBoxContext.globalBeanBoxContext.scanComponents(packages);
 	}
 
 	public static void reset() {
-		BeanBoxContext.reset();
-	}
-
-	public static void close() {
-		bctx().close();
+		BeanBoxContext.globalBeanBoxContext.reset();
 	}
 
 	public static Object getObject(Object target) {
-		return bctx().getObject(target);
+		return BeanBoxContext.globalBeanBoxContext.getObject(target);
 	}
 
 	public static <T> T getBean(Object target) {
-		return bctx().getBean(target);
+		return BeanBoxContext.globalBeanBoxContext.getBean(target);
 	}
 
 	/** Use default global BeanBoxContext to create a prototype bean */
@@ -54,19 +50,19 @@ public class JBEANBOX {// NOSONAR
 	}
 
 	public static <T> T getBean(Object target, boolean required) {
-		return bctx().getBean(target, required);
+		return BeanBoxContext.globalBeanBoxContext.getBean(target, required);
 	}
 
 	public static <T> T getInstance(Class<T> clazz) {
-		return bctx().getInstance(clazz);
+		return BeanBoxContext.globalBeanBoxContext.getInstance(clazz);
 	}
 
 	public static <T> T getInstance(Class<T> clazz, boolean required) {
-		return bctx().getInstance(clazz, required);
+		return BeanBoxContext.globalBeanBoxContext.getInstance(clazz, required);
 	}
 
 	public static BeanBoxContext bind(Object shortcut, Object target) {
-		return bctx().bind(shortcut, target);
+		return BeanBoxContext.globalBeanBoxContext.bind(shortcut, target);
 	}
 
 	public static BeanBox getBeanBox(Class<?> clazz) {

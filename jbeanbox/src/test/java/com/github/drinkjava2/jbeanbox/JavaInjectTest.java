@@ -37,7 +37,7 @@ public class JavaInjectTest {
 
 	@Before
 	public void init() {
-		BeanBoxContext.reset();
+		JBEANBOX.reset();
 	}
 
 	public static class Foo {
@@ -98,14 +98,14 @@ public class JavaInjectTest {
 	public void getBean4() {
 		Assert.assertNotEquals(JBEANBOX.getBean(Foo.class), JBEANBOX.getBean(Bar.class));
 
-		BeanBoxContext.reset();
+		JBEANBOX.reset();
 		BeanBox box = JBEANBOX.getBeanBox(Foo.class);
 		box.setTarget(Bar.class);
 		Bar b1 = JBEANBOX.getBean(box);
 		Bar b2 = JBEANBOX.getBean(Bar.class);
 		Assert.assertEquals(b1, b2);
 
-		BeanBoxContext.reset();
+		JBEANBOX.reset();
 		JBEANBOX.bind(Foo.class, Bar.class);
 		Foo f = JBEANBOX.getBean(box);
 		Bar b = JBEANBOX.getBean(Bar.class);

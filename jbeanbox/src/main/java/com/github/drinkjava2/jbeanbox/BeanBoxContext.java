@@ -49,18 +49,12 @@ import com.github.drinkjava2.jbeanbox.annotation.VALUE;
  *
  */
 public class BeanBoxContext {
-	protected static boolean globalNextAllowAnnotation = true; // as title
-	protected static boolean globalNextAllowSpringJsrAnnotation = true; // as title
-	protected static ValueTranslator globalNextValueTranslator = new DefaultValueTranslator(); // see user manual
-
-	protected boolean allowAnnotation = globalNextAllowAnnotation;
-	protected boolean allowSpringJsrAnnotation = globalNextAllowSpringJsrAnnotation;
-	protected ValueTranslator valueTranslator = globalNextValueTranslator;
+	protected boolean allowAnnotation = true;
+	protected boolean allowSpringJsrAnnotation = true;
+	protected ValueTranslator valueTranslator = new DefaultValueTranslator();
 
 	protected Map<Object, Object> bindCache = new ConcurrentHashMap<>();// bind cache
-
 	protected Map<Class<?>, BeanBox> beanBoxCache = new ConcurrentHashMap<>(); // default BeanBox cache
-
 	protected Map<Object, Object> singletonCache = new ConcurrentHashMap<>(); // class or BeanBox as key
 	protected Set<Class<?>> componentCache = new HashSet<>(); // component cache
 	protected Map<String, BeanBox> componentSearchCache = new ConcurrentHashMap<>();// as title
@@ -70,49 +64,14 @@ public class BeanBoxContext {
 	// ==========AOP about=========
 	protected List<Object[]> aopRules; // Store aop string match rules
 
+	private static final BeanBox NO_THIS_COMPONENT = new BeanBox();// Mark a no-exist component
+
 	public BeanBoxContext() {
-		bind(Object.class, EMPTY.class);
-		bind(String.class, EMPTY.class);
-		bind(Integer.class, EMPTY.class);
-		bind(Boolean.class, EMPTY.class);
-		bind(Byte.class, EMPTY.class);
-		bind(Long.class, EMPTY.class);
-		bind(Short.class, EMPTY.class);
-		bind(Float.class, EMPTY.class);
-		bind(Double.class, EMPTY.class);
-		bind(Character.class, EMPTY.class);
-		bind(List.class, EMPTY.class);
-		bind(Map.class, EMPTY.class);
-		bind(Set.class, EMPTY.class);
-
-		bind(int.class, EMPTY.class);
-		bind(boolean.class, EMPTY.class);
-		bind(byte.class, EMPTY.class);
-		bind(long.class, EMPTY.class);
-		bind(short.class, EMPTY.class);
-		bind(float.class, EMPTY.class);
-		bind(double.class, EMPTY.class);
-		bind(char.class, EMPTY.class);
+		bindBasicTypes();
 	}
 
-	/**
-	 * Reset global variants setting , note this method only close
-	 * globalBeanBoxContext, if created many BeanBoxContext instance need close them
-	 * manually
-	 */
-	public static void reset() {
-		globalBeanBoxContext.close();
-		globalNextAllowAnnotation = true;
-		globalNextAllowSpringJsrAnnotation = true;
-		globalNextValueTranslator = new DefaultValueTranslator();
-		globalBeanBoxContext = new BeanBoxContext();
-	}
-
-	/**
-	 * Close current BeanBoxContext, clear singlton cache, call predestory methods
-	 * for each singleton if they have
-	 */
-	public void close() {
+	/** Reset context to initial status, clear binding & caches, */
+	public void reset() {
 		for (Entry<Object, Object> singletons : singletonCache.entrySet()) {
 			Object key = singletons.getKey();
 			Object obj = singletons.getValue();
@@ -127,8 +86,14 @@ public class BeanBoxContext {
 			}
 		}
 		bindCache.clear();
-		singletonCache.clear();
 		beanBoxCache.clear();
+		singletonCache.clear();
+		componentCache.clear();
+		componentSearchCache.clear();
+		allowAnnotation = true;
+		allowSpringJsrAnnotation = true;
+		valueTranslator = new DefaultValueTranslator();
+		bindBasicTypes();
 	}
 
 	public Object getObject(Object target) {
@@ -166,38 +131,103 @@ public class BeanBoxContext {
 		return getBeanBox(clazz, null);
 	}
 
-	/**
-	 * Get BeanBox for class, prototype can be null/true/false represents
-	 * default/prototype/sington 3 type beanbox
-	 */
-	private BeanBox getBeanBox(Class<?> clazz, Boolean singleton) {
-		BeanBoxException.assureNotNull(clazz, "Target class can not be null");
-		BeanBox box = this.beanBoxCache.get(clazz);
-		if (box != null) {
-			if (singleton == null)
-				return box;
-			if (singleton && box.isSingleton())
-				return box;
-			return box.newCopy().setSingleton(singleton);
-		}
-		if (BeanBox.class.isAssignableFrom(clazz)) // not found beanbox
-			try {
-				box = (BeanBox) clazz.newInstance();
-				if (box.singleton == null)
-					box.singleton = true;
-			} catch (Exception e) {
-				BeanBoxException.throwEX(e);
+	@SuppressWarnings("unchecked")
+	public <T> T getBean(Object target, boolean required, Set<Object> history) {// NOSONAR
+		// System.out.println(" target=" + target + " history=" + history);
+		if (target != null && singletonCache.containsKey(target))
+			return (T) singletonCache.get(target);
+
+		if (target == null || EMPTY.class == target)
+			return (T) notfoundOrException(target, required, null);
+
+		if (history != null && target instanceof BeanBox && history.contains(target))
+			BeanBoxException.throwEX("Circular dependency found on :" + target);
+
+		Object result = null;
+		if (history == null)
+			history = new HashSet<Object>();// NOSONAR
+		history.add(target);
+		if (bindCache.containsKey(target)) {
+			result = getBean(bindCache.get(target), required, history);
+		} else if (target instanceof BeanBox) { // is a BeanBox instance?
+			result = getBeanFromBox((BeanBox) target, required, history);
+		} else if (target instanceof Class) { // is a class?
+			BeanBox box = getBeanBox((Class<?>) target);
+			BeanBox bx = searchComponent(box);
+			if (bx != null)
+				result = getBean(bx, required, history);
+			else
+				result = getBean(box, required, history);
+			if (EMPTY.class != result && box.isSingleton()) {
+				singletonCache.put(target, result);
 			}
-		else
-			box = this.doCreateBeanBox(clazz);
-		if (box.beanClass != null && PrototypeBean.class.isAssignableFrom(box.beanClass))// NOSONAR
-			box.setSingleton(false);
-		this.beanBoxCache.put(clazz, box);
-		return box;
+		} else
+			result = notfoundOrException(target, required, null);
+		history.remove(target);
+		return (T) result;
+	}
+
+	/**
+	 * Scan classes with &#064;COMPONENT or &#064;Component annotation, for
+	 * autowiring purpose
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public void scanComponents(String... packages) {
+		List<Class> classes = ClassScanner.scanPackages(packages);
+		for (Class claz : classes)
+			for (Annotation anno : claz.getAnnotations()) {
+				Class<? extends Annotation> aType = anno.annotationType();
+				if (BeanBoxUtils.ifSameOrChildAnno(aType, COMPONENT.class)
+						|| (allowSpringJsrAnnotation && BeanBoxUtils.ifSameOrChildAnno(aType, Component.class))) {
+					componentCache.add(claz);// add class as component
+					BeanBox box = getBeanBox(claz);
+					Map<String, Object> values = BeanBoxUtils.changeAnnotationValuesToMap(anno);
+					if (!"".equals(values.get("value")))// use given bean name
+						this.bind(values.get("value"), box);
+					else {
+						String s = claz.getSimpleName(); // else use first char lower case class name as bean name
+						bind(s, box); // use class name as bind key
+						if (!Character.isLowerCase(s.charAt(0))) {
+							s = (new StringBuilder()).append(Character.toLowerCase(s.charAt(0))).append(s.substring(1))
+									.toString();
+							bind(s, box); // also bind the key start wtih lower case
+						}
+					}
+				}
+			}
+	}
+
+	/** Bind a targe on a bean id, if id already exist, throw BeanBoxException */
+	public BeanBoxContext bind(Object id, Object target) {
+		if (bindCache.containsKey(id))
+			BeanBoxException.throwEX("Binding already exists on bean id '" + id
+					+ "', consider use 'rebind' method to allow override existed binding");
+		return rebind(id, target);
+	}
+
+	/** Bind a targe on a bean id, if id already exist, override it */
+	public BeanBoxContext rebind(Object id, Object target) {
+		BeanBoxException.assureNotNull(id, "bind id can not be empty");
+		bindCache.put(id, target);
+		return this;
+	}
+
+	public BeanBoxContext addContextAop(Object aop, String classNameRegex, String methodNameRegex) {
+		if (aopRules == null)
+			aopRules = new ArrayList<Object[]>();
+		aopRules.add(new Object[] { BeanBoxUtils.checkAOP(aop), classNameRegex, methodNameRegex });
+		return this;
+	}
+
+	public BeanBoxContext addContextAop(Object aop, Class<?> clazz, String methodNameRegex) {
+		return addContextAop(aop, clazz.getName() + "*", methodNameRegex);
+	}
+
+	protected void internalUtilMethods____________() {// nosonar
 	}
 
 	/** Read Bean annotations to build a BeanBox instance */
-	public BeanBox doCreateBeanBox(Class<?> clazz) {// NOSONAR
+	private BeanBox doCreateBeanBox(Class<?> clazz) {// NOSONAR
 		BeanBox box = new BeanBox();
 		box.setBeanClass(clazz);
 		box.setSingleton(true); // for static class default set to singleton
@@ -245,16 +275,18 @@ public class BeanBoxContext {
 			v = getInjectBoxFromAnno(constr);
 			if (v != null) { // has constr inject
 				box.setBeanClass(clazz);// anyway set beanClass first
-				if (v.target != null && EMPTY.class != v.target) {// 1 parameter only
-					BeanBox inject = new BeanBox();
-					BeanBoxUtils.copyBoxValues(v, inject);
-					inject.setType(constr.getParameterTypes()[0]);
-					box.setConstructor(constr);
-					box.setConstructorParams(new BeanBox[] { inject });
-				} else { // no or many parameter
-					BeanBox[] paramInjects = getParameterInjectAsBeanBoxArray(constr);
-					box.setConstructor(constr);
-					box.setConstructorParams(paramInjects);
+				BeanBox[] paramInjects = getParameterInjectAsBeanBoxArray(constr);
+				box.setConstructor(constr);
+				box.setConstructorParams(paramInjects);
+				if (paramInjects.length == 1) {
+					if (v.target != null && v.target != EMPTY.class)
+						paramInjects[0].setTarget(v.target);
+					if (v.pureValue)
+						paramInjects[0].setPureValue(true);
+					if (v.qualifierAnno != null) {
+						paramInjects[0].setQualifierAnno(v.qualifierAnno);
+						paramInjects[0].setQualifierValue(v.qualifierValue);
+					}
 				}
 			}
 		}
@@ -266,6 +298,7 @@ public class BeanBoxContext {
 			if (v != null) {
 				box.checkOrCreateFieldInjects();
 				BeanBox inject = new BeanBox();
+				
 				inject.setTarget(v.target);
 				inject.setPureValue(v.pureValue);
 				inject.setRequired(v.required);
@@ -328,40 +361,59 @@ public class BeanBoxContext {
 		return box;
 	}
 
-	@SuppressWarnings("unchecked")
-	protected <T> T getBean(Object target, boolean required, Set<Object> history) {// NOSONAR
-		// System.out.println(" target=" + target + " history=" + history);
-		if (target != null && singletonCache.containsKey(target))
-			return (T) singletonCache.get(target);
+	private void bindBasicTypes() {
+		bind(Object.class, EMPTY.class);
+		bind(String.class, EMPTY.class);
+		bind(Integer.class, EMPTY.class);
+		bind(Boolean.class, EMPTY.class);
+		bind(Byte.class, EMPTY.class);
+		bind(Long.class, EMPTY.class);
+		bind(Short.class, EMPTY.class);
+		bind(Float.class, EMPTY.class);
+		bind(Double.class, EMPTY.class);
+		bind(Character.class, EMPTY.class);
+		bind(List.class, EMPTY.class);
+		bind(Map.class, EMPTY.class);
+		bind(Set.class, EMPTY.class);
 
-		if (target == null || EMPTY.class == target)
-			return (T) notfoundOrException(target, required, null);
+		bind(int.class, EMPTY.class);
+		bind(boolean.class, EMPTY.class);
+		bind(byte.class, EMPTY.class);
+		bind(long.class, EMPTY.class);
+		bind(short.class, EMPTY.class);
+		bind(float.class, EMPTY.class);
+		bind(double.class, EMPTY.class);
+		bind(char.class, EMPTY.class);
+	}
 
-		if (history != null && target instanceof BeanBox && history.contains(target))
-			BeanBoxException.throwEX("Circular dependency found on :" + target);
-
-		Object result = null;
-		if (history == null)
-			history = new HashSet<Object>();// NOSONAR
-		history.add(target);
-		if (bindCache.containsKey(target)) {
-			result = getBean(bindCache.get(target), required, history);
-		} else if (target instanceof BeanBox) { // is a BeanBox instance?
-			result = getBeanFromBox((BeanBox) target, required, history);
-		} else if (target instanceof Class) { // is a class?
-			BeanBox box = getBeanBox((Class<?>) target);
-			BeanBox bx = searchComponent(box);
-			if (bx != null)
-				result = getBean(bx, required, history);
-			else
-				result = getBean(box, required, history);
-			if (EMPTY.class != result && box.isSingleton()) {
-				singletonCache.put(target, result);
+	/**
+	 * Get BeanBox for class, prototype can be null/true/false represents
+	 * default/prototype/sington 3 type beanbox
+	 */
+	private BeanBox getBeanBox(Class<?> clazz, Boolean singleton) {
+		BeanBoxException.assureNotNull(clazz, "Target class can not be null");
+		BeanBox box = this.beanBoxCache.get(clazz);
+		if (box != null) {
+			if (singleton == null)
+				return box;
+			if (singleton && box.isSingleton())
+				return box;
+			return box.newCopy().setSingleton(singleton);
+		}
+		if (BeanBox.class.isAssignableFrom(clazz)) // not found beanbox
+			try {
+				box = (BeanBox) clazz.newInstance();
+				if (box.singleton == null)
+					box.singleton = true;
+			} catch (Exception e) {
+				BeanBoxException.throwEX(e);
 			}
-		} else
-			result = notfoundOrException(target, required, null);
-		history.remove(target);
-		return (T) result;
+		else
+			box = this.doCreateBeanBox(clazz);
+		if (box.beanClass != null && PrototypeBean.class.isAssignableFrom(box.beanClass))// NOSONAR
+			box.setSingleton(false);
+		this.beanBoxCache.put(clazz, box);
+		return box;
 	}
 
 	/** Get Bean From BeanBox instance */
@@ -478,7 +530,15 @@ public class BeanBoxContext {
 		return bean;
 	}
 
-	private static final BeanBox NO_THIS_COMPONENT = new BeanBox();
+	private Object[] param2RealObjects(BeanBox[] boxes, Set<Object> history) {
+		Object[] result = new Object[boxes.length];
+		for (int i = 0; i < boxes.length; i++) {
+			result[i] = getBeanFromBox(boxes[i], boxes[i].required, history);
+			if (result[i] != null && result[i] instanceof String)
+				result[i] = valueTranslator.translate((String) result[i], boxes[i].type);
+		}
+		return result;
+	}
 
 	/** Check if class is a component and return its BeanBox */
 	private BeanBox searchComponent(BeanBox box) {
@@ -513,84 +573,15 @@ public class BeanBoxContext {
 		return null;
 	}
 
-	/**
-	 * Scan classes with &#064;COMPONENT or &#064;Component annotation, for
-	 * autowiring purpose
-	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void scanComponents(String... packages) {
-		List<Class> classes = ClassScanner.scanPackages(packages);
-		for (Class claz : classes)
-			for (Annotation anno : claz.getAnnotations()) {
-				Class<? extends Annotation> aType = anno.annotationType();
-				if (BeanBoxUtils.ifSameOrChildAnno(aType, COMPONENT.class)
-						|| (allowSpringJsrAnnotation && BeanBoxUtils.ifSameOrChildAnno(aType, Component.class))) {
-					componentCache.add(claz);// add class as component
-					BeanBox box = getBeanBox(claz);
-					Map<String, Object> values = BeanBoxUtils.changeAnnotationValuesToMap(anno);
-					if (!"".equals(values.get("value")))// use given bean name
-						this.bind(values.get("value"), box);
-					else {
-						String s = claz.getSimpleName(); // else use first char lower case class name as bean name
-						bind(s, box); // use class name as bind key
-						if (!Character.isLowerCase(s.charAt(0))) {
-							s = (new StringBuilder()).append(Character.toLowerCase(s.charAt(0))).append(s.substring(1))
-									.toString();
-							bind(s, box); // also bind the key start wtih lower case
-						}
-					}
-				}
-			}
-	}
-
-	/** Bind a targe on a bean id, if id already exist, throw BeanBoxException */
-	public BeanBoxContext bind(Object id, Object target) {
-		if (bindCache.containsKey(id))
-			BeanBoxException.throwEX("Binding already exists on bean id '" + id
-					+ "', consider use 'rebind' method to allow override existed binding");
-		return rebind(id, target);
-	}
-
-	/** Bind a targe on a bean id, if id already exist, override it */
-	public BeanBoxContext rebind(Object id, Object target) {
-		BeanBoxException.assureNotNull(id, "bind id can not be empty");
-		bindCache.put(id, target);
-		return this;
-	}
-
-	public BeanBoxContext addContextAop(Object aop, String classNameRegex, String methodNameRegex) {
-		if (aopRules == null)
-			aopRules = new ArrayList<Object[]>();
-		aopRules.add(new Object[] { BeanBoxUtils.checkAOP(aop), classNameRegex, methodNameRegex });
-		return this;
-	}
-
-	public BeanBoxContext addContextAop(Object aop, Class<?> clazz, String methodNameRegex) {
-		return addContextAop(aop, clazz.getName() + "*", methodNameRegex);
-	}
-
-	private Object[] param2RealObjects(BeanBox[] boxes, Set<Object> history) {
-		Object[] result = new Object[boxes.length];
-		for (int i = 0; i < boxes.length; i++) {
-			result[i] = getBeanFromBox(boxes[i], boxes[i].required, history);
-			if (result[i] != null && result[i] instanceof String)
-				result[i] = valueTranslator.translate((String) result[i], boxes[i].type);
-		}
-		return result;
-	}
-
-	protected void utilMethods_____________() {// nosonar
-	}
-
 	/** Get wanted Inject info from target annotation */
 	private BeanBox getInjectBoxFromAnno(Object target) {
 		Annotation[] anno = BeanBoxUtils.getAnnotations(target);
-		return getInjectBoxFromAnnos(anno);
+		return getInjectBoxFromAnnos(anno, target.getClass());
 	}
 
 	/** Get a BeanBox instance from annotation array */
 	@SuppressWarnings("unchecked")
-	private BeanBox getInjectBoxFromAnnos(Annotation[] anno) {// NOSONAR
+	private BeanBox getInjectBoxFromAnnos(Annotation[] anno, Class<?> srcType) {// NOSONAR
 		BeanBox box = null;
 		for (Annotation a : anno) {
 			Class<? extends Annotation> type = a.annotationType();
@@ -620,11 +611,13 @@ public class BeanBoxContext {
 				box.setQualifierAnno(type).setQualifierValue(v.isEmpty() ? null : v.values().iterator().next());
 			}
 		}
+		if (box != null)
+			box.setType(srcType);
 		return box;
 	}
 
 	/** Get Parameter Inject as BeanBox[] Array */
-	BeanBox[] getParameterInjectAsBeanBoxArray(Object o) {
+	private BeanBox[] getParameterInjectAsBeanBoxArray(Object o) {
 		Annotation[][] annoss = null;
 		Class<?>[] paramTypes = null;
 		if (o instanceof Method) {
@@ -638,11 +631,10 @@ public class BeanBoxContext {
 		BeanBox[] beanBoxes = new BeanBox[annoss.length];
 		for (int i = 0; i < annoss.length; i++) {
 			Annotation[] annos = annoss[i];
-			BeanBox v = getInjectBoxFromAnnos(annos);
+			BeanBox v = getInjectBoxFromAnnos(annos, paramTypes[i]);
 			BeanBox inject = new BeanBox();
 			if (v != null) { // if parameter has annotation
 				BeanBoxUtils.copyBoxValues(v, inject);
-				inject.setType(paramTypes[i]);
 				if (inject.target == null)
 					inject.target = EMPTY.class;
 			} else // if parameter no annotation
@@ -653,9 +645,6 @@ public class BeanBoxContext {
 		return beanBoxes;
 	}
 
-	protected void staticMethods________________________() {// NOSONAR
-	}
-
 	private static Object notfoundOrException(Object target, boolean required, BeanBox box) {
 		if (required)
 			return BeanBoxException
@@ -664,42 +653,7 @@ public class BeanBoxContext {
 			return EMPTY.class;
 	}
 
-	protected void staticGetterAndSetters________________________() {// NOSONAR
-	}
-
-	public static BeanBoxContext getGlobalBeanBoxContext() {
-		return globalBeanBoxContext;
-	}
-
-	public static void setGlobalBeanBoxContext(BeanBoxContext globalBeanBoxContext) {
-		BeanBoxContext.globalBeanBoxContext = globalBeanBoxContext;
-	}
-
-	public static boolean isGlobalNextAllowAnnotation() {
-		return globalNextAllowAnnotation;
-	}
-
-	public static void setGlobalNextAllowAnnotation(boolean globalNextAllowAnnotation) {
-		BeanBoxContext.globalNextAllowAnnotation = globalNextAllowAnnotation;
-	}
-
-	public static boolean isGlobalNextAllowSpringJsrAnnotation() {
-		return globalNextAllowSpringJsrAnnotation;
-	}
-
-	public static void setGlobalNextAllowSpringJsrAnnotation(boolean globalNextAllowSpringJsrAnnotation) {
-		BeanBoxContext.globalNextAllowSpringJsrAnnotation = globalNextAllowSpringJsrAnnotation;
-	}
-
-	public static ValueTranslator getGlobalNextParamTranslator() {
-		return globalNextValueTranslator;
-	}
-
-	public static void setGlobalNextParamTranslator(ValueTranslator globalNextParamTranslator) {
-		BeanBoxContext.globalNextValueTranslator = globalNextParamTranslator;
-	}
-
-	protected void getterAndSetters________________________() {// NOSONAR
+	protected void getterAndSetters____________() {// NOSONAR
 	}
 
 	public boolean isAllowAnnotation() {

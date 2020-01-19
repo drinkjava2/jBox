@@ -37,7 +37,7 @@ public class BeanBoxUtilsTest {
 
 	@Before
 	public void init() {
-		BeanBoxContext.reset();
+		JBEANBOX.reset();
 	}
 
 	public static BeanBox class2BeanBox(Class<?> clazz) {

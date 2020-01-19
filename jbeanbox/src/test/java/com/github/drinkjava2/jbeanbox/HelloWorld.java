@@ -76,7 +76,7 @@ public class HelloWorld {
 		System.out.println(u8.name); //Result: User8
 		u8.setName("");
 		System.out.println(u8.name); //Result: User9
-		ctx.close();
+		ctx.reset();
 		System.out.println(u8.name); //Result: User10  
 	}
 }

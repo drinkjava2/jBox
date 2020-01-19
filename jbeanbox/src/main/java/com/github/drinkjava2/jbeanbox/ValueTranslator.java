@@ -45,7 +45,7 @@ public interface ValueTranslator {
 				return Short.parseShort(s);
 			if (String.class.equals(type))
 				return s;
-			return BeanBoxException.throwEX("Unsupported @PARAM type:" + type);
+			return BeanBoxException.throwEX("Unsupported type:" + type);
 		}
 	}
 

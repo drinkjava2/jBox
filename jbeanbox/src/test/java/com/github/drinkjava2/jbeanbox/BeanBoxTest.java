@@ -11,7 +11,7 @@ import org.junit.Before;
 public class BeanBoxTest {
 	@Before
 	public void init() {
-		BeanBoxContext.reset();
+		JBEANBOX.reset();
 	}
 
 }

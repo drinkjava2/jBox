@@ -31,7 +31,7 @@ import com.github.drinkjava2.jbeanbox.annotation.INJECT;
 public class CircularDependencyTest {
 	@Before
 	public void init() {
-		BeanBoxContext.reset();
+		JBEANBOX.reset();
 	}
 
 	public void _______________________() {
