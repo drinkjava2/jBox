@@ -27,6 +27,10 @@ public class JBEANBOX {// NOSONAR
 		BeanBoxContext.globalBeanBoxContext.scanComponents(packages);
 	}
 
+	public static void close() {
+		BeanBoxContext.globalBeanBoxContext.reset();
+	}
+	
 	public static void reset() {
 		BeanBoxContext.globalBeanBoxContext.reset();
 	}
