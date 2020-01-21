@@ -120,6 +120,16 @@ public class BeanBox {
 			aopRules = new ArrayList<Object[]>();
 	}
 
+	protected Class<?> checkBeanClassExist(){
+		if(beanClass==null) {
+			Method mtd=ReflectionUtils.findMethod(this.getClass(), "create");
+			Class<?> returnType=mtd.getReturnType();
+			if(returnType!=Object.class)
+				beanClass=returnType; 
+		}		
+		return beanClass;
+	}
+
 	protected BeanBox newCopy() {
 		BeanBox box = new BeanBox();
 		box.target = this.target;
@@ -210,7 +220,7 @@ public class BeanBox {
 			params[i - mid] = BeanBoxUtils.wrapParamToBox(configs[i]);
 			params[i - mid].setType(paramTypes[i - mid]);
 		}
-		Method m = ReflectionUtils.findMethod(beanClass, methodName, paramTypes);
+		Method m = ReflectionUtils.findMethod(checkBeanClassExist(), methodName, paramTypes);
 		if (m != null)
 			ReflectionUtils.makeAccessible(m);
 		this.getMethodInjects().put(m, params);
@@ -257,7 +267,7 @@ public class BeanBox {
 	 */
 	public synchronized BeanBox addMethodAop(Object aop, String methodName, Class<?>... paramTypes) {
 		checkOrCreateMethodAops();
-		Method m = ReflectionUtils.findMethod(beanClass, methodName, paramTypes);
+		Method m = ReflectionUtils.findMethod(checkBeanClassExist(), methodName, paramTypes);
 		BeanBoxException.assureNotNull(m, "Not found method: '" + methodName + "'");
 		addMethodAop(aop, m);
 		return this;
@@ -278,13 +288,13 @@ public class BeanBox {
 	}
 
 	public BeanBox setPostConstruct(String methodName) {// NOSONAR
-		Method m = ReflectionUtils.findMethod(beanClass, methodName);
+		Method m = ReflectionUtils.findMethod(checkBeanClassExist(), methodName);
 		this.setPostConstruct(m);
 		return this;
 	}
 
 	public BeanBox setPreDestroy(String methodName) {// NOSONAR
-		Method m = ReflectionUtils.findMethod(beanClass, methodName);
+		Method m = ReflectionUtils.findMethod(checkBeanClassExist(), methodName);
 		this.setPreDestroy(m);
 		return this;
 	}
@@ -295,7 +305,7 @@ public class BeanBox {
 	public BeanBox injectField(String fieldName, Object object) {
 		BeanBox box = BeanBoxUtils.wrapParamToBox(object);
 		checkOrCreateFieldInjects();
-		Field f = ReflectionUtils.findField(beanClass, fieldName);
+		Field f = ReflectionUtils.findField(checkBeanClassExist(), fieldName);
 		box.setType(f.getType());
 		ReflectionUtils.makeAccessible(f);
 		this.getFieldInjects().put(f, box);
@@ -309,8 +319,8 @@ public class BeanBox {
 
 	/** Inject a pure value to Field */
 	public BeanBox injectValue(String fieldName, Object constValue) {
-		checkOrCreateFieldInjects();
-		Field f = ReflectionUtils.findField(beanClass, fieldName);
+		checkOrCreateFieldInjects(); 
+		Field f = ReflectionUtils.findField(checkBeanClassExist(), fieldName);
 		BeanBox inject = new BeanBox();
 		inject.setTarget(constValue);
 		inject.setType(f.getType());
@@ -340,7 +350,7 @@ public class BeanBox {
 
 	public void config(Object bean, BeanBoxContext context, Set<Object> history) {// for child class override
 	}
-
+	
 	protected void getterAndSetters_____________________() {// NOSONAR
 	}
 
