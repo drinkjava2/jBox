@@ -54,11 +54,11 @@ public class BeanBoxContext {
 	protected boolean allowSpringJsrAnnotation = true;
 	protected ValueTranslator valueTranslator = new DefaultValueTranslator();
 
-	protected Map<Object, Object> bindCache = new ConcurrentHashMap<>();// bind cache
-	protected Map<Class<?>, BeanBox> beanBoxCache = new ConcurrentHashMap<>(); // default BeanBox cache
-	protected Map<Object, Object> singletonCache = new ConcurrentHashMap<>(); // class or BeanBox as key
-	protected Set<Class<?>> componentCache = new HashSet<>(); // component cache
-	protected Map<String, BeanBox> componentSearchCache = new ConcurrentHashMap<>();// as title
+	protected Map<Object, Object> bindCache = new ConcurrentHashMap<Object, Object>();// bind cache
+	protected Map<Class<?>, BeanBox> beanBoxCache = new ConcurrentHashMap<Class<?>, BeanBox>(); // default BeanBox cache
+	protected Map<Object, Object> singletonCache = new ConcurrentHashMap<Object, Object>(); // class or BeanBox as key
+	protected Set<Class<?>> componentCache = new HashSet<Class<?>>(); // component cache
+	protected Map<String, BeanBox> componentSearchCache = new ConcurrentHashMap<String, BeanBox>();// as title
 
 	protected static BeanBoxContext globalBeanBoxContext = new BeanBoxContext();// Global Bean context
 
@@ -110,11 +110,11 @@ public class BeanBoxContext {
 	}
 
 	public <T> T getBean(Object target, boolean required) {
-		return getBean(target, true, null);
+		return getBean(target, required, null);
 	}
 
 	public <T> T getInstance(Class<T> target, boolean required) {
-		return getBean(target, true, null);
+		return getBean(target, required, null);
 	}
 
 	/** Get a class BeanBox which sington property is ture */
@@ -134,7 +134,6 @@ public class BeanBoxContext {
 
 	@SuppressWarnings("unchecked")
 	public <T> T getBean(Object target, boolean required, Set<Object> history) {// NOSONAR
-		// System.out.println(" target=" + target + " history=" + history);
 		if (target != null && singletonCache.containsKey(target))
 			return (T) singletonCache.get(target);
 
@@ -402,7 +401,6 @@ public class BeanBoxContext {
 
 	/** Get Bean From BeanBox instance */
 	private Object getBeanFromBox(BeanBox box, boolean required, Set<Object> history) {// NOSONAR
-		// System.out.println(" Box=> box=" + box + " history=" + history);
 		BeanBoxException.assureNotNull(box, "Fail to build instance for a null beanBox");
 		Object bean = null;
 		if (box.isSingleton()) { // Check if singleton in cache
@@ -494,7 +492,7 @@ public class BeanBoxContext {
 				BeanBox b = entry.getValue();
 				Object fieldValue = this.getBeanFromBox(b, b.required, history);
 				if (fieldValue != null && EMPTY.class != fieldValue) {
-					if (fieldValue != null && fieldValue instanceof String)
+					if (fieldValue instanceof String)
 						fieldValue = this.valueTranslator.translate((String) fieldValue, b.type);
 					ReflectionUtils.setField(f, bean, fieldValue);
 				}
@@ -518,7 +516,7 @@ public class BeanBoxContext {
 		Object[] result = new Object[boxes.length];
 		for (int i = 0; i < boxes.length; i++) {
 			result[i] = getBeanFromBox(boxes[i], boxes[i].required, history);
-			if (result[i] != null && result[i] instanceof String)
+			if (result[i] instanceof String)
 				result[i] = valueTranslator.translate((String) result[i], boxes[i].type);
 		}
 		return result;

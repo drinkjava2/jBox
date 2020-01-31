@@ -92,7 +92,7 @@ public class BeanBoxUtils {// NOSONAR
 
 	/** This used for unknown Annotation, change values to a Map */
 	public static Map<String, Object> changeAnnotationValuesToMap(Annotation annotation) {
-		Map<String, Object> result = new HashMap<>();
+		Map<String, Object> result = new HashMap<String, Object>();
 		for (Method method : annotation.annotationType().getDeclaredMethods())
 			try {
 				result.put(method.getName(), method.invoke(annotation, (Object[]) null));
@@ -106,7 +106,7 @@ public class BeanBoxUtils {// NOSONAR
 	 * set as purevalue, otherwise direct return it (class or BeanBox)
 	 */
 	public static Object checkAOP(Object aop) {
-		if (aop != null && aop instanceof MethodInterceptor)
+		if (aop instanceof MethodInterceptor)
 			return new BeanBox().setTarget(aop).setPureValue(true);
 		else
 			return aop;

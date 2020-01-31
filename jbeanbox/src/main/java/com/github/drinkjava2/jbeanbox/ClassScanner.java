@@ -17,7 +17,6 @@ import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,7 +32,7 @@ import java.util.regex.Pattern;
  * @email: 292462859@qq.com
  * @date: 2019/1/8.
  * 
- * @author: Yong(modify)
+ * @author: Yong(shrink & downgrade to Java7)
  * @since 2.5.0
  */
 @SuppressWarnings("all")
