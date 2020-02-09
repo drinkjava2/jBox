@@ -72,7 +72,7 @@ public class BeanBoxUtils {// NOSONAR
 	}
 
 	public static boolean ifSameOrChildAnno(Class<? extends Annotation> annoType,
-			@SuppressWarnings("unchecked") Class<? extends Annotation>... annoTypes) {
+			Class<? extends Annotation>... annoTypes) {
 		for (Class<? extends Annotation> a : annoTypes)
 			if (annoType.equals(a) || annoType.isAnnotationPresent(a))
 				return true;

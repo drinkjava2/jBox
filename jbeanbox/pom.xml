@@ -51,8 +51,8 @@
  </dependencies>
 
  <properties>
-        <version.java>1.7</version.java>
-        <version.javadoc>7</version.javadoc>
+        <version.java>1.6</version.java>
+        <version.javadoc>6</version.javadoc>
         <version.compiler-plugin>3.3</version.compiler-plugin>
         <version.war-plugin>2.6</version.war-plugin>
         <version.clean-plugin>3.0.0</version.clean-plugin>
