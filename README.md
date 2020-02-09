@@ -18,12 +18,12 @@ jBeanBox的开发目的是要克服其它IOC/AOP工具的一些问题：
 3. 相比与Guice, 它在源码简洁度、Bean生命周期支持、Java配置方面要优于Guice.  
 
 ### 如何在项目中使用jBeanBox?  
-手工下载jbeanbox-2.4.9.jar放到项目的类目录，或在pom.xml中加入以下配置：  
+手工下载jbeanbox-4.0.0.jar放到项目的类目录，或在pom.xml中加入以下配置：  
 ```
 <dependency>
     <groupId>com.github.drinkjava2</groupId>
     <artifactId>jbeanbox</artifactId>
-    <version>2.4.9</version> <!--或Maven最新版-->
+    <version>4.0.0</version> <!--或Maven最新版-->
 </dependency>
 ``` 
 jBeanBox不依赖于任何第三方库，为避免包冲突，它将用到的CGLIB等第三方库以源码内嵌方式包含在项目中。
