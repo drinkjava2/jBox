@@ -308,8 +308,9 @@ public class ClassReader {
       throws IOException {
     if (inputStream == null) {
       throw new IOException("Class not found");
-    }
-    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+    } 
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();//YongZ downgrade to java6
+    try  {
       byte[] data = new byte[INPUT_STREAM_DATA_CHUNK_SIZE];
       int bytesRead;
       while ((bytesRead = inputStream.read(data, 0, data.length)) != -1) {
