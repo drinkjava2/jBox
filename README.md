@@ -3,34 +3,77 @@
 # jBeanBox 
 **License:** [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)  
 
-jBeanBox是一个微形但功能较齐全的IOC/AOP工具，除了引入的第三方库之外，它的核心只有十多个类，源码只有1500行左右。它运用了“Box”编程模式，利用纯粹的Java类作为配置。jBeanBox运行于JDK1.6或以上。  
-jBeanBox的开发目的是要克服其它IOC/AOP工具的一些问题：   
-1. Spring: 源码臃肿，Java方式的配置不灵活，在动态配置、配置的继承上有问题、启动慢、非单例模式时性能极差。  
-2. Guice: 源码略臃肿(200个类)，使用不太方便，对Bean的生命周期支持不好。  
-3. Feather:源码极简(几百行)，但功能不全，只是一个DI工具，不支持AOP。  
-4. Dagger: 源码略臃肿(300个类)，编译期静态注入，使用略不便,不支持AOP。
-5. Genie: 这是ActFramework的内核，只是DI工具，不支持AOP。  
+jBeanBox是一个微形但功能较齐全的IOC/AOP工具，用于Java6或以上环境。
 
-### jBeanBox的主要特点
+jBeanBox项目的定位：需要一个IOC/AOP工具，但是又不想引入臃肿的Spring。  
+ 
+jBeanBox的开发目的是要克服其它IOC/AOP工具的一些问题：  
+1. Spring: 源码臃肿，Java方式的配置不灵活, 非单例模式时性能差。  
+2. Guice: 源码略臃肿(200多个类)，手工绑定使用不方便，功能不全，如不支持PostConstruct注解、不支持类路径自动扫描。  
+3. Feather:源码极简(几百行)，但功能不全，只是DI工具，不支持AOP。  
+4. Dagger: 源码略臃肿(300个类)，编译期静态注入，使用不方便, 不支持AOP。  
+5. Genie: 这是ActFramework项目的内核，只是DI工具，不支持AOP。  
+6. Nutz、jFinal等项目中也有IOC/AOP模块，但它们的问题是没有独立出来，并且没有考虑JSR330、AOP联盟等标准，兼容性差。    
+
+### jBeanBox的主要优点
 1. 功能较全，Java配置、注解配置、Bean生命周期支持、循环依赖检测和注入、AOP这些功能都具备。
-1. 源码简洁，核心源码只有1500行左右，可能是全功能IOC/AOP工具中源码最简的。  
-2. Java配置方式更简单、易用。BeanBox是一个纯Java类而不是一个代理类，它可以作为静态配置存在，支持配置的继承、重写等特性, 也可以在运行期动态生成、修改，比Spring的Java配置方式更强大、更灵活。   
-3. 相比与Guice, 它在源码简洁度、Bean生命周期支持、Java配置方面要优于Guice.  
+1. 源码简洁，除了引入的第三方库外，本身的核心源码只有3000行左右，源码短小本身就说明了它架构的合理性。
+2. 采用原生Java作为配置，更简单易用。它的配置类BeanBox是一个纯Java类而不是一个代理类，可以作为静态配置存在，支持配置的继承、重写等特性, 也可以在运行期动态生成、修改，比Spring的Java配置方式更强大、灵活。   
+3. 相比与Guice, 它在易用性和功能方面要胜出；相比于Spring，它在源码精简和性能上远远胜出。  
+4. 兼容性好，支持大多数JSR330、JSR250标准注解，并且兼容主要Spring注解。  
 
 ### 如何在项目中使用jBeanBox?  
-手工下载jbeanbox-4.0.0.jar放到项目的类目录，或在pom.xml中加入以下配置：  
+手工在Maven站下载单个的jbeanbox-X.X.X.jar放到项目的类目录，或在pom.xml中加入以下配置：  
 ```
 <dependency>
     <groupId>com.github.drinkjava2</groupId>
     <artifactId>jbeanbox</artifactId>
-    <version>4.0.0</version> <!--或Maven最新版-->
+    <version>4.0.0</version> <!-- Or newest version -->
 </dependency>
-``` 
-jBeanBox不依赖于任何第三方库，为避免包冲突，它将用到的CGLIB等第三方库以源码内嵌方式包含在项目中。
-jBeanBox的jar包尺寸较大，约为750K, 如果用不到AOP功能，可以只使用它的DI内核，称为"jBeanBoxDI", 只有49k大小，将上面artifactId中的jbeanbox改成jbeanboxdi即可。jBeanBoxDI项目详见jbeanboxdi子目录。
+```
+jBeanBox只有单个jar包，不依赖于任何第三方库，为避免包冲突，它已经将用到的CGLIB等第三方库以源码内嵌的方式包含在了项目中。
+jBeanBox的jar包尺寸较大，约为700K, 如果用不到AOP代理功能，可以只使用它的DI内核，称为"jBeanBoxDI", 只有约50k大小，将上面artifactId中的jbeanbox改成jbeanboxdi即可，jBeanBoxDI项目详见jbeanboxdi子目录。   
 
-### 第一个jBeanBox演示：  
-以下演示了10种不同的注入方式：
+### jBeanBox注解方式配置
+jBeanBox有Java方式配置和注解方式配置两种使用方式。先用一张图来显示它支持的注解，以及与Spring、Guice的区别：  
+![image](compare.png)      
+从上图可以看出，jBeanBox的功能是很齐全的，而且它除了自带注解外，还有一个优点是可以直接使用Spring及JSR330、JSR250的主要注解。
+
+jBeanBox自带以下注解(全是大写)：  
+@INJECT  类似JSR中的@Inject注解，但它有个附加的参数是允许添加可选的目标类或BeanBox配置类(见下文介绍)作为参数，如@INJECT(Book.class) 或 @INJECT(BookBox.class)   
+@POSTCONSTRUCT  等同于JSR中的@PostConstruct注解  
+@PREDESTROY  等同于JSR中的@PreDestroy注解  
+@VALUE 等同于Spring中的@Value注解, 参数将被解析为对应的值类型, 如@VALUE("3") int a; 参数将被解析为整数3。但与Spring不同的是jBeanBox不支持在@Value参数中的EL模板语法，这需要自定义   
+@PROTOTYPE  等同于Spring中的@Prototype注解  
+@AOP 用于自定义AOP注解，详见AOP一节  
+@COMPONENT 用法等同于Spring中的@Component注解，它需要与jBeanBox的类扫描功能联用，用来自动发现注册指定类下的所有Bean类, 例如JBEANBOX.scanComponents("com.foo")可以扫描包"tom.foo"下的所有被@Component标注的类：  
+@NAMED 用法等同于JSR330中的@Named注解  
+@QUALIFILER 用法等同于JSR330或Spring中的@Qualifiler注解  
+ 
+jBeanBox默认工作在兼容模式，支持Spring和JSR注解，可以调用beanboxContext.setAllowSpringJsrAnnotation(false)去禁用JSR、Spring注解。  
+jBeanBox也可以用beanboxContext.setAllowAnnotation(false)去禁用所有注解(也就是说连自带的注解都不能使用，只能用Java方式配置了)。  
+
+关于注解方式配置，jBeanBox与其它IOC工具不同点在于，它可以直接在@INJECT注解里指明目标类或配置类，如:  
+@INJECT(jdbcUrlBox.class)  private String url; //其中jdbcUrlBox.class是一个BeanBox类，它的返回结果是由jdbcUrlBox这个配置类来决定的。这种方式的优点是支持重构和IDE快速定位到配置类。    
+ 
+jBeanBox对于静态定义的类，如果没有任何注解定义，默认均为单例类，所以每次ctx.getBean(SomeClass.class)都会获得同一个单例对象。   
+
+jBeanBox不建议在项目中使用@Named，它主要问题是不支持IDE定位，如ctx.getBean("jdbcURL"), 无法利用IDE快速定位到配置文件，不利于维护。  
+
+注意：当手工动态创建BeanBox配置时，默认BeanBox的设定为非单例类。如果BeanBox box=new BeanBox(A.class).setSingleton(true),强行设定box为单例，那问题来了，它的ID是什么? 很简单，它的唯一ID就是这个动态创建的配置实例本身box, 每次ctx.getBeanBox(box)就会获得同一个A类型的单例对象。  
+  
+另外也可以用ctx.bind("id",box)方法手工给它绑定一个ID值"id",可以用getBean("id")来获取它。jBeanBox没有自动扫描、预创建单例之类的功能，所以它的启动非常快速。如果有人有自动扫描、预创建单例、预绑定ID名之类的需求，必须手工编写一个工具类来实现这个目的(jBeanBox暂不提供)，例如在程序运行开始时调用一下ctx.getBean(A.class)就会在上下文中暂存一个A的单例类，下次访问时会直接从缓存中取。  
+
+因为注解方式配置大家比较熟悉，与Spring/Guice/JSR标准中的命名和用法类似，这里就不作详细介绍了，在jBeanBox\test目录下能找到各种使用演示，如：  
+```
+AnnotationInjectTest.java 演示各种注解方式配置
+JavaInjectTest.java 演示各种Java方式配置
+QualiferTest.java 演示@Named、@Qualifer注解以及类扫描的使用
+```
+ 
+
+### jBeanBox的Java方式配置 
+jBeanBox的Java方式配置非常强大灵活，以下先通过一个例子来演示10种不同的注入方式：  
 ```
 public class HelloWorld {
 	public static class User {
@@ -97,7 +140,7 @@ public class HelloWorld {
 ```
 这个例子的输出结果是依次打印出“User1” 、“User2”...到“User10”。下面遂一解释：
 1. 第一个利用了@VALUE("User1")注解，进行了构造器注入。  
-2. 第二个利用一个jBeanBox的纯Java配置类UserBox，这是一个纯粹的Java类（不象Spring中的Java配置类是一个非常特殊的类，它在运行期会产生一个代理类）, 在这个示例里它的create方法手工生成了一个User("User2")对象。  
+2. 第二个利用一个jBeanBox的纯Java配置类UserBox，这是一个纯粹的Java类（不象Spring中的Java配置类是一个特殊的类，它在运行期会产生一个代理类）, 在这个示例里它的create方法手工生成了一个User("User2")对象。  
 3. 第三个是动态生成一个BeanBox配置，动态配置它的构造器注入，注入值为"User3"。  
 4. 第四个也是动态配置，演示了字段注入，注入值为常量"User4"。  
 5. 第五个是方法注入的演示，注入参数依次为：方法名、参数类型们、实际参数们。  
@@ -107,149 +150,49 @@ public class HelloWorld {
 9. 第九个比较简单，因为setName方法被添加了一个AOP拦截器，参数被改成了"User9"。  
 10.第十个是因为ctx这个上下文结束，所有单例被@PreDestroy标注的方法会执行。  
 
-上例除了一头一尾外，主要演示了jBeanBox的Java方法配置，Java方法即可以动态执行，也可以在定义好的BeanBox类中作为固定配置执行，固定的配置可以打下配置的基调，当固定配置需要变动时可以用同样的Java方法来进行调整(因为本来就是同一个BeanBox对象)甚至临时创建出新的配置，所以jBeanBox同时具有了固定配置和动态配置的优点。另外当没有源码时，例如配置第三方库的实例，这时所有的注解方式配置都用不上，唯一能用的只有Java配置方式。
-
+上例除了一头一尾外，主要演示了jBeanBox的Java方法配置，Java方法即可以动态执行，也可以在定义好的BeanBox类中作为固定配置执行，固定的配置可以打下配置的基调，当固定配置需要变动时可以用同样的Java方法来进行调整(因为本来就是同一个BeanBox对象)甚至临时创建出新的配置，所以jBeanBox同时具有了固定配置和动态配置的优点。另外当没有源码时，例如配置第三方库的实例，这时所有的注解方式配置都用不上，唯一能用的只有Java配置方式。  
 上例中的value()方法是从JBEANBOX类中静态引入的全局方法，这个示例的源码位于单元测试目录下的HelloWorld.java。  
 
-### jBeanBox注解方式配置
-jBeanBox不光支持Java方式配置，还支持注解方式配置,它自带以下注解(全是大写)：  
-@INJECT  类似JSR中的@Inject注解，但允许添加可选的目标类或BeanBox类作为参数，如@INJECT(Foo.class) 或 @INJECT(FooBox.class)  
-@POSTCONSTRUCT  等同于JSR中的@PostConstruct注解  
-@PREDESTROY  等同于JSR中的@PreDestroy注解  
-@VALUE 类似Spring中的@Value注解, 参数将被解析为对应的值类型, 如@VALUE("3") int a; 参数将被解析为整数3, @VALUE("3") String b; 参数将被解析为字符串"3"  
-@PROTOTYPE  等同于Spring中的@Prototype注解  
-@AOP 用于自定义AOP注解，详见AOP一节  
 
-为了尽可能实现兼容性，jBeanBox还默认支持以下JSR及Spring的部分注解：  
-JSR的注解：@PostConstruct, @PreDestroy, @Inject, @Singleton, @scope(“prototype”), @scope(“singleton”)  
-Spring的注解：@Autowired @Prototype  
-可以调用ctx.setAllowSpringJsrAnnotation(false)去禁用JSR、Spring注解，也可以调用ctx.setAllowAnnotation(false)去禁用所有注解(也就是说只能用Java方式配置了)。  
+jBeanBox特有的Java配置方式可以写出非常清晰易读的配置类来，例如下面这些配置层层继承：
+``` 
+	public static class HikariCPBox extends BeanBox { 
+		public HikariDataSource create() {
+			HikariDataSource ds = new HikariDataSource();
+			ds.addDataSourceProperty("cachePrepStmts", true);
+			ds.addDataSourceProperty("prepStmtCacheSize", 250); 
+			ds.setMaximumPoolSize(3);
+			ds.setConnectionTimeout(5000);
+			this.setPreDestroy("close");// jBeanBox will close pool
+			return ds;
+		}
+	}
 
-关于注解方式配置，jBeanBox与其它IOC工具不同点在于：它不支持@Qualifer、@Name、@Provider这三个JSR330注解，这是因为笔者认为这3个注解在jBeanBox中可以用已有注解实现，如：  
+
+	public static class MySqlDataSourceBox extends HikariCPBox {
+		{
+			injectValue("jdbcUrl", "jdbc:mysql://127.0.0.1:3306/test?rewriteBatchedStatements=true&useSSL=false");
+			injectValue("driverClassName", "com.mysql.jdbc.Driver");
+			injectValue("username", "root");
+			injectValue("password", "password");
+		}
+	}
+
+	public static class OracleDataSourceBox extends MySqlDataSourceBox {//继承父类的username和password
+		{
+			injectValue("jdbcUrl", "jdbc:oracle:thin:@127.0.0.1:1521:XE");
+			injectValue("driverClassName", "oracle.jdbc.OracleDriver"); 
+		}
+	}
+
+       public static class DataSourceBox extends OracleDataSourceBox {
+	}
 ```
-@Inject @Named("JDBC-URL")  private String url;
-在jBeanBox中可以用以下方式替代:
-@INJECT(JDBC_URL.class)  private String url; //其中JDBC_URL.class是一个BeanBox类  
-或
-@VALUE("$JDBC-URL")  private String url; //$JDBC-URL值可以通过设定BeanBoxContext中的ValueTranslator来解释
-
-又如：
-@Named("PersonID") public class Person {}
-在jBeanBox中看来，Person类已经有了唯一的ID: Person.class, 无需再定义一个多余的“PersonID”作为ID，所有静态定义的类，它的类本身就是唯一的ID。jBeanBox对于静态定义的类，默认均为单例类，所以每次ctx.getBean(Person.class)都会获得同一个单例对象。  
-```
-@Named的问题是它是字符串类型的，不支持重构，无法利用IDE快速定位到配置文件，当项目配置很多时，不利于维护。  
-jBeanBox是一个无需定义Bean ID的IOC工具，所有静态定义的类默认都是单例。   
-注意：当手工动态创建BeanBox配置时，默认BeanBox的设定为非单例类。如果BeanBox box=new BeanBox(A.class).setSingleton(true),强行设定box为单例，那问题来了，它的ID是什么? 很简单，它的唯一ID就是这个动态创建的配置实例本身box, 每次ctx.getBeanBox(box)就会获得同一个A类型的单例对象。  
-  
-另外也可以用ctx.bind("id",box)方法手工给它绑定一个ID值"id",可以用getBean("id")来获取它。jBeanBox没有自动扫描、预创建单例之类的功能，所以它的启动非常快速。如果有人有自动扫描、预创建单例、预绑定ID名之类的需求，必须手工编写一个工具类来实现这个目的(jBeanBox暂不提供)，例如在程序运行开始时调用一下ctx.getBean(A.class)就会在上下文中暂存一个A的单例类，下次访问时会直接从缓存中取。
-
-因为注解方式配置大家比较熟悉，与Spring/Guice/JSR标准中的命名和用法类似，这里就不作详细介绍了，在jBeanBox\test目录下能找到一个"AnnotationInjectTest.java"文件，演示了各种注解方式配置的使用, 以下只是简单列出一些用法： 
-```
-//类注入
-@PROTOTYPE
-@VALUE("3")  
-public static class Demo4 { }//ctx.getBean(Demo4.class)将返回字符串"3"
-
-@INJECT(Demo4.class) @PROTOTYPE  
-public static class Demo5 { } //返回Demo4原型
+最后在程序的任意地方调用JBEANBOX.getBean(DataSourceBox.class)就可以获取一个数据源，数据源的类型由配置文件来决定。
  
-@INJECT(value=Demo4.class )
-public static class Demo6 { } //返回Demo4单例
 
-@INJECT(value=Demo4.class  )
-public static interface inf1{}//返回Demo4单例
-
-@INJECT(value=Demo4.class,  pureValue=true) //返回Demo4.class类而不是Demo4实例
-public static interface inf2{}
-
-//构造器注入
-public static class CA {}
-public static class CB {}
-public static class C1 { int i = 0; @INJECT public C1() { i = 2; } } 
-public static class C2 { int i = 0; @INJECT public C2(@VALUE("2") int a) { i = a; } }
-public static class C3 { int i = 0; @VALUE("2") public C3(int a) { i = a; } }
-public static class C4 { int i = 0; @INJECT public C4(@VALUE("2") Integer a,@VALUE("2") byte b ) { i = b; } }
-public static class C5 { Object o ; @INJECT(value=Bar.class, pureValue=true) public C5(Object a) { o = a; } }
-public static class C6 { Object o1,o2 ; @INJECT public C6(CA a, CB b) { o1 = a; o2=b; } }
-
-//字段注入
-public static class FieldInject2 {
-	@INJECT(required = false)
-	public String field0 = "aa"; //如果找不到String类型的绑定，不报错
-
-	@INJECT(value = ClassABox.class, pureValue = false, required = true)
-	private ClassA field1; //返回ClassA.class的实例,如果ClassABox.class找不到目标，不报错
-	
-	@INJECT(value = ClassABox.class)
-	private ClassA field1; //返回ClassA.class的实例,如果ClassABox.class找不到目标，会抛异常
-
-	@INJECT(HelloBox.class) 
-	private String field3;
-
-	@VALUE(value = "true")
-	private Boolean field4;
-
-	@VALUE("5")
-	private long field5;
-
-	@VALUE("6")
-	private Long field6;
-
-	@Autowired(required = false)
-	public String field7 = "7"; //如果找不到String类型的绑定，不报错
-
-	@Inject       //演示兼容JSR的@Inject注解
-	public CA ca; //返回CA.class的实例
-
-	@Autowired    //演示兼容Spring的@Autowired注解
-	public CB cb; //返回CB.class的实例
-}
-
-//方法注入
-public static class MethodInject1 {
-	public String s1;
-	public String s2;
-	public long l3;
-	public Boolean bl4;
-	public String s5;
-	public byte bt5;
-	public CA a;
-
-	@INJECT(HelloBox.class)
-	private void method1(String a) {
-		s1 = a;
-	}
-
-	@INJECT
-	private void method2(@INJECT(value = HelloBox.class) String a) {
-		s2 = a;
-	}
-
-	@INJECT
-	private void method3(@VALUE("3") long a) {
-		l3 = a;
-	}
-
-	@VALUE("true")
-	private void method4(boolean a) {
-		bl4 = a;
-	}
-
-	@INJECT
-	private void method5(@INJECT(HelloBox.class) String a, @VALUE("5") Byte b) {
-		s5 = a;
-		bt5 = b;
-	}
-
-	@INJECT
-	private void method6(CA a) { //没有配置的参数，按类型自动注入
-		this.a = a;
-	}
-}
-```
-
-### jBeanBox的Java方式配置
-示例一只是笼统演示了一下jBeanBox的Java方式配置，现在再回过头来详细介绍一下它的Java方式配置：
+### jBeanBox的Java方式配置详解
+以上只是笼统演示了一下jBeanBox的Java方式配置，以下是它的Java配置方法详解：
 * setAsValue(Object) 将当前BeanBox配置成一个常量值，等同于setTarget(Obj)+setPureVale(true)
 * setPrototype(boolean) 如参数为true时表示它是一个非单例，与setSingleton方法正好相反
 * injectConstruct(Class<?>, Object...) 设定构造器注入，参数分别是类、构造器参数类型们、参数们
@@ -275,18 +218,16 @@ Java方式配置，对于BeanBox来说，还有两个特殊的方法create和con
 ```
 public static class DemoBox extends BeanBox {
 
-		public Object create(Caller caller) {
-			A a = new A();
-			a.field1 = caller.getBean(B.class);
-			return a;
+		public Object create() {
+			return new Book();
 		}
 
-		public void config(Object o, Caller caller) {
-			((A) o).field2 = caller.getBean(C.class);
+		public void config(Object o) {
+			(Book)o.setTitle("Foo");
 		}
 	}
 ```
-上例表示DemoBox中创建的Bean是由create方法来生成，由config方法来修改。如果不需要利用在方法中加载其它Bean的话，这两个方法中的Caller参数可以不写。
+上例表示DemoBox中创建的Bean是由create方法来生成，由config方法来修改。另外方法参数中也可以加入BeanBoxContext类型实例。
 
 
 ### jBeanBox的AOP(面向切面编程)
@@ -500,7 +441,6 @@ Runtime benchmark, fetch singleton bean for 5000000 times:
 ```
 虽然IOC工具大多应用在单例场合，因为从缓存中取，性能大家都差不多，但是如果遇到需要生成非单例的场合，例如每次访问生成一个新的页面实例，这时Spring就有可能成为性能瓶颈。
 
-
-以上就是对jBeanBox的介绍，没有别的文档了，因为毕竟它的核心源码也只有1500行(第三方工具如CGLIB、JSR接口等不算在内)，有问题去看看它的源码可能更简单一些。  
+以上就是对jBeanBox的介绍，没有别的文档了，因为毕竟它的核心源码也只有3000行(第三方工具如CGLIB、JSR的源码不算在内)，有问题去看看它的单元测试或是源码可能更简单一些。    
 
 更多关于jBeanBox的用法还可以在jSqlBox项目中看到它的运用(数据源的配置、声明式事务示例等)。

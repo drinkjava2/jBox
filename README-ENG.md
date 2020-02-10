@@ -1,8 +1,7 @@
 # jBeanBox 
-**License:** [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)  
-(×¢£ºÖÐÎÄ½éÉÜÇë¼û[README-CH.md](README-CH.md) )  
+**License:** [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)   
 
-jBeanBox is a micro-shaped but full-featured IOC/AOP tool. In addition to the imported third-party library, its core has only a dozen classes, and the source code is only about 1500 lines. It uses the "Box" programming model, using pure Java classes as a configuration. jBeanBox runs on JDK 1.6 or above.  
+jBeanBox is a micro-scale IOC/AOP tool. Except third-party libraries, its core source code is only about 3000 lines. It uses the "Box" programming model, using pure Java classes as a configuration. jBeanBox runs on JDK 1.6 or above.  
 The purpose of jBeanBox development is to overcome some of the problems of other IOC/AOP tools:  
 1. Spring: The source code is bloated, the Java mode is not flexible, and there are problems in dynamic configuration, configuration inheritance, slow start, and non-single-mode mode.  
 2. Guice: The source code is slightly bloated (200 classes), it is not very convenient to use, and the life cycle support of Bean is not good.  
@@ -11,25 +10,25 @@ The purpose of jBeanBox development is to overcome some of the problems of other
 5. Genie: This is the kernel of ActFramework, just a DI tool, not support AOP.  
 
 ### How to use jBeanBox?  
-Manually download jbeanbox-2.4.9.jar put into the project's class path, or add the following configuration to pom.xml:
+Add the following configuration in pom.xml:
 ```
 <dependency>
     <groupId>com.github.drinkjava2</groupId>
     <artifactId>jbeanbox</artifactId>
-    <version>2.4.9</version> <!--or newest-->
+    <version>4.0.0</version> <!-- Or newest version -->
 </dependency>
-``` 
+```   
 jBeanBox does not depend on any third-party libraries. To avoid package conflicts, third-party libraries such as CGLIB that it uses are included in jBeanBox by source code.  
 jBeanBox jar size is large, about 750K, if you do not need AOP feature, you can only use its DI kernel, called "jBeanBoxDI", only 49k size, put below in pom.xml:
 ```
 <dependency>
     <groupId>com.github.drinkjava2</groupId>
     <artifactId>jbeanboxdi</artifactId>
-    <version>2.4.9</version> <!--or newest-->
+    <version>4.0.0</version> <!-- Or newest version -->
 </dependency>
-``` 
+```
 
-### First jBeanBox demo£º  
+### First jBeanBox demo
 The demo shows 10 different injection methods:  
 ```
 public class HelloWorld {
@@ -119,11 +118,9 @@ jBeanBox not only supports Java mode configuration, but also supports annotation
 @VALUE is similar to the @Value annotation in Spring  
 @PROTOTYPE is equivalent to @Prototype annotation in Spring  
 @AOP is used to customize AOP annotations. See the AOP section for details.  
-
-jBeanBox can also support below JSR or Spring Annotations£º  
-JSR Annotations£º@PostConstruct, @PreDestroy, @Inject, @Singleton, @scope(¡°prototype¡±), @scope(¡°singleton¡±)  
-Spring Annotations£º@Autowired @Prototype  
-
+@NAMED is equivalent to @Named annotation in JSR
+@QUALIFIER is equivalent to @Qulifier annotation in JSR
+ 
 Because everyone is familiar with annotation method configuration, here has no detailed introduction, in jBeanBox\test directory can find an "AnnotationInjectTest.java" file, demonstrating the use of various annotation mode configuration. To disable JSR, Spring annotations, can use ctx.setAllowSpringJsrAnnotation(false) method. To disable all annotations (that means only Java configurationcan be used) use ctx.setAllowAnnotation(false) method.  
 Below are some demos of annotation configruation:
 ```
@@ -229,23 +226,7 @@ public static class MethodInject1 {
 	}
 }
 ```
-
-Regarding the annotation mode configuration, jBeanBox is different from other IOC tools in that it does not support the three JSR annotations: @Qualifer, @Name, and @Provider. This is because the author thinks that these 
-three annotations can be implemented with existing annotations in jBeanBox. Such as:
-```
-@Inject @Named("JDBC-URL") private String url;
-In jBeanBox can be replaced by:
-@INJECT(JDBC_URL.class) private String url; //where JDBC_URL.class is a BeanBox class
-or
-@VALUE("$JDBC-URL") private String url; //$JDBC-URL value can be translated by configuring the ValueTranslator in the BeanBoxContext.
-
-Another example:
-@Named("p") public class Person {}
-In jBeanBox, the Person class already has a unique ID: Person.class, no need to define an extra "P" as the ID, all statically defined classes, its class itself is a unique ID. jBeanBox is a singleton class for statically defined classes, so each time ctx.getBean(Person.class) gets the same singleton object.
-```
-The problem of @Named is that it is a string type, cannot be quickly located to the configuration file using IDE. When the project is configured lot injections, it is hard to maintenance.
-jBeanBox is an IOC tool that does not need to define a Bean ID. Note: If it is a manually created BeanBox configuration, the default is non-singleton class. If you use the setSingleton(true) method to hard change to a singleton, then the question is, what is its ID? Very simple, its unique ID is the dynamically created configuration instance itself. BeanBox box1=new BeanBox(A.class).setSingeton(true), then each time ctx.getBeanBox(box1) gets the same A type of singleton object. Of course, you can also use ctx.bind("id1",box1), which is equivalent to manually binding an ID value "id1", which can be obtained with getBean("id1"). jBeanBox doesn't have the ability to auto-scan, pre-create singletons, so it's very fast to start. If someone has automatic scanning, pre-created singletons, pre-bound ID names, etc., you must manually write a tool class to achieve this purpose (jBeanBox is not available), such as calling ctx.getBean at the beginning of the program run ( A.class) will temporarily store a singleton class of A in the context, which will be taken directly from the cache on the next visit.
-
+ 
 ### jBeanBox's Java configuration methods
 The example one is a general demonstration of the Java mode configuration of jBeanBox, and new let's go back to explain all Java configuration mothods in detail:
 * setAsValue(Object) configures the current BeanBox as a constant value, equivalent to setTarget(Obj)+setPureVale(true)

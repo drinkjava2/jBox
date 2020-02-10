@@ -9,7 +9,9 @@
 2.4.6 添加自定义AOPAROUND注解功能
 2.4.8 项目从头到尾重新写了一遍，性能提高。
 2.4.9 更正不支持父类的bug
-4.0.0 添加@Named, @Qualifier注解支持，添加类扫描功能，版本号直接升到4.0.0以和jSqlBox版本号对齐。
+4.0.0 添加@NAMED, @QUALIFIER, @COMPONENT注解支持，添加类扫描功能
+
+
 
 Release History
 2.4.1 First version, support Java7 only  
@@ -23,3 +25,5 @@ Release History
 	  Fix inner class advice bug
 2.4.6 Add customize AOPAROUND Annotation feature 
 2.4.8 Re-wrote whole project，improved performance.
+2.4.9 Fix superclass unsupport bug.
+4.0.0 Add @NAMED, @QUALIFIER, @COMPONENT annotation support, add class scanner. 
