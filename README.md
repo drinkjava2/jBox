@@ -5,19 +5,19 @@
 
 jBeanBox是一个微形但功能较齐全的IOC/AOP工具，用于Java6或以上环境。
 
-jBeanBox项目的定位：需要一个功能较全的IOC/AOP工具，但是又不想引入臃肿的Spring。  
- 
-其它IOC/AOP工具的问题：  
+jBeanBox项目的定位：需要一个功能较全的IOC/AOP工具，但是又不想引入臃肿的Spring。   
+
+### 其它IOC/AOP工具的问题：  
 1. Spring: 源码臃肿，Java方式的配置不灵活, 非单例模式时性能差。  
 2. Guice: 源码臃肿(200多个类)，手工绑定使用不方便，功能不全，如不支持PostConstruct、不支持类路径扫描。  
 3. Feather:源码极简(几百行)，但功能不全，只是DI工具，不支持AOP。  
-4. Dagger: 源码略臃肿(300个类)，编译期静态注入，使用不方便, 不支持AOP。  
+4. Dagger: 源码略臃肿(300个类)，编译期静态注入，性能最好，但使用不方便，不支持AOP。  
 5. Genie: 这是ActFramework项目的内核，只是DI工具，不支持AOP。  
-6. Nutz、jFinal等项目中也有IOC/AOP模块，但它们没有独立出来，并且没有考虑JSR330、AOP联盟等业界标准，通用性差。    
+6. Nutz、jFinal等Web开发框架中也有IOC/AOP工具，但它们没有独立出来，并且没有考虑JSR330、AOP联盟等业界标准，通用性差。    
 
 ### jBeanBox的主要优点
 1. 功能较全，Java配置、注解配置、Bean生命周期支持、循环依赖检测和注入、AOP这些功能都具备。
-2. 源码简洁，除了引入的第三方库外，本身核心源码只有3000行左右，源码短小本身就说明了它架构的合理性。
+2. 源码简洁，除了引入的第三方库外，核心源码只有3000行左右，源码短小本身就说明了它架构的合理性。
 3. 采用原生Java作为配置，更简单易用。它的配置类BeanBox是一个纯Java类而不是一个代理类，可以作为静态配置存在，支持配置的继承、重写等特性, 也可以在运行期动态生成、修改，比Spring的Java配置方式更强大、灵活。   
 4. 兼容性好，支持大多数JSR330、JSR250标准注解，并且兼容主要Spring注解。  
 
@@ -31,18 +31,19 @@ jBeanBox项目的定位：需要一个功能较全的IOC/AOP工具，但是又�
 </dependency>
 ```
 jBeanBox只有单个jar包，不依赖于任何第三方库，为避免包冲突，它已经将用到的CGLIB等第三方库以源码内嵌的方式包含在了项目中。
-jBeanBox的jar包尺寸较大，约为700K, 如果用不到AOP代理功能，可以只使用它的DI内核，称为"jBeanBoxDI", 只有约50k大小，将上面artifactId中的jbeanbox改成jbeanboxdi即可，jBeanBoxDI项目详见jbeanboxdi子目录。   
+jBeanBox的jar包尺寸较大，约为460K, 如果用不到AOP代理功能，可以只使用它的DI内核，称为"jBeanBoxDI", 只有约50k大小，将上面artifactId中的jbeanbox改成jbeanboxdi即可，jBeanBoxDI项目详见jbeanboxdi子目录。   
+顺便说一下，jSqlBox从4.0.0版起已经用源码内嵌的方式将jBeanBox包含到jSqlBox中去了，所以使用了jSqlBox的项目就不用再添加jBeanBox依赖了。jSqlBox是一个持久层工具，它利用jBeanBox的AOP功能提供声明式事务，而无需依赖Spring。
 
 ### jBeanBox注解方式配置
 jBeanBox有Java方式配置和注解方式配置两种使用方式。先用一张图来显示它支持的注解，以及与Spring、Guice的区别：  
 ![image](compare.png)      
-从上图可以看出，jBeanBox的功能较全，它除了自带注解外，还可以直接使用Spring及JSR330、JSR250的一些注解。
+从上图可以看出，jBeanBox的功能较全，它除了自带注解外，还可以直接使用Spring及JSR330、JSR250的一些注解。红字部分为4.0.0版增加的功能。  
 
 jBeanBox自带以下注解(全部是大写)：  
 @INJECT  类似JSR中的@Inject注解，但它有个附加的参数是允许添加可选的目标类或BeanBox配置类(见下文介绍)作为参数，如@INJECT(Book.class) 或 @INJECT(BookBox.class)   
 @POSTCONSTRUCT  等同于JSR中的@PostConstruct注解  
 @PREDESTROY  等同于JSR中的@PreDestroy注解  
-@VALUE 等同于Spring中的@Value注解, 参数将被解析为对应的值类型, 如@VALUE("3") int a; 参数将被解析为整数3。但与Spring不同的是jBeanBox不支持在@Value参数中的EL模板语法，这需要自定义   
+@VALUE 等同于Spring中的@Value注解, 参数将被解析为对应的值类型, 如@VALUE("3") int a; 参数将被解析为整数3。但与Spring不同的是jBeanBox不支持在@Value参数中的EL模板语法，需要通过自定义ValueTranslator实现。  
 @PROTOTYPE  等同于Spring中的@Prototype注解  
 @AOP 用于自定义AOP注解，详见AOP一节  
 @COMPONENT 用法等同于Spring中的@Component注解，它需要与jBeanBox的类扫描功能联用，用来自动发现注册指定类下的所有Bean类, 例如JBEANBOX.scanComponents("com.foo")可以扫描包"tom.foo"下的所有被@Component标注的类：  
@@ -57,13 +58,11 @@ jBeanBox也可以用JBEANBOX.ctx().setAllowAnnotation(false)去禁用包括自�
  
 jBeanBox对于静态定义的类，如果没有任何注解定义，默认均为单例类，所以每次ctx.getBean(SomeClass.class)都会获得同一个单例对象。   
 
-jBeanBox不建议在项目中使用@Named，它主要问题是不支持IDE定位，如ctx.getBean("jdbcURL"), 无法利用IDE快速定位到配置文件，不利于维护。  
+jBeanBox不建议在项目中使用@Named或@Qualifier，它们的主要问题是不支持IDE定位，如ctx.getBean("jdbcURL")无法利用IDE快速定位到配置文件，不利于维护。jBeanBox新增这两个注解的支持主要是考虑兼容性。  
 
-注意：当手工动态创建BeanBox配置时，例如BeanBox box=new BeanBox(A.class).setSingleton(true),并设定配置为单例，那问题来了，它的ID是什么? 很简单，它的唯一ID就是这个动态创建的配置实例本身box, 每次ctx.getBean(box)就会获得同一个A类型的单例对象。反之，如果上面设为多例，即setSingleton(false), 则每次调用ctx.getBean(box)就会每次创建一个A的新实例。     
-  
-jBeanBox支持类似Guice中的绑定语法，可以用ctx.bind("id",box)方法手工给目标类或配置类绑定一个ID值,然后用getBean("id")来获取它。绑定是链式的，键可以是任意对象类型，键也可以作为目标
+jBeanBox支持类似Guice中的绑定语法，可以用ctx.bind("xxId",box)方法手工给目标类或配置类绑定一个ID值,然后用getBean("xxId")来获取它。绑定是链式的，键可以是任意对象类型，键本身也可以作为目标，形成一个链式查找。
 
-jBeanBox默认不进行类的自动扫描，所以启动非常快速。如果需要对包进行类扫描，把所有@COMPONENT注解标记的类登记到容器里，必须手工调用ctx.scanComponents("包名1","包名2"...)来进行扫描，包名可以包含一个星号通配符。手工扫描只是进行配置的登记，并不创建Bean的实例，也就是说jBeanBox的所有Bean都是懒初始化的，直到碰到getBean方法或@INJECT注入时，才会开始创建Bean的实例。
+jBeanBox默认不进行类的自动扫描，所以启动非常快速。如果需要对包进行类扫描，把所有@COMPONENT注解标记的类登记到容器里，必须手工调用ctx.scanComponents("包名1","包名2"...)来进行扫描，包名可以包含一个星号通配符。手工扫描只是进行配置的登记，并不创建Bean的实例，也就是说jBeanBox的所有Bean都是懒初始化的，直到碰到getBean方法或@INJECT注入时，才会开始创建Bean的实例。如果需要在程序启动时初始化单例类，必须手工调用一次getBean()方法，从而生成单例实例并缓存在bean容器里。
 
 因为注解注入方式大家比较熟悉，与Spring/Guice/JSR标准中的命名和用法类似，这里就不作详细介绍了，在jBeanBox\test目录下能找到各种使用演示，如：  
 ```
@@ -233,8 +232,8 @@ public static class DemoBox extends BeanBox {
 jBeanBox功能大都可以用Java配置或注解配置两种方式来实现，同样地，它对AOP的支持也有两种方式：
 
 #### Java方式AOP配置
-* someBeanBox.addMethodAop(Object, String, Class<?>...) 对某个方法添加AOP，参数分别是AOP类或实例、方法名、参数类型们
-* someBeanBox.addBeanAop(Object, String) 对整个Bean添加AOP,参数分别是AOP类或实例、方法规则(如"setUser＊")
+* someBeanBox.addMethodAop(Object, String, Class<?>...) 对某个方法添加AOP，参数分别是AOP类或实例、方法名、参数类型们。  
+* someBeanBox.addBeanAop(Object, String) 对整个Bean添加AOP,参数分别是AOP类或实例、方法规则(如"setUser＊|getName＊")。  
 * someBeanBoxContext.addContextAop(Object, Object, String);对整个上下文添加AOP规则，参数分别是AOP类或实例、类或类名规则、方法名规则。  
 以上三个方法分别对应三种不同级别的AOP规则，第一个方法只针对方法，第二个方法针对整个类，第三个方法针对整个上下文。以下是一个AOP的Java配置示例：
 ```
@@ -277,7 +276,7 @@ public static class AopDemo1 {
 
 	@Test
 	public void aopTest1() {
-		JBEANBOX.bctx().addContextAop(ContextAOP.class, AopDemo1.class, "setEm*");
+		JBEANBOX.ctx().addContextAop(ContextAOP.class, AopDemo1.class, "setEm*");
 		AopDemo1 demo = JBEANBOX.getBean(AopDemo1Box.class);
 		demo.setName("--");
 		Assert.assertEquals("1", demo.name);
@@ -287,7 +286,7 @@ public static class AopDemo1 {
 		Assert.assertEquals("3", demo.email);
 	}
 ```
-jBeanBox中的命名匹配规则采用星号做为模糊匹配字符，代表任意长度、任意字符，但只允许出现一个星号。
+jBeanBox中的命名匹配规则采用星号做为模糊匹配字符，代表任意长度、任意字符，但一个规则里只允许出现一个星号，多个规则之间用"|"号分隔。
 
 #### 注解方式AOP配置
 注解方式AOP只有两种类型，针对方法的和针对类的，没有针对上下文的。注解方式配置使用方便，但前提是必须要有源码存在。
@@ -370,11 +369,12 @@ A a = JBEANBOX.getBean(A.class);
 Assert.assertTrue(a == a.b.a);//true
 ```
 ### jBeanBox支持多上下文和Bean生命周期
-jBeanBox支持多个上下文实例(BeanBoxContext)，每个上下文实例都是互不干拢的。例如一个User.class可以在3个上下文中各自用不同的配置方式(注解、Java)生成3个“单例”，这3个“单例”都是相对于当前上下文唯一的，它们的属性与各自的配置有关。  
+jBeanBox支持多个上下文实例(BeanBoxContext)，上下文也可以称为Bean容器。每个上下文实例都是互不干拢的。例如一个User.class可以在3个上下文中各自用不同的配置方式(注解、Java)生成3个“单例”，这3个“单例”都是相对于当前上下文唯一的，它们的属性与各自的配置有关。  
   
-JBEANBOX.getBean()方法是利用了一个缺省的全局上下文，可以用JBEANBOX.bctx()方法来获取，所以如果一个项目中不需要用到多个上下文，可以直接使用JBEANBOX.getBean()方法来获取实例，这样可以节省一行创建一个新上下文的代码。  
+JBEANBOX.getBean()方法是利用了一个缺省的全局上下文，可以用JBEANBOX.ctx()方法来获取这个全局上下文，所以如果一个项目中不需要用到多个上下文，可以直接使用JBEANBOX.getBean()方法，这样更方便。  
+JBEANBOX不是jBeanBox项目的关键类，它只是提供了一组静态全局方法供调用，以操纵默认的缺省全局上下文。
 
-BeanBoxContext的每个实例都在内部维护着配置信息、单例缓存等，在BeanBoxContext实例的close方法被调用后，它的配置信息和单例被清空，当然，在清空之前，所有单例类的PreDestroy方法（如果有的话)被调用运行。所以对于需要回调PreDestroy方法的上下文来说，在关闭时不要忘了调用close方法。对于缺省的全局上下文来说就是JBEANBOX.close()方法。
+BeanBoxContext的每个实例都在内部维护着配置信息、单例缓存等，在BeanBoxContext实例的close方法被调用后，它的配置信息和单例被清空，当然，在清空之前，所有单例类的PreDestroy方法（如果有的话)被调用运行。所以对于需要回调PreDestroy方法的上下文来说，在关闭时不要忘了手工调用reset方法（或close方法)进行收尾清理。
 
 BeanBoxContext的常用方法详解：
 * reset() 这个静态方法重置所有静态全局配置，并调用缺省上下文实例的close方法。
@@ -392,10 +392,11 @@ BeanBoxContext的常用方法详解：
 * setValueTranslator(ValueTranslator) 设定对于@VALUE注解中的字符串参数如何解析它，例如@VALUE("#user")，系统默认返回"#user"字符串，如果需要不同的解析，例如读取属性文本中的值，则需要自已设定一个实现了ValueTranslator接口的实例。  
 
 ### jBeanBox的性能
-以下为jBeanBox的性能与其它IOC工具的对比，只对比DI注入功能，搭建一个由6个对象组成的实例树,可见jBeanBox创建非单例的速度比Guic慢一倍、比Spring快45倍左右。    
+以下为jBeanBox的性能与其它IOC工具的对比，只对比DI注入功能，搭建一个由6个对象组成的实例树,可见jBeanBox创建非单例的速度比Guic慢一倍、比Spring快45倍左右。一般来说，IOC工具多应用在单例场合，因为从缓存中取，性能大家都差不多，所以性能不是关键。但是如果遇到个别需要频繁生成非单例的场合，例如每次访问生成一个新的页面对象实例，这时Spring就有可能成为性能瓶颈。   
+
 测试程序详见：[di-benchmark]（https://github.com/drinkjava2/di-benchmark)  
 ```
-Runtime benchmark, fetch new bean for 500000 times:
+Runtime benchmark, fetch new bean for 500000 times: 
 ---------------------------------------------------------
                      Vanilla|    31ms
                        Guice|  1154ms
@@ -438,7 +439,6 @@ Runtime benchmark, fetch singleton bean for 5000000 times:
      SpringJavaConfiguration|  1061ms
      SpringAnnotationScanned|  1045ms
 ```
-虽然IOC工具大多应用在单例场合，因为从缓存中取，性能大家都差不多，但是如果遇到需要生成非单例的场合，例如每次访问生成一个新的页面实例，这时Spring就有可能成为性能瓶颈。
 
 以上就是对jBeanBox的介绍，没有别的文档了，因为毕竟它的核心源码也只有3000行(第三方工具如CGLIB、JSR的源码不算在内)，我怕再写下去，使用说明会超过它的源码行数，有问题去看看它的源码或单元测试可能更简单一点。    
 

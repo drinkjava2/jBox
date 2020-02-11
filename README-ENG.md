@@ -19,7 +19,7 @@ Add the following configuration in pom.xml:
 </dependency>
 ```   
 jBeanBox does not depend on any third-party libraries. To avoid package conflicts, third-party libraries such as CGLIB that it uses are included in jBeanBox by source code.  
-jBeanBox jar size is large, about 750K, if you do not need AOP feature, you can only use its DI kernel, called "jBeanBoxDI", only 49k size, put below in pom.xml:
+jBeanBox jar size is large, about 460K, if you do not need AOP feature, you can only use its DI kernel, called "jBeanBoxDI", only 49k size, put below in pom.xml:
 ```
 <dependency>
     <groupId>com.github.drinkjava2</groupId>
@@ -316,8 +316,8 @@ public static class AopDemo1 {
 
 	@Test
 	public void aopTest1() {
-		JBEANBOX.bctx().bind("3", GlobalAOP.class);
-		JBEANBOX.bctx().addGlobalAop("3", AopDemo1.class, "setEm*");
+		JBEANBOX.ctx().bind("3", GlobalAOP.class);
+		JBEANBOX.ctx().addGlobalAop("3", AopDemo1.class, "setEm*");
 		AopDemo1 demo = JBEANBOX.getBean(AopDemo1Box.class);
 		demo.setName("--");
 		Assert.assertEquals("1", demo.name);
@@ -412,7 +412,7 @@ Assert.assertTrue(a == a.b.a);//true
 ### jBeanBox supports multiple contexts and Bean lifecycle
 jBeanBox supports multiple context instances (BeanBoxContext), and each context instance does not. For example, a User.class can generate three singletons in different contexts (annotations, Java) in three contexts. These three "singletons" are unique relative to the current context, and their properties and their respective Configuration related.  
   
-The JBEANBOX.getBean() method takes advantage of a default global context, which can be retrieved using the JBEANBOX.bctx() method, so if you don't need multiple contexts in a project, you can use the JBEANBOX.getBean() method directly. Get the instance, which saves a line of code that creates a new context.  
+The JBEANBOX.getBean() method takes advantage of a default global context, which can be retrieved using the JBEANBOX.ctx() method, so if you don't need multiple contexts in a project, you can use the JBEANBOX.getBean() method directly. Get the instance, which saves a line of code that creates a new context.  
 
 Each instance of BeanBoxContext maintains configuration information, singleton cache, etc. internally. After the close method of the BeanBoxContext instance is called, its configuration information and singleton are cleared. Of course, before the emptying, all singletons of PreDestroy are cleared. The method (if any) is called to run. So for the context that needs to call back the PreDestroy method, don't forget to call the close method when closing. For the default global context, this is the JBEANBOX.close() method.  
 
